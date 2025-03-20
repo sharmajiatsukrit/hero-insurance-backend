@@ -1,5 +1,6 @@
 import expres, { Router } from "express";
 import UserRoutes from "./user";
+import ThirdPartyRoutes from "./thirdparty";
 
 import AdminRoutes from "./admin";
 
@@ -12,6 +13,7 @@ routes.get("/", (_req, res) => {
 // routes.use("/auth", AuthRoutes);
 routes.use("/admin", AdminRoutes);
 routes.use("/user", UserRoutes);
+routes.use("/thirdparty/hero", ThirdPartyRoutes);
 
 
 

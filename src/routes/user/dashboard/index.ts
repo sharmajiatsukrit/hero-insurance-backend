@@ -1,5 +1,5 @@
 import expres, { Router } from "express";
-import DashboardController from "../../../controllers/user/dashboard";
+import DashboardController from "../../../controllers/user/thirdparty";
 import { UserRouteEndPoints, AdminRouteEndPoints } from "../../../enums/user";
 import { authRequest, validateRequest } from "../../../utils/middleware";
 import { upload } from "../../../utils/storage";

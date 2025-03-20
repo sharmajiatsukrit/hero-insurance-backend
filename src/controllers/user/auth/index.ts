@@ -11,7 +11,8 @@ import { removeObjectKeys, serverResponse, getDeviceDetails, serverErrorHandler,
 import { HttpCodeEnum } from "../../../enums/server";
 import { UserData } from "../../../interfaces/user";
 import { updateSeesionWithIpInfo } from "../../../utils/query";
-import { sendSMS } from "../../../utils/pinnacle";
+// import { sendSMS } from "../../../utils/pinnacle";
+import { sendSMS } from "../../../utils/smsgupshup";
 import validate from "./validate";
 import { SessionManageData } from "../../../interfaces/session";
 // import { getSubscriberData, getUserEncryptedData } from "../../utils/query/subscriber";
@@ -54,28 +55,28 @@ export default class AuthController {
 
             if (!userData) {
                 // User does not exist, register the user
-                const newUser = await Customer.create({ phone: phone,parent_id:null,status:1 });
-                const settings:any = await Setting.findOne({ key: "customer_settings" }).lean();
-                const reachare: any = await Wallet.create({
-                    balance: settings.value.new_registration_topup,
-                    customer_id: newUser._id
-                });
+                const newUser = await Customer.create({ phone: phone,status:1 });
+                // const settings:any = await Setting.findOne({ key: "customer_settings" }).lean();
+                // const reachare: any = await Wallet.create({
+                //     balance: settings.value.new_registration_topup,
+                //     customer_id: newUser._id
+                // });
 
-                const transaction: any = await Transaction.create({
-                    amount: settings.value.new_registration_topup,
-                    gst: 0,
-                    transaction_id: '',
-                    razorpay_payment_id: '',
-                    status: 1,
-                    remarks: "Free registration TOPUP",
-                    customer_id: newUser._id
-                });
+                // const transaction: any = await Transaction.create({
+                //     amount: settings.value.new_registration_topup,
+                //     gst: 0,
+                //     transaction_id: '',
+                //     razorpay_payment_id: '',
+                //     status: 1,
+                //     remarks: "Free registration TOPUP",
+                //     customer_id: newUser._id
+                // });
                 userData = newUser;
             }
 
             // Generate OTP for the user
             const otp = await this.generateOtp(userData.id);
-            const mess = await sendSMS(phone,`${otp} is OTP for JustBuySell login. Keep this code secure and do not share it with anyone.`);
+            const mess = await sendSMS(phone,`${otp} is your One Time Password (OTP) for login into your account. Please do not share your OTP with anyone. - HIBIPL`);
             // console.log(mess.data);
             return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "otp-sent"), mess.data);
 
@@ -86,7 +87,7 @@ export default class AuthController {
 
     public async verifyLoginOTP(req: Request, res: Response): Promise<any> {
         try {
-            const fn = "[verifyOtpForForgetPassword]";
+            const fn = "[verifyLoginOTP]";
             // Set locale
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
@@ -105,6 +106,7 @@ export default class AuthController {
             if (!verifyOtp) {
                 throw new Error(constructResponseMsg(this.locale, "in-otp"));
             }
+            await Customer.findOneAndUpdate({id:userData.id},{is_sms_verified:true});
 
             const formattedUserData = await this.fetchUserDetails(userData.id);
             const session = await this.createSession(userData._id, userData.id, phone, req, userData.status, remember);
@@ -142,9 +144,10 @@ export default class AuthController {
 
     // Checked with encryption
     private async generateOtp(userId: number): Promise<number> {
-        const minNo = 100000;
-        const maxNo = 999999;
-        const otp = Math.floor(Math.random() * (maxNo - minNo + 1)) + minNo;
+        const minNo = 1000;
+        const maxNo = 9999;
+        // const otp = Math.floor(Math.random() * (maxNo - minNo + 1)) + minNo;
+        const otp = 1234;
         const hashedOtp = await Bcrypt.hash(otp.toString(), 10);
 
         const isOTPExist = await Otps.where({ user_id: userId }).countDocuments();

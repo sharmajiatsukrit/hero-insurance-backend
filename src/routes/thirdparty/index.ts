@@ -5,7 +5,7 @@ import AuthRoutes from "../user/auth";
 
 import Deviceid from "./deviceid";
 
-import DashboardRoutes from "./dashboard";
+import HeroRoutes from "./hero";
 import NotificationRoutes from "../user/notification";
 import HelperRoutes from "../user/helper";
 
@@ -16,9 +16,9 @@ routes.use("/auth", AuthRoutes);
 
 routes.use("/firebase", Deviceid);
 
-routes.use("/dashboard", DashboardRoutes);
-routes.use("/notifications", NotificationRoutes);
-routes.use("/helper", HelperRoutes);
+routes.use("/integration", HeroRoutes);
+// routes.use("/notifications", NotificationRoutes);
+// routes.use("/helper", HelperRoutes);
 
 
 export default routes;

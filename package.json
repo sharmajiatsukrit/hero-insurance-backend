@@ -14,6 +14,7 @@
     },
     "dependencies": {
         "@aws-sdk/client-secrets-manager": "^3.329.0",
+        "@types/nodemailer": "^6.4.17",
         "aws-sdk": "^2.1419.0",
         "axios": "^1.4.0",
         "bcryptjs": "^2.4.3",
@@ -30,6 +31,7 @@
         "mongoose-field-encryption": "7.0.1",
         "mongoose-plugin-autoinc": "^1.1.9",
         "multer": "^1.4.5-lts.1",
+        "nodemailer": "^6.10.0",
         "path": "^0.12.7",
         "pinnacle_sms_plugin": "^1.0.2",
         "razorpay": "^2.9.5",

@@ -41,6 +41,27 @@ function serverErrorHandler(err: any, response: Response, message: string = "", 
     });
 }
 
+function serverThirdPartyErrorHandler(err: any, response: Response, message: string = "", code: number = HttpCodeEnum.SERVERERROR, data: any = []): Response<any> {
+    Logger.error(err);
+    if (err.name === "Error") {
+        return response.status(HttpCodeEnum.OK).json({
+            status: false,
+            code: HttpCodeEnum.OK,
+            message: message || "An error occured",
+            data,
+            error: err,
+        });
+    }
+
+    return response.status(code).json({
+        status: false,
+        code: code,
+        message: "Internal server error",
+        data: [],
+        error: err,
+    });
+}
+
 function serverInvalidRequest(req: Request, res: Response, message: string = "") {
     return res.status(HttpCodeEnum.BADREQUEST).json({
         status: false,
@@ -220,6 +241,7 @@ export {
     groupByDate,
     constructResponseMsg,
     serverInvalidRequest,
+    serverThirdPartyErrorHandler,
     encryptTextInternal,
     decryptTextInternal,
     firebaseUrlShortner,
