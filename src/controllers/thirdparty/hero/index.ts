@@ -34,7 +34,7 @@ export default class HeroController {
 
                 const data:any = { first_name, last_name,mobile_no,email_id, reg_no,segment,redirection,source,utm,seller_details };
                 const headers:any = {};
-                const result = await networkRequest('POST','https://uatmotorapi.heroinsurance.com/api/hibl-lead-generation',data,headers);
+                const result = await networkRequest('POST','https://apimotor.heroinsurance.com/api/hibl-lead-generation',data,headers);
                 console.log(result.data);
                 
                 if (result) {
@@ -55,15 +55,15 @@ export default class HeroController {
             const { formdata } = req.body;
 
 
-            const login = await networkRequest('POST','https://uatdashboard.heroinsurance.com/generate_login_token_hero_sso',{
-                                    username:"HEROLOGINSSO",
-                                    password:"P8r0AL5sRagd"
+            const login = await networkRequest('POST','https://dashboard.heroinsurance.com/generate_login_token_hero_sso',{
+                                    username:"HEROPRODSSO",
+                                    password:"M9r0HL8sRado"
                                 },{});
             console.log(login.data);
             if(login.data.status){
                 const data:any = { "access-token":login.data.token, formdata:formdata };
                 const headers:any = {};
-                const result = await networkRequest('POST','https://uatdashboard.heroinsurance.com/login_token_validate',data,headers);
+                const result = await networkRequest('POST','https://dashboard.heroinsurance.com/login_token_validate',data,headers);
                 // console.log(result.data);
                 
                 if (result) {
@@ -86,22 +86,22 @@ export default class HeroController {
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
 
-            const { section, name,email,gender, mobile,params,utm,seller_details,type,members,plan_type,pincode,existing_diseases,unified_lead,from_unified_enquiry } = req.body;
+            const { section, name,email,gender, mobile,source,params,utm,seller_details,type,from_unified_enquiry } = req.body;
             const lastNO:any = await UnifiedLead.findOne({  }).sort({ unique_no: -1 });
-            // console.log(lastNO);
+            
             let unique_generate: any = 0;
             if (lastNO) {
                 unique_generate = parseInt(lastNO.unique_no) + 1;
             } else {
                 unique_generate = 1;
             }
-            console.log(unique_generate.toString().padStart(7, '0'));
+            
             const unique_id:any = await UnifiedLead.create({unique_no: unique_generate.toString().padStart(7, '0')});
-            const data:any = { section, name,email,gender, mobile,params,utm,seller_details,type,members,plan_type,pincode,existing_diseases,unified_lead:'UL'+unique_id.unique_no.toString().padStart(7, '0'),from_unified_enquiry };
-            console.log(data);
+            const data:any = { section, name,email,gender, mobile,params,source,utm,seller_details,type,unified_lead:'UL'+unique_id.unique_no.toString().padStart(7, '0'),from_unified_enquiry };
+            // console.log(data);
             const headers:any = {'SHOW-FULL-TRACE':''};
-                const result = await networkRequest('POST','https://uathealthapi.heroinsurance.com/api/v1/unified_enquiries',data,headers);
-                // console.log(result.status);
+            const result = await networkRequest('POST','https://apihealth.heroinsurance.com/api/v1/unified_enquiries',data,headers);
+            // console.log(result);
                 
                 if (result) {
                     return serverResponse(res, HttpCodeEnum.OK, "Success", result.data);
@@ -109,7 +109,7 @@ export default class HeroController {
                     throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
                 }
         } catch (err: any) {
-            console.log(err.response.data);
+            console.log(err.response);
             return res.status(500).json({
                 status: err.response.data.status,
                 code: err.response.data.code,
@@ -117,7 +117,7 @@ export default class HeroController {
                 data: [],
                 error: err,
             });
-            return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
+            // return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
         }
     }
 
@@ -131,7 +131,7 @@ export default class HeroController {
             console.log(token);
             const data:any = { username, password };
                 const headers:any = {"Authorization":"Bearer "+token};
-                const result = await networkRequest('POST','https://misp.heroinsurance.com/uat/services/HeroOne/api/Login/ValidateMISPLogin',data,headers);
+                const result = await networkRequest('POST','https://misp.heroinsurance.com/prod/services/HeroOne/api/Login/ValidateMISPLogin',data,headers);
                 console.log(result.data);
                 
                 if (result) {
@@ -152,8 +152,8 @@ export default class HeroController {
             const { auth_user, auth_pass } = req.body;
             const data:any = { auth_user, auth_pass };
             const headers:any = {};
-            const result = await networkRequest('GET','https://misp.heroinsurance.com/uat/services/HeroOne/api/Authenticate/MISPAuthorization',data,headers);
-            console.log(result.data);
+            const result = await networkRequest('GET','https://misp.heroinsurance.com/prod/services/HeroOne/api/Authenticate/MISPAuthorization',data,headers);
+            // console.log(result.data);
             
             if (result) {
                 return serverResponse(res, HttpCodeEnum.OK, "Success", result.data);
@@ -175,7 +175,7 @@ export default class HeroController {
             console.log(token);
             const data:any = { MobileNo, Registration_No };
                 const headers:any = {"Authorization":"Bearer "+token};
-                const result = await networkRequest('POST','https://misp.heroinsurance.com/uat/services/HeroOne/api/Policy/RenewalLink',data,headers);
+                const result = await networkRequest('POST','https://misp.heroinsurance.com/prod/services/HeroOne/api/Policy/RenewalLink',data,headers);
                 console.log(result.data);
                 
                 if (result) {
@@ -195,11 +195,11 @@ export default class HeroController {
             const authorization:any = req.headers.authorization;
             const { CPID } = req.body;
             const token = authorization.split(" ")[1];
-            console.log(token);
+            // console.log(token);
             const data:any = { CPID };
                 const headers:any = {"Authorization":"Bearer "+token};
-                const result = await networkRequest('POST','https://misp.heroinsurance.com/uat/services/HeroOne/api/ChannelPartner/CPDetails',data,headers);
-                console.log(result.data);
+                const result = await networkRequest('POST','https://misp.heroinsurance.com/prod/services/HeroOne/api/ChannelPartner/CPDetails',data,headers);
+                // console.log(result.data);
                 
                 if (result) {
                     return serverResponse(res, HttpCodeEnum.OK, "Success", result.data);
@@ -245,9 +245,13 @@ export default class HeroController {
 
             const { d } = req.body;
             const data:any = { d:d };
-            const headers:any = {"X-CleverTap-Account-Id":"TEST-Z86-97R-4W7Z","X-CleverTap-Passcode":"GYC-TMC-ASEL"};
+            const headers1:any = req.headers
+            const accountID = req.headers['x-clevertap-account-id'];
+            const accountPass = req.headers['x-clevertap-passcode'];
+            console.log(accountID,accountPass,headers1);
+            const headers:any = {"X-CleverTap-Account-Id":accountID,"X-CleverTap-Passcode":accountPass};
             const result = await networkRequest('POST','https://in1.api.clevertap.com/1/upload',data,headers);
-            // console.log(result.data);
+            // console.log(result.data);https://in1.api.clevertap.com/1/upload
             
             if (result) {
                 return serverResponse(res, HttpCodeEnum.OK, "Success", result.data);

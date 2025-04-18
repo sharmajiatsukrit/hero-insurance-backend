@@ -33,4 +33,5 @@ import Faqs from "./faqs";
 import Setting from "./setting";
 import Invoice from "./invoice";
 import UnifiedLead from "./unified-lead";
-export { DataBase, User, Customer, Location, Deviceid, Sessions, Otps, Roles, Permissions, Configs, Notifications,UnifiedLead, Category, Product,ProductVariation, Country, State, City, Unit, Attribute, AttributeItem, ProductRequest, Offers, Banner, Watchlist, WatchlistItem, Wallet, Transaction, ReportIssues, Faqs, Setting,UnlockOffers,Rating,Invoice };
+import ApiLog from "./api-log";
+export { DataBase, User, Customer,ApiLog, Location, Deviceid, Sessions, Otps, Roles, Permissions, Configs, Notifications,UnifiedLead, Category, Product,ProductVariation, Country, State, City, Unit, Attribute, AttributeItem, ProductRequest, Offers, Banner, Watchlist, WatchlistItem, Wallet, Transaction, ReportIssues, Faqs, Setting,UnlockOffers,Rating,Invoice };
