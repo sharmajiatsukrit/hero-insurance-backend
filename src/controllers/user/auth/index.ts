@@ -62,6 +62,7 @@ export default class AuthController {
 
             // Generate OTP for the user
             const otp = await this.generateOtp(userData.id);
+            // const mess = {data:{}};
             const mess = await sendSMS(phone,`${otp} is your One Time Password (OTP) for login into your account. Please do not share your OTP with anyone. - HIBIPL`);
             // console.log(mess.data);
             return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "otp-sent"), mess.data);
@@ -142,7 +143,7 @@ export default class AuthController {
         // const otp = 1234;
         
 
-        const otpValidDate = moment().add(60*24, 'minutes');
+        const otpValidDate = moment().add(60*24, 'minutes').format('YYYY-MM-DD HH:mm:ss');
         // networkRequest('POST', url: string, data = {}, headers = {});
         if (!isOTPExist) {
             otp = Math.floor(Math.random() * (maxNo - minNo + 1)) + minNo;
@@ -155,18 +156,20 @@ export default class AuthController {
             });
         } else {
             const isValidOtp = moment(isOTPExist.valid_till).diff(moment(), 'minutes') > 0;
+            console.log(moment(isOTPExist.valid_till).diff(moment(), 'minutes'));
             if(isValidOtp){
                  otp = isOTPExist.openotp;
             }else{
                  otp = Math.floor(Math.random() * (maxNo - minNo + 1)) + minNo;
+                 const hashedOtp = await Bcrypt.hash(otp.toString(), 10);
+                    await Otps.findOneAndUpdate({ user_id: userId }, {
+                        otp: hashedOtp,
+                        openotp: otp,
+                        valid_till: otpValidDate
+                    });
             }
 
-            const hashedOtp = await Bcrypt.hash(otp.toString(), 10);
-            await Otps.findOneAndUpdate({ user_id: userId }, {
-                otp: hashedOtp,
-                openotp: otp,
-                valid_till: otpValidDate
-            });
+            
         }
 
         return Promise.resolve(otp);
@@ -174,7 +177,7 @@ export default class AuthController {
 
     // Checked with encryption
     private async verifyOtp(userId: number, otp: number): Promise<boolean> {
-        const otpFromDB = await Otps.findOne({ user_id: userId }).lean();
+        const otpFromDB:any = await Otps.findOne({ user_id: userId }).lean();
 
         if (!otpFromDB) {
             return Promise.resolve(false);

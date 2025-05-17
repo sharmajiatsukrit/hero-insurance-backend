@@ -6,14 +6,14 @@ interface IOtps extends Document {
     user_id: number;
     otp: string;
     openotp: string;
-    valid_till: Date;
+    valid_till: String;
 }
 
 const otpSchema: Schema = new Schema({
     user_id: { type: Number },
     otp: { type: String, default: '' },
     openotp: { type: String, default: '' },
-    valid_till: { type: Date }
+    valid_till: { type: String }
 },
 {
     timestamps: true,

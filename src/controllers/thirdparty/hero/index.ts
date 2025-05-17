@@ -262,4 +262,71 @@ export default class HeroController {
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
         }
     }
+
+    public async getDetails(req: Request, res: Response): Promise<any> {
+        try {
+            const { locale } = req.query;
+            this.locale = (locale as string) || "en";
+            const authorization:any = req.headers.authorization;
+            const { MobileNo, Registration_No } = req.body;
+            const token = authorization.split(" ")[1];
+            // console.log(token);
+            const data:any = { MobileNo, Registration_No };
+                const headers:any = {"Authorization":"Bearer "+token};
+                const result = await networkRequest('POST','https://misp.heroinsurance.com/uat/services/HeroOne/api/Policy/PolicyDetails',data,headers);
+                console.log(result.data);
+                
+                if (result) {
+                    return serverResponse(res, HttpCodeEnum.OK, "Success", result.data);
+                } else {
+                    throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
+                }
+        } catch (err: any) {
+            return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
+        }
+    }
+
+
+    public async generateProposalToken(req: Request, res: Response): Promise<any> {
+        try {
+            const { locale } = req.query;
+            this.locale = (locale as string) || "en";
+            const authorization:any = req.headers.authorization;
+            // console.log(token);
+            const data:any = { api_endpoint:"https://uatmotorapi.heroinsurance.com/api/proposalReports" };
+                const headers:any = {"Authorization":"Basic d2Vic2VydmljZTFAZnludHVuZS5jb206VGVzdGluZ0AxMjM0"};
+                const result = await networkRequest('POST','https://uatmotorapi.heroinsurance.com/api/tokenGeneration',data,headers);
+                console.log(result.data);
+                
+                if (result) {
+                    return serverResponse(res, HttpCodeEnum.OK, "Success", result.data);
+                } else {
+                    throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
+                }
+        } catch (err: any) {
+            return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
+        }
+    }
+
+    public async proposalReport(req: Request, res: Response): Promise<any> {
+        try {
+            const { locale,page } = req.query;
+            this.locale = (locale as string) || "en";
+            const validation:any = req.headers.validation;
+            
+            // console.log(token);
+            const data:any = req.body;
+                const headers:any = {"validation":validation};
+                const result = await networkRequest('POST','https://uatmotorapi.heroinsurance.com/api/proposalReports?page='+page,data,headers);
+                console.log(result.data);
+                
+                if (result) {
+                    return serverResponse(res, HttpCodeEnum.OK, "Success", result.data);
+                } else {
+                    throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
+                }
+        } catch (err: any) {
+            return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
+        }
+    }
 }

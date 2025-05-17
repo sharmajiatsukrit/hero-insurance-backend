@@ -17,6 +17,11 @@ routes.post("/cp-details", validateRequest, heroController.cpDetails.bind(heroCo
 routes.post("/register-claim", validateRequest, heroController.registerCliam.bind(heroController));
 routes.post("/cleaver-tap-event", validateRequest, heroController.cleaverTapEvent.bind(heroController));
 
+routes.post("/get-details", validateRequest, heroController.getDetails.bind(heroController));
+
+
+routes.post("/get-proposal-token", validateRequest, heroController.generateProposalToken.bind(heroController));
+routes.post("/proposal-report", validateRequest, heroController.proposalReport.bind(heroController));
 // routes.get("/get-offer-filters/:product_id", validateRequest, authRequest, dashboardController.getOfferFilters.bind(dashboardController));
 
 
