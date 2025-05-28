@@ -25,4 +25,7 @@ routes.post("/proposal-report", validateRequest, heroController.proposalReport.b
 // routes.get("/get-offer-filters/:product_id", validateRequest, authRequest, dashboardController.getOfferFilters.bind(dashboardController));
 
 
+routes.post("/misp/login-policy", validateRequest, heroController.mispLoginPolicy.bind(heroController));
+routes.get("/misp/download-policy", validateRequest, heroController.mispDownloadPolicy.bind(heroController));
+
 export default routes;

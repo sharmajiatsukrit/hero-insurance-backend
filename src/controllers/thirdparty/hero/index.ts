@@ -55,7 +55,7 @@ export default class HeroController {
             const { formdata } = req.body;
 
 
-            const login = await networkRequest('POST','https://dashboard.heroinsurance.com/generate_login_token_hero_sso',{
+            const login = await networkRequest('POST','https://dashboard.heroinsurance.com/da/api/generate_login_token_hero_sso',{
                                     username:"HEROPRODSSO",
                                     password:"M9r0HL8sRado"
                                 },{});
@@ -63,7 +63,7 @@ export default class HeroController {
             if(login.data.status){
                 const data:any = { "access-token":login.data.token, formdata:formdata };
                 const headers:any = {};
-                const result = await networkRequest('POST','https://dashboard.heroinsurance.com/login_token_validate',data,headers);
+                const result = await networkRequest('POST','https://dashboard.heroinsurance.com/da/api/login_token_validate',data,headers);
                 // console.log(result.data);
                 
                 if (result) {
@@ -170,10 +170,10 @@ export default class HeroController {
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
             const authorization:any = req.headers.authorization;
-            const { MobileNo, Registration_No } = req.body;
+            const { MobileNo, Registration_No,CPId } = req.body;
             const token = authorization.split(" ")[1];
             console.log(token);
-            const data:any = { MobileNo, Registration_No };
+            const data:any = { MobileNo, Registration_No,CPId };
                 const headers:any = {"Authorization":"Bearer "+token};
                 const result = await networkRequest('POST','https://misp.heroinsurance.com/prod/services/HeroOne/api/Policy/RenewalLink',data,headers);
                 console.log(result.data);
@@ -319,6 +319,52 @@ export default class HeroController {
                 const headers:any = {"validation":validation};
                 const result = await networkRequest('POST','https://uatmotorapi.heroinsurance.com/api/proposalReports?page='+page,data,headers);
                 console.log(result.data);
+                
+                if (result) {
+                    return serverResponse(res, HttpCodeEnum.OK, "Success", result.data);
+                } else {
+                    throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
+                }
+        } catch (err: any) {
+            return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
+        }
+    }
+
+    public async mispLoginPolicy(req: Request, res: Response): Promise<any> {
+        try {
+            const { locale,page } = req.query;
+            this.locale = (locale as string) || "en";
+            const validation:any = req.headers.validation;
+            
+            // console.log(token);
+                const data:any = req.body;
+                const headers:any = {};
+                const result = await networkRequest('GET',`https://misp.heroinsurance.com/prod/services/BOT/api/Authenticate/Login?Username=${data.Username}&Password=${data.Password}`,{},headers);
+                console.log(result.data);
+                
+                if (result) {
+                    return serverResponse(res, HttpCodeEnum.OK, "Success", result.data);
+                } else {
+                    throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
+                }
+        } catch (err: any) {
+            return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
+        }
+    }
+
+    public async mispDownloadPolicy(req: Request, res: Response): Promise<any> {
+        try {
+            const { locale,page } = req.query;
+            this.locale = (locale as string) || "en";
+            const Authorization:any = req.headers.authorization;
+            
+            // console.log(token);
+                const data:any = req.body;
+                const param:any = req.query;
+                const headers:any = {"Authorization":Authorization};
+                // console.log(param,Authorization);
+                const result = await networkRequest('POST',`https://misp.heroinsurance.com/prod/services/BOT/api/Shedule/PolicyShedulebyMobile?mobNo=${param.mobNo}`,{},headers);
+                // console.log(result.data);
                 
                 if (result) {
                     return serverResponse(res, HttpCodeEnum.OK, "Success", result.data);
