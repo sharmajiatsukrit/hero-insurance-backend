@@ -20,6 +20,16 @@ function serverResponse(response: Response, code: number, message: string, resul
     });
 }
 
+function serverResponse2(response: Response, code: number, message: string, result: Array<Object> | Object): Response<any> {
+    const formattedData = camelcase(result, { deep: false });
+    return response.status(code).json({
+        status: true,
+        code: code,
+        message: message,
+        data: formattedData,
+    });
+}
+
 function serverErrorHandler(err: any, response: Response, message: string = "", code: number = HttpCodeEnum.SERVERERROR, data: any = []): Response<any> {
     Logger.error(err);
     if (err.name === "Error") {
@@ -231,6 +241,7 @@ async function verificationCheck(email: string, website: string): Promise<boolea
 
 export {
     serverResponse,
+    serverResponse2,
     removeObjectKeys,
     getDeviceDetails,
     getDetailsFromIp,

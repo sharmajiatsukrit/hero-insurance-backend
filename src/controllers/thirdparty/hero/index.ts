@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { ValidationChain } from "express-validator";
 import moment from "moment";
-import { removeObjectKeys, serverResponse, serverErrorHandler,serverThirdPartyErrorHandler, removeSpace, constructResponseMsg, serverInvalidRequest, groupByDate } from "../../../utils";
+import { removeObjectKeys, serverResponse,serverResponse2, serverErrorHandler,serverThirdPartyErrorHandler, removeSpace, constructResponseMsg, serverInvalidRequest, groupByDate } from "../../../utils";
 import { HttpCodeEnum } from "../../../enums/server";
 import validate from "./validate";
 import EmailService from "../../../utils/email";
@@ -55,7 +55,7 @@ export default class HeroController {
             const { formdata } = req.body;
 
 
-            const login = await networkRequest('POST','https://dashboard.heroinsurance.com/da/api/generate_login_token_hero_sso',{
+            const login = await networkRequest('POST','https://dashboard.heroinsurance.com/generate_login_token_hero_sso',{
                                     username:"HEROPRODSSO",
                                     password:"M9r0HL8sRado"
                                 },{});
@@ -63,7 +63,7 @@ export default class HeroController {
             if(login.data.status){
                 const data:any = { "access-token":login.data.token, formdata:formdata };
                 const headers:any = {};
-                const result = await networkRequest('POST','https://dashboard.heroinsurance.com/da/api/login_token_validate',data,headers);
+                const result = await networkRequest('POST','https://dashboard.heroinsurance.com/login_token_validate',data,headers);
                 // console.log(result.data);
                 
                 if (result) {
@@ -321,7 +321,7 @@ export default class HeroController {
                 console.log(result.data);
                 
                 if (result) {
-                    return serverResponse(res, HttpCodeEnum.OK, "Success", result.data);
+                    return serverResponse2(res, HttpCodeEnum.OK, "Success", result.data);
                 } else {
                     throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
                 }
@@ -371,6 +371,302 @@ export default class HeroController {
                 } else {
                     throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
                 }
+        } catch (err: any) {
+            return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
+        }
+    }
+
+    public async sendPolicyDetails(req: Request, res: Response): Promise<any> {
+        try {
+            const { locale,page } = req.query;
+            this.locale = (locale as string) || "en";
+            const Authorization:any = req.headers.authorization;
+            
+            // console.log(token);
+                const {to,policy_no,customer_name,vehicle_no,insurer_name,od_coverage,tp_coverage} = req.body;
+                
+                const body:string = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Insurance Policy Details</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background-color: #3B63FB; /* Hero's brand color */
+            padding: 15px;
+            text-align: center;
+            color: #ffffff;
+            font-size: 18px;
+            font-weight: bold;
+        }
+		.headBold {
+            font-weight: 900px;
+            line-height: 1.6;
+        }
+        .content {
+            padding: 20px;
+            line-height: 1.6;
+        }
+		.content2 {
+            padding: 0px 20px 20px 20px;
+            line-height: 1.6;
+        }
+        .policy-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            font-size: 14px;
+			background:#ECF0FF;
+        }
+        .policy-table th, .policy-table td {
+            border: 1px solid #C9D4FE;
+            padding: 10px;
+            text-align: left;
+			
+        }
+        .policy-table th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        .button-section {
+            text-align: center;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-top: 1px solid #eee;
+        }
+        .button-section a {
+            display: inline-block;
+            background-color: #3B63FB;
+            color: #ffffff;
+            padding: 12px 25px;
+            margin: 5px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 15px;
+        }
+        .app-links {
+            text-align: center;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-top: 1px solid #eee;
+        }
+        .app-links a {
+            display: inline-block;
+            margin: 0 10px;
+        }
+        .app-links img {
+            width: 100px; /* Adjust as needed */
+            height: auto;
+        }
+		.app-links2 img {
+            width: 100px; /* Adjust as needed */
+            height: 60px;
+        }
+        .contact-info {
+            background-color: #f2f2f2;
+            padding: 20px;
+            text-align: center;
+            font-size: 14px;
+            border-top: 1px solid #eee;
+        }
+        .contact-info a {
+            color: #3B63FB;
+            text-decoration: none;
+            margin: 0 5px;
+        }
+        .social-media {
+            text-align: center;
+            padding: 0px 10px 10px 10px;
+            background-color: #f2f2f2;
+            border-top: 1px solid #D8D7D7;
+        }
+        .social-media a {
+            display: inline-block;
+            margin: 0 8px;
+        }
+        .social-media img {
+            width: 24px;
+            height: 24px;
+        }
+        .footer {
+            padding: 20px;
+            background-color: #1E1E1E;
+            color: #ffffff;
+            font-size: 12px;
+            text-align: center;
+            line-height: 1.5;
+			border-top:4px solid #ED3338;
+        }
+        .footer a {
+            color: #ffffff;
+            text-decoration: none;
+        }
+        .footer p {
+            margin-bottom: 5px;
+        }
+        .security-notice {
+            background-color: #fff3cd;
+            border-left: 6px solid #ffc107;
+            margin: 20px 0;
+            padding: 15px;
+            color: #664d03;
+            font-size: 14px;
+        }
+
+        /* Responsive Styles */
+        @media only screen and (max-width: 480px) {
+            .container {
+                border-radius: 0;
+                margin: 0;
+            }
+            .header {
+                font-size: 20px;
+                padding: 15px;
+            }
+            .content, .button-section, .app-links, .contact-info, .social-media, .footer {
+                padding: 15px;
+            }
+            .policy-table th, .policy-table td {
+                padding: 8px;
+                font-size: 12px;
+            }
+            .button-section a {
+                display: block;
+                margin-bottom: 10px;
+            }
+            .app-links img {
+                width: 120px;
+				height:60px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+	<div class="content">
+	<img src="https://www.heroibil.com/wp-content/uploads/2018/08/logo-hero.png" alt="Hero Insurance"></a>
+	</div>
+        <div class="header">
+            Here is Your Policy Copy [Policy No. ${policy_no}]
+        </div>
+        <div class="content">
+            <p>Dear <strong>${customer_name}</strong>,</p>
+            <p>Thank you for choosing Hero Insurance Broking!</p>
+            <p>Your digitally signed policy document is attached to this email. Here are the details of your insurance policy, sent as per your request via the Hero Insurance Broking Profile dashboard:</p>
+
+            <h3>Policy Snapshot:</h3>
+            <table class="policy-table">
+			<tr>
+			<td><strong>Policy Holder</strong></td>
+			<td>${customer_name}</td>
+			</tr>
+			<tr>
+			<td><strong>Vehicle Number</strong></td>
+			<td>${vehicle_no}</td>
+			</tr>
+			<tr>
+			<td><strong>Insurer Name</strong></td>
+			<td>${insurer_name}</td>
+			</tr>
+			<tr>
+			<td><strong>Policy Number</strong></td>
+			<td>${policy_no}</td>
+			</tr>
+			<tr>
+			<td><strong>OD Coverage</strong></td>
+			<td>${od_coverage}</td>
+			</tr>
+			<tr>
+			<td><strong>TP Coverage</strong></td>
+			<td>${tp_coverage}</td>
+			</tr>
+
+             
+            </table>
+		
+            <p><strong>Physical copy not required</strong>—the attached policy PDF is legally valid under respective regulations & guidelines.</p>
+        </div>
+
+        <div class="button-section">
+            <a href="https://www.heroinsurance.com/renew" target="_blank">Renew Policy</a>
+            <a href="https://www.heroinsurance.com/claim" target="_blank">File a Claim</a>
+            <a href="https://www.heroinsurance.com/home" target="_blank">Manage My Policies</a>
+        </div>
+
+        <div class="content security-notice">
+            <strong>Security Notice:</strong> This email was initiated from the Hero Insurance portal by you. If you didn’t request this, please contact our support team immediately.
+        </div>
+
+        <div class="content2">
+            <p>Thanks for trusting us,</p>
+            <p><strong>Team Hero Insurance Broking</strong></p>
+			<img src="https://www.heroibil.com/wp-content/uploads/2018/08/logo-hero.png" alt="Hero Insurance"></a>
+			
+		
+        </div>
+
+        <div class="app-links">
+            <p>Get our mobile app and stay on top of renewals, claims, and reminders—anytime, anywhere:</p>
+            <a href="[Google Play Store Link]" target="_blank">
+                <img style="height:50px; width:130px;" src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Download on Google Play">
+            </a>
+            <a href="[Apple App Store Link]" target="_blank">
+                <img style="height:50px; width:110px;" src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" alt="Download on iOS App Store">
+            </a>
+        </div>
+
+        <div class="contact-info">
+            <p><strong>Need Help?</strong></p>
+            <p>
+                <strong>Call Us:</strong><a href="tel:1800-102-4376">1800-102-4376</a> |&nbsp
+               <strong>Email:</strong><a href="mailto:support@heroibil.com"> support@heroibil.com</a> <br>
+               <strong> WhatsApp:</strong><a href="https://wa.me/919289113640" target="_blank">+91-9289113640</a> |
+                 <a href="https://www.heroinsurance.com/home" target="_blank">Login to Dashboard</a>
+            </p>
+        </div>
+
+        <div class="social-media">
+            <p><strong>Follow Us:</strong></p>
+            <a href="[Facebook Link]" target="_blank"><img src="https://www.facebook.com/images/fb_icon_325x325.png" alt="Facebook"></a>
+            <a href="[X Link]" target="_blank"><img src="https://about.twitter.com/content/dam/about-twitter/x/brand-toolkit/logo-black.png.twimg.1920.png" alt="X"></a>
+            <a href="[Instagram Link]" target="_blank"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Instagram_logo_2016.svg/768px-Instagram_logo_2016.svg.png" alt="Instagram"></a>
+            <a href="[LinkedIn Link]" target="_blank"><img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" alt="LinkedIn"></a>
+        </div>
+
+        <div class="footer">
+            <p>IRDAI Registration No: 649 (<a href="https://www.irdai.gov.in" target="_blank">irdai.gov.in</a>) | IBAI Membership No: 15649 <br>(<a href="https://www.ibai.org" target="_blank">www.ibai.org</a>) | Valid Until: 25th July 2027</p>
+            <p>Hero Insurance Broking India Pvt. Ltd. | CIN: U66010DL2007PTC165059 | Corporate & Registered Office: 264, Okhla Industrial Estate, Phase III, New Delhi, India 110020</p>
+            <p>Insurance is the subject matter of the solicitation. For more details on policy terms, conditions, exclusions, limitations, please refer/read policy brochure carefully before concluding sale. Beware of spurious phone calls and fictitious/fraudulent offers. IRDAI is not involved in activities like selling insurance policies, announcing bonus or investment of premium. Public receiving such phone calls are requested to lodge a police complaint.</p>
+        </div>
+    </div>
+</body>
+</html>`;
+                const mail = await sendMail(to,'New Policy registered',body,[]);
+                
+                // console.log(mail);
+                // if (mail) {
+                    return serverResponse(res, HttpCodeEnum.OK, "Successfully sent!", {});
+                // } else {
+                //     throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
+                // }
         } catch (err: any) {
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
         }

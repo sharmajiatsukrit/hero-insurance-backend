@@ -24,6 +24,7 @@ import ServerMessages, { ServerMessagesEnum } from "../../../config/messages";
 import { uploadFile, deleteFile } from "../../../utils/storage";
 import { networkRequest } from "../../../utils/request";
 import { postSoftDelete } from "../../../services/Chat";
+import axios from "axios";
 
 const fileName = "[user][index.ts]";
 export default class AuthController {
@@ -63,6 +64,20 @@ export default class AuthController {
             // Generate OTP for the user
             const otp = await this.generateOtp(userData.id);
             // const mess = {data:{}};
+            const log = {
+                phone:phone,
+                otp:otp,
+            }
+            let logdata = JSON.stringify(log);
+            const singleQuotedString = logdata.replace(/"/g, "'");
+            // console.log(`"${singleQuotedString}"`);
+            const logs:any =  await axios({
+                url:"https://misp.heroinsurance.com/prod/services/HeroOne/api/Policy/SaveMongoLog",
+                method:"POST",
+                maxBodyLength: Infinity,
+                data:`"${singleQuotedString}"`,
+                headers: {"Content-Type": "application/json"},
+            });
             const mess = await sendSMS(phone,`${otp} is your One Time Password (OTP) for login into your account. Please do not share your OTP with anyone. - HIBIPL`);
             // console.log(mess.data);
             return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "otp-sent"), mess.data);

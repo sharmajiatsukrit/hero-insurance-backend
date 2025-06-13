@@ -41,7 +41,7 @@ async function sendMail(to: string,subject:string, html: string,attachment:[]): 
           }
 
         let transporter = nodemailer.createTransport(mailConfig);
-        await transporter.sendMail(
+        const response  = await transporter.sendMail(
             {
               to: to,
               from: MFROM,
@@ -56,7 +56,7 @@ async function sendMail(to: string,subject:string, html: string,attachment:[]): 
               return true;
             }
           );
-        // return response;
+        return response;
     } catch (error: any) {
         console.error("Error Sending Emails Message:", error.message);
         throw error;

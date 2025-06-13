@@ -28,4 +28,6 @@ routes.post("/proposal-report", validateRequest, heroController.proposalReport.b
 routes.post("/misp/login-policy", validateRequest, heroController.mispLoginPolicy.bind(heroController));
 routes.get("/misp/download-policy", validateRequest, heroController.mispDownloadPolicy.bind(heroController));
 
+routes.post("/send-policy-mail", validateRequest, heroController.sendPolicyDetails.bind(heroController));
+
 export default routes;
