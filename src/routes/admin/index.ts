@@ -19,9 +19,11 @@ import ProductRequest from "./productrequest";
 import Offers from "./offers";
 import Customer from "./customer";
 import Banner from "./banner";
+import BlogRoute from "./blog";
 import Faq from "./faq";
 import Setting from "./setting";
 import BugReport from "./issue-report";
+
 
 const routes: Router = expres.Router();
 routes.use("/auth", AuthRoutes);
@@ -46,5 +48,6 @@ routes.use("/banner", Banner);
 routes.use("/faq", Faq);
 routes.use("/setting", Setting);
 routes.use("/issue-report", BugReport);
+routes.use("/blog", BlogRoute);
 
 export default routes;
