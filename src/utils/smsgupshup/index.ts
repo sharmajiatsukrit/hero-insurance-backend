@@ -3,7 +3,7 @@ import axios, { AxiosPromise, Method } from "axios";
 async function sendSMS(to: string,message: string): AxiosPromise<any> {
     const user = process.env.SMS_USER;
     const pass = process.env.SMS_PASS;
-    const url = "http://enterprise.smsgupshup.com/GatewayAPI/rest";
+    const url = "https://enterprise.smsgupshup.com/GatewayAPI/rest";
     const method = "POST";
     const messageObj = {
         method:"sendMessage",
