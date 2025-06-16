@@ -10,6 +10,17 @@ import Logger from "../../../utils/logger";
 import ServerMessages, { ServerMessagesEnum } from "../../../config/messages";
 
 const fileName = "[admin][blog][index.ts]";
+
+// Helper function to generate slug from name
+const generateSlug = (name: string): string => {
+    return name
+        .toLowerCase()
+        .replace(/[^a-z0-9 -]/g, "") // Remove special characters
+        .replace(/\s+/g, "-") // Replace spaces with hyphens
+        .replace(/-+/g, "-"); // Replace multiple hyphens with single hyphen
+     // .trim("-"); // Remove leading/trailing hyphens
+};
+
 export default class BlogController {
     public locale: string = "en";
     public emailService;
@@ -27,7 +38,7 @@ export default class BlogController {
         try {
             const fn = "[getList]";
             // Set locale
-            const { locale, page, limit, search, status } = req.query;
+            const { locale, page, limit, search, status, category } = req.query;
             this.locale = (locale as string) || "en";
 
             const pageNumber = parseInt(page as string) || 1;
@@ -38,7 +49,12 @@ export default class BlogController {
 
             // Search functionality
             if (search) {
-                searchQuery.$or = [{ name: { $regex: search, $options: "i" } }, { description: { $regex: search, $options: "i" } }];
+                searchQuery.$or = [
+                    { name: { $regex: search, $options: "i" } },
+                    { description: { $regex: search, $options: "i" } },
+                    { slug: { $regex: search, $options: "i" } },
+                    { category: { $regex: search, $options: "i" } },
+                ];
             }
 
             // Status filter
@@ -46,10 +62,15 @@ export default class BlogController {
                 searchQuery.status = status === "true";
             }
 
+            // Category filter
+            if (category) {
+                searchQuery.category = { $regex: category, $options: "i" };
+            }
+
             const results = await Blog.find(searchQuery)
                 .populate("created_by", "name email")
                 .populate("updated_by", "name email")
-                .sort({ _id: -1 }) // Sort by _id in descending order
+                .sort({ _id: -1 })
                 .skip(skip)
                 .limit(limitNumber)
                 .lean();
@@ -96,29 +117,58 @@ export default class BlogController {
         }
     }
 
+    // Get blog by slug
+    public async getBySlug(req: Request, res: Response): Promise<any> {
+        try {
+            const fn = "[getBySlug]";
+            const { locale } = req.query;
+            this.locale = (locale as string) || "en";
+
+            const slug = req.params.slug;
+            const result: any = await Blog.findOne({ slug: slug }).populate("created_by", "name email").populate("updated_by", "name email").lean();
+
+            if (result) {
+                return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["blog-fetched"]), result);
+            } else {
+                throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
+            }
+        } catch (err: any) {
+            return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
+        }
+    }
+
     public async add(req: Request, res: Response): Promise<any> {
         try {
             const fn = "[add]";
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
 
-            const { name, description, image, status } = req.body;
+            const { name, description, image, slug, category, status } = req.body;
             Logger.info(`${fileName + fn} req.body: ${JSON.stringify(req.body)}`);
-
-            // Check if blog with same name already exists
             const existingBlog = await Blog.findOne({ name: name }).lean();
             if (existingBlog) {
                 throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["blog-already-exists"]));
+            }
+            let blogSlug = slug || generateSlug(name);
+            let slugExists = await Blog.findOne({ slug: blogSlug }).lean();
+            let counter = 1;
+            const originalSlug = blogSlug;
+
+            while (slugExists) {
+                blogSlug = `${originalSlug}-${counter}`;
+                slugExists = await Blog.findOne({ slug: blogSlug }).lean();
+                counter++;
             }
 
             const result: any = await Blog.create({
                 name: name,
                 description: description || "",
                 image: image || "",
+                slug: blogSlug,
+                category: category || "",
                 status: status !== undefined ? status : true,
-                created_by: req.user.object_id,
+                created_by: req.user.object_id
             });
-
             const createdBlog = await Blog.findOne({ _id: result._id }).populate("created_by", "name email").lean();
 
             return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "blog-add"), createdBlog || result);
@@ -135,15 +185,12 @@ export default class BlogController {
             Logger.info(`${fileName + fn} blog_id: ${id}`);
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
-            const { name, description, image, status } = req.body;
+            const { name, description, image, slug, category, status } = req.body;
 
-            // Check if blog exists
             const existingBlog = await Blog.findOne({ id: id }).lean();
             if (!existingBlog) {
                 throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
             }
-
-            // Check if blog with same name already exists (excluding current blog)
             if (name && name !== existingBlog.name) {
                 const duplicateBlog = await Blog.findOne({ name: name, id: { $ne: id } }).lean();
                 if (duplicateBlog) {
@@ -158,7 +205,29 @@ export default class BlogController {
             if (name !== undefined) updateData.name = name;
             if (description !== undefined) updateData.description = description;
             if (image !== undefined) updateData.image = image;
+            if (category !== undefined) updateData.category = category;
             if (status !== undefined) updateData.status = status;
+
+            if (slug !== undefined) {
+                const slugExists = await Blog.findOne({ slug: slug, id: { $ne: id } }).lean();
+                if (slugExists) {
+                    throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["slug-already-exists"]));
+                }
+                updateData.slug = slug;
+            } else if (name !== undefined && name !== existingBlog.name) {
+                let newSlug = generateSlug(name);
+                let slugExists = await Blog.findOne({ slug: newSlug, id: { $ne: id } }).lean();
+                let counter = 1;
+                const originalSlug = newSlug;
+
+                while (slugExists) {
+                    newSlug = `${originalSlug}-${counter}`;
+                    slugExists = await Blog.findOne({ slug: newSlug, id: { $ne: id } }).lean();
+                    counter++;
+                }
+
+                updateData.slug = newSlug;
+            }
 
             await Blog.findOneAndUpdate({ id: id }, updateData);
 
@@ -193,122 +262,20 @@ export default class BlogController {
         }
     }
 
-    // Update blog status
-    // public async status(req: Request, res: Response): Promise<any> {
-    //     try {
-    //         const fn = "[status]";
-    //         // Set locale
-    //         const { locale } = req.query;
-    //         this.locale = (locale as string) || "en";
+    // Get unique categories
+    public async getCategories(req: Request, res: Response): Promise<any> {
+        try {
+            const fn = "[getCategories]";
+            const { locale } = req.query;
+            this.locale = (locale as string) || "en";
 
-    //         const id = parseInt(req.params.id);
-    //         const { status } = req.body;
+            const categories = await Blog.distinct("category", { category: { $ne: "" } });
 
-    //         // Validate status value
-    //         if (typeof status !== 'boolean') {
-    //             throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["invalid-status"]));
-    //         }
-
-    //         // Check if blog exists
-    //         const existingBlog = await Blog.findOne({ id: id }).lean();
-    //         if (!existingBlog) {
-    //             throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
-    //         }
-
-    //         const updationStatus = await Blog.findOneAndUpdate(
-    //             { id: id },
-    //             {
-    //                 status: status,
-    //                 updated_by: req.user.object_id
-    //             }
-    //         ).lean();
-
-    //         const updatedData: any = await Blog.findOne({ id: id })
-    //             .populate('created_by', 'name email')
-    //             .populate('updated_by', 'name email')
-    //             .lean();
-
-    //         if (updationStatus) {
-    //             return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["blog-status"]), updatedData);
-    //         } else {
-    //             throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
-    //         }
-    //     } catch (err: any) {
-    //         return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
-    //     }
-    // }
-
-    // Get active blogs only (public endpoint)
-    // public async getActiveBlogs(req: Request, res: Response): Promise<any> {
-    //     try {
-    //         const fn = "[getActiveBlogs]";
-    //         // Set locale
-    //         const { locale, page, limit, search } = req.query;
-    //         this.locale = (locale as string) || "en";
-
-    //         const pageNumber = parseInt(page as string) || 1;
-    //         const limitNumber = parseInt(limit as string) || 10;
-    //         const skip = (pageNumber - 1) * limitNumber;
-
-    //         let searchQuery: any = { status: true };
-
-    //         // Search functionality
-    //         if (search) {
-    //             searchQuery.$or = [
-    //                 { name: { $regex: search, $options: 'i' } },
-    //                 { description: { $regex: search, $options: 'i' } }
-    //             ];
-    //         }
-
-    //         const results = await Blog.find(searchQuery)
-    //             .select('id name description image createdAt updatedAt')
-    //             .sort({ createdAt: -1 })
-    //             .skip(skip)
-    //             .limit(limitNumber)
-    //             .lean();
-
-    //         const totalCount = await Blog.countDocuments(searchQuery);
-    //         const totalPages = Math.ceil(totalCount / limitNumber);
-
-    //         return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["blog-fetched"]), {
-    //             data: results,
-    //             totalCount,
-    //             totalPages,
-    //             currentPage: pageNumber
-    //         });
-    //     } catch (err: any) {
-    //         return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
-    //     }
-    // }
-
-    // Get blog statistics
-    // public async getStats(req: Request, res: Response): Promise<any> {
-    //     try {
-    //         const fn = "[getStats]";
-    //         // Set locale
-    //         const { locale } = req.query;
-    //         this.locale = (locale as string) || "en";
-
-    //         const totalBlogs = await Blog.countDocuments({});
-    //         const activeBlogs = await Blog.countDocuments({ status: true });
-    //         const inactiveBlogs = await Blog.countDocuments({ status: false });
-
-    //         // Get blogs created in last 30 days
-    //         const thirtyDaysAgo = moment().subtract(30, 'days').toDate();
-    //         const recentBlogs = await Blog.countDocuments({
-    //             createdAt: { $gte: thirtyDaysAgo }
-    //         });
-
-    //         const stats = {
-    //             totalBlogs,
-    //             activeBlogs,
-    //             inactiveBlogs,
-    //             recentBlogs
-    //         };
-
-    //         return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["blog-stats"]), stats);
-    //     } catch (err: any) {
-    //         return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
-    //     }
-    // }
+            return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["blog-fetched"]), {
+                categories: categories,
+            });
+        } catch (err: any) {
+            return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
+        }
+    }
 }

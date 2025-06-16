@@ -162,5 +162,6 @@ export enum ServerMessagesEnum {
    "blog-already-exists"= "blog-already-exists",
    "invalid-request"= "Invalid request",
     "invalid-credentials"= "Invalid credentials",
-    "delete-failed"= "Failed to delete"
+    "delete-failed"= "Failed to delete",
+      "slug-already-exists"="Slug already exists"
 }
