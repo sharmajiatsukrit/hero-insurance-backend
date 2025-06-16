@@ -168,6 +168,18 @@
     "attribute-item-add":"New {attribute_name} added successfully",
     "attribute-item-update":"{attribute_name} Updated successfully",
     "attribute-item-delete": "{attribute_name} Deleted successfully",
-    "attribute-item-status": "{attribute_name} Status successfully Updated"
+    "attribute-item-status": "{attribute_name} Status successfully Updated",
     
+    "blog-fetched":" Blog Fetched Successfully",
+    "blog-add":"New Blog added successfully",  
+    "blog-update":"Blog Updated successfully",
+    "blog-delete": "Blog Deleted successfully",
+    "blog-status": "Blog Status successfully Updated",
+    "blog-already-exists": "Blog with this title already exists",
+    "blog-not-found": "Blog not found",
+    "invalid-request": "Invalid request",
+    "invalid-credentials": "Invalid credentials",
+    "delete-failed": "Failed to delete",
+    "slug-already-exists": "Slug already exists"
+   
 }

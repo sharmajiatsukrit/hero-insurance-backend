@@ -154,4 +154,14 @@ export enum ServerMessagesEnum {
     "team-update" = "team-update",
     "team-delete" = "team-delete",
     "team-status" = "team-status",
+    
+    "blog-fetched"="blog-fetched",
+    "blog-add"="blog-add",
+    "blog-update"="blog-update",
+    "blog-delete"="blog-delete",
+   "blog-already-exists"= "blog-already-exists",
+   "invalid-request"= "Invalid request",
+    "invalid-credentials"= "Invalid credentials",
+    "delete-failed"= "Failed to delete",
+      "slug-already-exists"="Slug already exists"
 }
