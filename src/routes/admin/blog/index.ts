@@ -8,5 +8,6 @@ routes.get("/list", validateRequest, authAdmin, blogController.getList.bind(blog
 routes.post("/add", validateRequest, authAdmin, blogController.add.bind(blogController));
 routes.put("/update/:id", validateRequest, authAdmin, blogController.update.bind(blogController));
 routes.get("/by-id/:id", validateRequest, authAdmin, blogController.getById.bind(blogController));
+routes.delete("/delete/:id", validateRequest, authAdmin, blogController.delete.bind(blogController));
 
 export default routes;

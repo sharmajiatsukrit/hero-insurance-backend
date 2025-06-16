@@ -33,25 +33,22 @@ export default class BlogController {
             const pageNumber = parseInt(page as string) || 1;
             const limitNumber = parseInt(limit as string) || 10;
             const skip = (pageNumber - 1) * limitNumber;
-            
+
             let searchQuery: any = {};
-            
+
             // Search functionality
             if (search) {
-                searchQuery.$or = [
-                    { name: { $regex: search, $options: 'i' } },
-                    { description: { $regex: search, $options: 'i' } }
-                ];
+                searchQuery.$or = [{ name: { $regex: search, $options: "i" } }, { description: { $regex: search, $options: "i" } }];
             }
-            
+
             // Status filter
             if (status !== undefined) {
-                searchQuery.status = status === 'true';
+                searchQuery.status = status === "true";
             }
 
             const results = await Blog.find(searchQuery)
-                .populate('created_by', 'name email')
-                .populate('updated_by', 'name email')
+                .populate("created_by", "name email")
+                .populate("updated_by", "name email")
                 .sort({ _id: -1 }) // Sort by _id in descending order
                 .skip(skip)
                 .limit(limitNumber)
@@ -61,18 +58,18 @@ export default class BlogController {
             const totalPages = Math.ceil(totalCount / limitNumber);
 
             if (results.length > 0) {
-                return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["blog-fetched"]), { 
-                    data: results, 
-                    totalCount, 
-                    totalPages, 
-                    currentPage: pageNumber 
+                return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["blog-fetched"]), {
+                    data: results,
+                    totalCount,
+                    totalPages,
+                    currentPage: pageNumber,
                 });
             } else {
-                return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["blog-fetched"]), { 
-                    data: [], 
-                    totalCount: 0, 
-                    totalPages: 0, 
-                    currentPage: pageNumber 
+                return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["blog-fetched"]), {
+                    data: [],
+                    totalCount: 0,
+                    totalPages: 0,
+                    currentPage: pageNumber,
                 });
             }
         } catch (err: any) {
@@ -87,10 +84,7 @@ export default class BlogController {
             this.locale = (locale as string) || "en";
 
             const id = parseInt(req.params.id);
-            const result: any = await Blog.findOne({ id: id })
-                .populate('created_by', 'name email')
-                .populate('updated_by', 'name email')
-                .lean();
+            const result: any = await Blog.findOne({ id: id }).populate("created_by", "name email").populate("updated_by", "name email").lean();
 
             if (result) {
                 return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["blog-fetched"]), result);
@@ -119,15 +113,13 @@ export default class BlogController {
 
             const result: any = await Blog.create({
                 name: name,
-                description: description || '',
-                image: image || '',
+                description: description || "",
+                image: image || "",
                 status: status !== undefined ? status : true,
-                created_by: req.user.object_id
+                created_by: req.user.object_id,
             });
 
-            const createdBlog = await Blog.findOne({ _id: result._id })
-                .populate('created_by', 'name email')
-                .lean();
+            const createdBlog = await Blog.findOne({ _id: result._id }).populate("created_by", "name email").lean();
 
             return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "blog-add"), createdBlog || result);
         } catch (err: any) {
@@ -160,7 +152,7 @@ export default class BlogController {
             }
 
             const updateData: any = {
-                updated_by: req.user.object_id
+                updated_by: req.user.object_id,
             };
 
             if (name !== undefined) updateData.name = name;
@@ -170,10 +162,7 @@ export default class BlogController {
 
             await Blog.findOneAndUpdate({ id: id }, updateData);
 
-            const updatedData: any = await Blog.findOne({ id: id })
-                .populate('created_by', 'name email')
-                .populate('updated_by', 'name email')
-                .lean();
+            const updatedData: any = await Blog.findOne({ id: id }).populate("created_by", "name email").populate("updated_by", "name email").lean();
 
             return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "blog-update"), updatedData);
         } catch (err: any) {
@@ -187,14 +176,11 @@ export default class BlogController {
             const fn = "[delete]";
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
-
             const id = parseInt(req.params.id);
-            
             const existingBlog = await Blog.findOne({ id: id }).lean();
             if (!existingBlog) {
                 throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
             }
-
             const result = await Blog.deleteOne({ id: id });
 
             if (result.deletedCount > 0) {
@@ -206,7 +192,6 @@ export default class BlogController {
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
         }
     }
-
 
     // Update blog status
     // public async status(req: Request, res: Response): Promise<any> {
@@ -231,8 +216,8 @@ export default class BlogController {
     //         }
 
     //         const updationStatus = await Blog.findOneAndUpdate(
-    //             { id: id }, 
-    //             { 
+    //             { id: id },
+    //             {
     //                 status: status,
     //                 updated_by: req.user.object_id
     //             }
@@ -264,9 +249,9 @@ export default class BlogController {
     //         const pageNumber = parseInt(page as string) || 1;
     //         const limitNumber = parseInt(limit as string) || 10;
     //         const skip = (pageNumber - 1) * limitNumber;
-            
+
     //         let searchQuery: any = { status: true };
-            
+
     //         // Search functionality
     //         if (search) {
     //             searchQuery.$or = [
@@ -285,11 +270,11 @@ export default class BlogController {
     //         const totalCount = await Blog.countDocuments(searchQuery);
     //         const totalPages = Math.ceil(totalCount / limitNumber);
 
-    //         return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["blog-fetched"]), { 
-    //             data: results, 
-    //             totalCount, 
-    //             totalPages, 
-    //             currentPage: pageNumber 
+    //         return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["blog-fetched"]), {
+    //             data: results,
+    //             totalCount,
+    //             totalPages,
+    //             currentPage: pageNumber
     //         });
     //     } catch (err: any) {
     //         return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
@@ -307,11 +292,11 @@ export default class BlogController {
     //         const totalBlogs = await Blog.countDocuments({});
     //         const activeBlogs = await Blog.countDocuments({ status: true });
     //         const inactiveBlogs = await Blog.countDocuments({ status: false });
-            
+
     //         // Get blogs created in last 30 days
     //         const thirtyDaysAgo = moment().subtract(30, 'days').toDate();
-    //         const recentBlogs = await Blog.countDocuments({ 
-    //             createdAt: { $gte: thirtyDaysAgo } 
+    //         const recentBlogs = await Blog.countDocuments({
+    //             createdAt: { $gte: thirtyDaysAgo }
     //         });
 
     //         const stats = {
