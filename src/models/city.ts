@@ -5,6 +5,7 @@ import { autoIncrement } from 'mongoose-plugin-autoinc';
 
 interface ICity extends Document {
     name: string;
+    citycode?:string;
     state_id: number;
     status: boolean;
     created_by: number;
@@ -14,6 +15,7 @@ interface ICity extends Document {
 const citySchema: Schema = new Schema({
 
     name: { type: String, default: '' },
+    citycode: { type: String, default: '' }, // Optional field for city code
     state_id: { type: Schema.Types.ObjectId, ref: 'states' },
     status: { type: Boolean, default: true },
     created_by: { type: Schema.Types.ObjectId, ref: 'users' },

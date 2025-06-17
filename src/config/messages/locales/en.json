@@ -170,7 +170,7 @@
     "attribute-item-delete": "{attribute_name} Deleted successfully",
     "attribute-item-status": "{attribute_name} Status successfully Updated",
     
-    "blog-fetched":" Blog Fetched Successfully",
+    "blog-fetched":"Blog Fetched Successfully",
     "blog-add":"New Blog added successfully",  
     "blog-update":"Blog Updated successfully",
     "blog-delete": "Blog Deleted successfully",

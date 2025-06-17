@@ -88,13 +88,14 @@ export default class CityController {
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
 
-            const { name, state_id, status } = req.body;
+            const { name, citycode, state_id, status } = req.body;
             // Logger.info(`${fileName + fn} req.body: ${JSON.stringify(req.body)}`);
             const state:any = await State.findOne({id:state_id}).lean();
             let result: any;
 
             result = await City.create({
                 name: name,
+                citycode:citycode,
                 state_id: state._id,
                 status: status,
                 created_by: req.user.object_id
@@ -118,12 +119,13 @@ export default class CityController {
             // Set locale
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
-            const { name, state_id, status } = req.body;
+            const { name, citycode, state_id, status } = req.body;
             const state:any = await State.findOne({id:state_id}).lean();
             let result: any = await City.findOneAndUpdate(
                 { id: id },
                 {
                     name: name,
+                    citycode: citycode,
                     state_id: state._id,
                     status: status,
                     updated_by: req.user.object_id
