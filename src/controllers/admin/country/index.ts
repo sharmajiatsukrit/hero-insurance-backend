@@ -8,6 +8,7 @@ import validate from "./validate";
 import EmailService from "../../../utils/email";
 import Logger from "../../../utils/logger";
 import ServerMessages, { ServerMessagesEnum } from "../../../config/messages";
+import { count } from "console";
 
 const fileName = "[admin][country][index.ts]";
 export default class CountryController {
@@ -88,13 +89,14 @@ export default class CountryController {
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
 
-            const { name, status } = req.body;
+            const { name, countryCode, status } = req.body;
             // Logger.info(`${fileName + fn} req.body: ${JSON.stringify(req.body)}`);
 
             let result: any;
 
             result = await Country.create({
                 name: name,
+                countryCode:countryCode,
                 status: status,
                 created_by: req.user.object_id
             });
@@ -117,12 +119,13 @@ export default class CountryController {
             // Set locale
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
-            const { name, status } = req.body;
+            const { name, countryCode, status } = req.body;
 
             let result: any = await Country.findOneAndUpdate(
                 { id: id },
                 {
                     name: name,
+                    countryCode: countryCode,
                     status: status,
                     updated_by: req.user.object_id
                 });

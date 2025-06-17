@@ -156,7 +156,7 @@ export enum ServerMessagesEnum {
     "team-status" = "team-status",
     
     "blog-fetched"="blog-fetched",
-    "blog-add"="blog-add",
+   "blog-add"="blog-add",
     "blog-update"="blog-update",
     "blog-delete"="blog-delete",
    "blog-already-exists"= "blog-already-exists",

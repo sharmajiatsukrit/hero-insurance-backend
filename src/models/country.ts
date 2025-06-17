@@ -5,6 +5,7 @@ import { autoIncrement } from 'mongoose-plugin-autoinc';
 
 interface ICountry extends Document {
     name: string;
+    countryCode?: string;
     status: boolean;
     created_by: number;
     updated_by: number;
@@ -13,6 +14,7 @@ interface ICountry extends Document {
 const countrySchema: Schema = new Schema({
 
     name: { type: String, default: '' },
+    countryCode: { type: String, default: '' }, 
     status: { type: Boolean, default: true },
     created_by: { type: Schema.Types.ObjectId, ref: 'users' },
     updated_by: { type: Schema.Types.ObjectId, ref: 'users' }

@@ -149,16 +149,8 @@ export default class BlogController {
             if (existingBlog) {
                 throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["blog-already-exists"]));
             }
-            let blogSlug = slug || generateSlug(name);
-            let slugExists = await Blog.findOne({ slug: blogSlug }).lean();
-            let counter = 1;
-            const originalSlug = blogSlug;
+             let blogSlug = slug || generateSlug(name);
 
-            while (slugExists) {
-                blogSlug = `${originalSlug}-${counter}`;
-                slugExists = await Blog.findOne({ slug: blogSlug }).lean();
-                counter++;
-            }
 
             const result: any = await Blog.create({
                 name: name,

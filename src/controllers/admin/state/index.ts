@@ -90,17 +90,19 @@ export default class StateController {
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
 
-            const { name, country_id, status } = req.body;
+            const { name, statecode, country_id, status } = req.body;
             // Logger.info(`${fileName + fn} req.body: ${JSON.stringify(req.body)}`);
 
             let result: any;
             const country:any = await Country.findOne({id:country_id}).lean();
             result = await State.create({
                 name: name,
+                statecode: statecode,
                 country_id: country._id,
                 status: status,
                 created_by: req.user.object_id
             });
+            console.log(result);
 
 
             return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "state-add"), result.doc);
@@ -120,12 +122,13 @@ export default class StateController {
             // Set locale
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
-            const { name, country_id, status } = req.body;
+            const { name, statecode, country_id, status } = req.body;
             const country:any = await Country.findOne({id:country_id}).lean();
             let result: any = await State.findOneAndUpdate(
                 { id: id },
                 {
                     name: name,
+                    statecode: statecode,
                     country_id: country._id,
                     status: status,
                     updated_by: req.user.object_id
