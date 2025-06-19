@@ -162,4 +162,6 @@ export const MessageKey: IObjectKeys = {
     "rating-updated": "rating-updated",
     "rating-fetched": "rating-fetched",
     "blog-add":"blog-add",
+    "blog-status": "blog-status",
+
 };

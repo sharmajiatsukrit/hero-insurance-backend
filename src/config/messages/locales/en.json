@@ -180,6 +180,8 @@
     "invalid-request": "Invalid request",
     "invalid-credentials": "Invalid credentials",
     "delete-failed": "Failed to delete",
-    "slug-already-exists": "Slug already exists"
+    "slug-already-exists": "Slug already exists",
+    "blog-status": "Blog Status successfully Updated"
+
    
 }
