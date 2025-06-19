@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { ValidationChain } from "express-validator";
 import moment from "moment";
-import { Blog } from "../../../models";
+import { Blog, Category } from "../../../models";
 import { removeObjectKeys, serverResponse, serverErrorHandler, removeSpace, constructResponseMsg, serverInvalidRequest, groupByDate } from "../../../utils";
 import { HttpCodeEnum } from "../../../enums/server";
 import validate from "./validate";
@@ -143,24 +143,30 @@ export default class BlogController {
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
 
-            const { name, description, image, slug, category, status } = req.body;
+            const { name, description, slug, category_id, status } = req.body;
             Logger.info(`${fileName + fn} req.body: ${JSON.stringify(req.body)}`);
             const existingBlog = await Blog.findOne({ name: name }).lean();
             if (existingBlog) {
                 throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["blog-already-exists"]));
             }
-             let blogSlug = slug || generateSlug(name);
-
-
+            let blogSlug = slug || generateSlug(name);
+            const categoryd:any = await Category.findOne({id:category_id}).lean();
+            let blog_image: any;
+            if (req.file) {
+                blog_image = req?.file?.filename;
+                // let resultimage: any = await Category.findOneAndUpdate({ id: result.id }, { cat_img: cat_img });
+            }
             const result: any = await Blog.create({
                 name: name,
-                description: description || "",
-                image: image || "",
+                description: description,
+                blog_image: blog_image,
                 slug: blogSlug,
-                category: category || "",
-                status: status !== undefined ? status : true,
+                category_id: categoryd._id,
+                status: status,
                 created_by: req.user.object_id
             });
+
+            
             const createdBlog = await Blog.findOne({ _id: result._id }).populate("created_by", "name email").lean();
 
             return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "blog-add"), createdBlog || result);
