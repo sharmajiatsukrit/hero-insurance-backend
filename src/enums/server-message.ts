@@ -159,6 +159,7 @@ export enum ServerMessagesEnum {
    "blog-add"="blog-add",
     "blog-update"="blog-update",
     "blog-delete"="blog-delete",
+     "blog-status"= "blog-status",
    "blog-already-exists"= "blog-already-exists",
    "invalid-request"= "Invalid request",
     "invalid-credentials"= "Invalid credentials",

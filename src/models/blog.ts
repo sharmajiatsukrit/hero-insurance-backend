@@ -4,9 +4,9 @@ import { autoIncrement } from 'mongoose-plugin-autoinc';
 interface IBlog extends Document {
     name: string;
     description: string;
-    image: string;
+    blog_image: string;
     slug: string;
-    category_id: string;
+    categoryId: string;
     status: number;
     created_by: number;
     updated_by: number;
@@ -15,10 +15,10 @@ interface IBlog extends Document {
 const blogSchema: Schema = new Schema({
     name: { type: String, default: '' },
     description: { type: String, default: '' },
-    image: { type: String, default: '' },
+    blog_image: { type: String, default: '' },
     slug: { type: String, default: '', unique: true },
-    category_id: { type: Schema.Types.ObjectId, ref: 'categories',default: null },
-    status: { type: Number, default: 0 },
+    categoryId: { type: Schema.Types.ObjectId, ref: 'categories',default: null },
+    status: { type: Number, default: 1 },
     created_by: { type: Schema.Types.ObjectId, ref: 'users' },
     updated_by: { type: Schema.Types.ObjectId, ref: 'users' }
 },

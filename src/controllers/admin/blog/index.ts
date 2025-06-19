@@ -11,14 +11,12 @@ import ServerMessages, { ServerMessagesEnum } from "../../../config/messages";
 
 const fileName = "[admin][blog][index.ts]";
 
-// Helper function to generate slug from name
 const generateSlug = (name: string): string => {
     return name
         .toLowerCase()
-        .replace(/[^a-z0-9 -]/g, "") // Remove special characters
-        .replace(/\s+/g, "-") // Replace spaces with hyphens
-        .replace(/-+/g, "-"); // Replace multiple hyphens with single hyphen
-     // .trim("-"); // Remove leading/trailing hyphens
+        .replace(/[^a-z0-9 -]/g, "")
+        .replace(/\s+/g, "-")
+        .replace(/-+/g, "-");
 };
 
 export default class BlogController {
@@ -33,11 +31,9 @@ export default class BlogController {
         return validate(endPoint);
     }
 
-    // Get all blogs with pagination and search
     public async getList(req: Request, res: Response): Promise<any> {
         try {
             const fn = "[getList]";
-            // Set locale
             const { locale, page, limit, search, status, category } = req.query;
             this.locale = (locale as string) || "en";
 
@@ -47,29 +43,24 @@ export default class BlogController {
 
             let searchQuery: any = {};
 
-            // Search functionality
             if (search) {
-                searchQuery.$or = [
-                    { name: { $regex: search, $options: "i" } },
-                    { description: { $regex: search, $options: "i" } },
-                    { slug: { $regex: search, $options: "i" } },
-                    { category: { $regex: search, $options: "i" } },
-                ];
+                searchQuery.$or = [{ name: { $regex: search, $options: "i" } }, { description: { $regex: search, $options: "i" } }, { slug: { $regex: search, $options: "i" } }];
             }
 
-            // Status filter
             if (status !== undefined) {
                 searchQuery.status = status === "true";
             }
 
-            // Category filter
             if (category) {
-                searchQuery.category = { $regex: category, $options: "i" };
+                const categoryDoc = await Category.findOne({ id: category }).lean();
+                if (categoryDoc) {
+                    searchQuery.categoryId = categoryDoc._id;
+                }
             }
 
             const results = await Blog.find(searchQuery)
                 .populate("created_by", "name email")
-                .populate("updated_by", "name email")
+                .populate("categoryId", "id name")
                 .sort({ _id: -1 })
                 .skip(skip)
                 .limit(limitNumber)
@@ -78,21 +69,12 @@ export default class BlogController {
             const totalCount = await Blog.countDocuments(searchQuery);
             const totalPages = Math.ceil(totalCount / limitNumber);
 
-            if (results.length > 0) {
-                return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["blog-fetched"]), {
-                    data: results,
-                    totalCount,
-                    totalPages,
-                    currentPage: pageNumber,
-                });
-            } else {
-                return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["blog-fetched"]), {
-                    data: [],
-                    totalCount: 0,
-                    totalPages: 0,
-                    currentPage: pageNumber,
-                });
-            }
+            return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["blog-fetched"]), {
+                data: results,
+                totalCount,
+                totalPages,
+                currentPage: pageNumber,
+            });
         } catch (err: any) {
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
         }
@@ -105,27 +87,8 @@ export default class BlogController {
             this.locale = (locale as string) || "en";
 
             const id = parseInt(req.params.id);
-            const result: any = await Blog.findOne({ id: id }).populate("created_by", "name email").populate("updated_by", "name email").lean();
 
-            if (result) {
-                return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["blog-fetched"]), result);
-            } else {
-                throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
-            }
-        } catch (err: any) {
-            return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
-        }
-    }
-
-    // Get blog by slug
-    public async getBySlug(req: Request, res: Response): Promise<any> {
-        try {
-            const fn = "[getBySlug]";
-            const { locale } = req.query;
-            this.locale = (locale as string) || "en";
-
-            const slug = req.params.slug;
-            const result: any = await Blog.findOne({ slug: slug }).populate("created_by", "name email").populate("updated_by", "name email").lean();
+            const result: any = await Blog.findOne({ id: id }).populate("created_by", "name email").populate("updated_by", "name email").populate("categoryId", "id name").lean();
 
             if (result) {
                 return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["blog-fetched"]), result);
@@ -143,34 +106,64 @@ export default class BlogController {
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
 
-            const { name, description, slug, category_id, status } = req.body;
+            const { name, description, slug, categoryId, status } = req.body;
             Logger.info(`${fileName + fn} req.body: ${JSON.stringify(req.body)}`);
             const existingBlog = await Blog.findOne({ name: name }).lean();
             if (existingBlog) {
                 throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["blog-already-exists"]));
             }
             let blogSlug = slug || generateSlug(name);
-            const categoryd:any = await Category.findOne({id:category_id}).lean();
             let blog_image: any;
             if (req.file) {
                 blog_image = req?.file?.filename;
                 // let resultimage: any = await Category.findOneAndUpdate({ id: result.id }, { cat_img: cat_img });
             }
+            let categoryd: any = null;
+            let categoryObjectId = null;
+
+            if (categoryId) {
+                categoryd = await Category.findOne({ id: categoryId }).lean();
+                Logger.info(`${fileName + fn} Found category: ${JSON.stringify(categoryd)}`);
+                categoryObjectId = categoryd._id;
+            }
+
             const result: any = await Blog.create({
                 name: name,
                 description: description,
                 blog_image: blog_image,
                 slug: blogSlug,
-                category_id: categoryd._id,
-                status: status,
-                created_by: req.user.object_id
+                categoryId: categoryObjectId,
+                status: status || 1,
+                created_by: req.user?.object_id,
             });
 
-            
-            const createdBlog = await Blog.findOne({ _id: result._id }).populate("created_by", "name email").lean();
+            Logger.info(`${fileName + fn} Created blog: ${JSON.stringify(result)}`);
 
-            return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "blog-add"), createdBlog || result);
+            const categoryInfo = categoryd
+                ? {
+                      id: categoryd.id,
+                      name: categoryd.name,
+                  }
+                : {};
+
+            let createdByInfo = null;
+
+            const responseData = {
+                id: result.id,
+                name: result.name,
+                description: result.description,
+                blogImage: result.blog_image,
+                slug: result.slug,
+                categoryId: categoryInfo,
+                status: result.status,
+                createdBy: createdByInfo,
+                createdAt: result.createdAt,
+                updatedAt: result.updatedAt,
+            };
+
+            return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "blog-add"), responseData);
         } catch (err: any) {
+            // Logger.error(`${fileName + fn} Error: ${err.message}`);
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
         }
     }
@@ -183,7 +176,7 @@ export default class BlogController {
             Logger.info(`${fileName + fn} blog_id: ${id}`);
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
-            const { name, description, image, slug, category, status } = req.body;
+            const { name, description, blog_image, slug, category, status } = req.body;
 
             const existingBlog = await Blog.findOne({ id: id }).lean();
             if (!existingBlog) {
@@ -202,7 +195,7 @@ export default class BlogController {
 
             if (name !== undefined) updateData.name = name;
             if (description !== undefined) updateData.description = description;
-            if (image !== undefined) updateData.image = image;
+            if (blog_image !== undefined) updateData.blog_image = blog_image;
             if (category !== undefined) updateData.category = category;
             if (status !== undefined) updateData.status = status;
 
@@ -237,7 +230,6 @@ export default class BlogController {
         }
     }
 
-    // Delete blog
     public async delete(req: Request, res: Response): Promise<any> {
         try {
             const fn = "[delete]";
@@ -260,7 +252,6 @@ export default class BlogController {
         }
     }
 
-    // Get unique categories
     public async getCategories(req: Request, res: Response): Promise<any> {
         try {
             const fn = "[getCategories]";
@@ -276,4 +267,40 @@ export default class BlogController {
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
         }
     }
+    public async getBySlug(req: Request, res: Response): Promise<any> {
+        try {
+            const fn = "[getBySlug]";
+            const { locale } = req.query;
+            this.locale = (locale as string) || "en";
+
+            const slug = req.params.slug;
+            const result: any = await Blog.findOne({ slug: slug }).populate("created_by", "name email").populate("updated_by", "name email").lean();
+
+            if (result) {
+                return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["blog-fetched"]), result);
+            } else {
+                throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
+            }
+        } catch (err: any) {
+            return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
+        }
+    }
+    public async status(req: Request, res: Response): Promise<any> {
+            try {
+                const fn = "[status]";
+                const { locale } = req.query;
+                this.locale = (locale as string) || "en";
+                const id = parseInt(req.params.id);
+                const { status } = req.body;
+                const updationstatus = await Blog.findOneAndUpdate({ id: id }, { status: status });
+                const updatedData: any = await Blog.findOne({ id: id }).lean();
+                if (updationstatus) {
+                    return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["blog-status"]), updatedData);
+                } else {
+                    throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
+                }
+            } catch (err: any) {
+                return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
+            }
+        }
 }
