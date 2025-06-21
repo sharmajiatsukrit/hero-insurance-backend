@@ -8,6 +8,7 @@ import Deviceid from "./deviceid";
 import DashboardRoutes from "./dashboard";
 import NotificationRoutes from "../user/notification";
 import HelperRoutes from "../user/helper";
+import BlogRoute from "./blog/index";
 
 const routes: Router = expres.Router();
 routes.use("/auth", AuthRoutes);
@@ -19,6 +20,8 @@ routes.use("/firebase", Deviceid);
 routes.use("/dashboard", DashboardRoutes);
 routes.use("/notifications", NotificationRoutes);
 routes.use("/helper", HelperRoutes);
+routes.use("/blog", BlogRoute);
+
 
 
 export default routes;
