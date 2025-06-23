@@ -109,6 +109,7 @@ export default class App {
 
     routeManager(): void {
         this.app.use("/api", AppRoutes);
+        this.app.use("/uploads", express.static('uploads'));
     }
 
     handleUndefinedRoute(): Application {
