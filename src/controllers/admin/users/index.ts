@@ -176,7 +176,6 @@ export default class UserController {
             this.locale = (locale as string) || "en";
             const { name, phone, email, date_of_birth, city_id, state_id, country_id, address, role_id, password } = req.body;
             const id = parseInt(req.params.id);
-            const hashedPassword = await Bcrypt.hash(password, 10);
             const role: any = await Roles.findOne({ id: role_id }).lean();
             const country: any = await Country.findOne({ id: country_id }).lean();
             const state: any = await State.findOne({ id: state_id }).lean();
@@ -196,9 +195,8 @@ export default class UserController {
                 updated_by: req.user.object_id
             });
 
-
-
-            if (password.length >= 8) {
+            if (password?.length >= 8) {
+                const hashedPassword = await Bcrypt.hash(password, 10);
                 await User.findOneAndUpdate({ id: id }, { password: hashedPassword });
             }
             const userData: any = await this.fetchUserDetails(id);

@@ -174,7 +174,6 @@
     "blog-add":"New Blog added successfully",  
     "blog-update":"Blog Updated successfully",
     "blog-delete": "Blog Deleted successfully",
-    "blog-status": "Blog Status successfully Updated",
     "blog-already-exists": "Blog with this title already exists",
     "blog-not-found": "Blog not found",
     "invalid-request": "Invalid request",
