@@ -224,7 +224,7 @@ export default class BlogController {
 
             const updatedData: any = await Blog.findOne({ id: id }).populate("created_by", "name email").populate("updated_by", "name email").lean();
 
-            return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "blog-update"), updatedData);
+            return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "blog-update"), {});
         } catch (err: any) {
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
         }

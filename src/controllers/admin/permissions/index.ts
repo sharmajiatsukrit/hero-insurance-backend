@@ -140,7 +140,7 @@ export default class PermissionController {
 
             const updatedData: any = await Permissions.find({ id: id }).lean();
 
-            return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "permission-update"), updatedData);
+            return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "permission-update"), {});
         } catch (err: any) {
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
         }
