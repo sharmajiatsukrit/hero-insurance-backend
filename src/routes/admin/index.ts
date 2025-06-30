@@ -23,6 +23,9 @@ import BlogRoute from "./blog";
 import Faq from "./faq";
 import Setting from "./setting";
 import BugReport from "./issue-report";
+import EnquiryRoute from "./enquiry";
+import TestimonialRoute from "./testimonial"
+
 
 
 const routes: Router = expres.Router();
@@ -49,5 +52,9 @@ routes.use("/faq", Faq);
 routes.use("/setting", Setting);
 routes.use("/issue-report", BugReport);
 routes.use("/blog", BlogRoute);
+routes.use("/enquiry", EnquiryRoute);
+routes.use("/testimonial", TestimonialRoute);
+
+
 
 export default routes;

@@ -124,7 +124,6 @@ export const MessageKey: IObjectKeys = {
     "watchlist-item-add": "watchlist-item-add",
     "watchlist-item-remove": "watchlist-item-remove",
 
-
     "faq-fetched": "faq-fetched",
     "faq-add": "faq-add",
     "faq-update": "faq-update",
@@ -161,8 +160,11 @@ export const MessageKey: IObjectKeys = {
     "rating-submitted": "rating-submitted",
     "rating-updated": "rating-updated",
     "rating-fetched": "rating-fetched",
-    "blog-add":"blog-add",
+    "blog-add": "blog-add",
     "blog-status": "blog-status",
-    "blog-update": "blog-update"
-
+    "blog-update": "blog-update",
+    "enquiry-fetched": "enquiry-fetched",
+    "enquiry-add": "enquiry-add",
+    "enquiry-delete": "enquiry-delete",
+    "enquiry-status": "enquiry-status",
 };

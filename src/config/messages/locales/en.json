@@ -180,7 +180,11 @@
     "invalid-credentials": "Invalid credentials",
     "delete-failed": "Failed to delete",
     "slug-already-exists": "Slug already exists",
-    "blog-status": "Blog Status successfully Updated"
+    "blog-status": "Blog Status successfully Updated",
+    "enquiry-fetched": "Enquiry fetched successfully",
+    "enquiry-add": "Your enquiry was submitted successfully",
+    "enquiry-delete": "Enquiry deleted successfully",
+    "enquiry-status": "Enquiry status updated successfully"
 
    
 }

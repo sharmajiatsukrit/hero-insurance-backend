@@ -12,7 +12,6 @@ function validateRequest(req: Request, res: Response, next: NextFunction) {
     // Fetch local
     const { locale } = req.query;
     const language = (locale as string) || "en";
-
     const errors = validationResult(req);
 
     if (errors.isEmpty()) {

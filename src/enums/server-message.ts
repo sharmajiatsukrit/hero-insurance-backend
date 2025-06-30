@@ -24,11 +24,11 @@ export enum ServerMessagesEnum {
     "rating-submitted" = "rating-submitted",
     "rating-updated" = "rating-updated",
     "rating-fetched" = "rating-fetched",
-    
+
     "notifications-fetched" = "notifications-fetched",
     "notifications-cleared" = "notifications-cleared",
     "notification-cleared" = "notification-cleared",
-    
+
     "category-fetched" = "category-fetched",
     "category-add" = "category-add",
     "category-update" = "category-update",
@@ -81,7 +81,6 @@ export enum ServerMessagesEnum {
     "banner-delete" = "banner-delete",
     "banner-status" = "banner-status",
 
-
     "incorrect-password" = "incorrect-password",
     "password-mismatch" = "password-mismatch",
     "password-updated" = "password-updated",
@@ -98,13 +97,11 @@ export enum ServerMessagesEnum {
     "customer-deleted" = "customer-deleted",
     "customer-status" = "customer-status",
 
-
     "search-fetched" = "search-fetched",
 
     "wallet-balance-fetched" = "wallet-balance-fetched",
     "wallet-recharge-success" = "wallet-recharge-success",
     "transactions-fetched" = "transactions-fetched",
-
 
     "watchlist-fetched" = "watchlist-fetched",
     "watchlist-add" = "watchlist-add",
@@ -154,15 +151,20 @@ export enum ServerMessagesEnum {
     "team-update" = "team-update",
     "team-delete" = "team-delete",
     "team-status" = "team-status",
-    
-    "blog-fetched"="blog-fetched",
-   "blog-add"="blog-add",
-    "blog-update"="blog-update",
-    "blog-delete"="blog-delete",
-     "blog-status"= "blog-status",
-   "blog-already-exists"= "blog-already-exists",
-   "invalid-request"= "Invalid request",
-    "invalid-credentials"= "Invalid credentials",
-    "delete-failed"= "Failed to delete",
-      "slug-already-exists"="Slug already exists"
+
+    "blog-fetched" = "blog-fetched",
+    "blog-add" = "blog-add",
+    "blog-update" = "blog-update",
+    "blog-delete" = "blog-delete",
+    "blog-status" = "blog-status",
+    "blog-already-exists" = "blog-already-exists",
+    "invalid-request" = "Invalid request",
+    "invalid-credentials" = "Invalid credentials",
+    "delete-failed" = "Failed to delete",
+    "slug-already-exists" = "Slug already exists",
+
+    "enquiry-fetched" = "enquiry-fetched",
+    "enquiry-add" = "enquiry-add",
+    "enquiry-delete" = "enquiry-delete",
+    "enquiry-status" = "enquiry-status",
 }
