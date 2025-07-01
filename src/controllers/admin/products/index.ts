@@ -1,14 +1,14 @@
 import { Request, Response } from "express";
 import { ValidationChain } from "express-validator";
 import moment from "moment";
-import { AttributeItem, Category, Product,ProductVariation, Unit } from "../../../models";
+import { Product } from "../../../models";
 import { removeObjectKeys, serverResponse, serverErrorHandler, removeSpace, constructResponseMsg, serverInvalidRequest, groupByDate } from "../../../utils";
 import { HttpCodeEnum } from "../../../enums/server";
 import validate from "./validate";
 import EmailService from "../../../utils/email";
 import Logger from "../../../utils/logger";
 import ServerMessages, { ServerMessagesEnum } from "../../../config/messages";
-import ProductVariations from "../../../models/product-variations";
+import Category from "../../../models/category";
 
 const fileName = "[admin][product][index.ts]";
 export default class ProductController {
@@ -134,36 +134,36 @@ export default class ProductController {
                 })
               );
             if (categoryObjects) {
-                const sellingunit:any = await AttributeItem.findOne({id:selling_unit}).lean();
-                // const individualpacksize:any = await AttributeItem.findOne({id:individual_pack_size}).lean();
-                // const individualpackunit:any = await AttributeItem.findOne({id:individual_pack_unit}).lean();
-                // const individualpackingtype:any = await AttributeItem.findOne({id:individual_packing_type}).lean();
-                // const masterpacktype:any = await AttributeItem.findOne({id:master_pack_type}).lean();
-                const conversionUnit:any = await AttributeItem.findOne({id:conversion_unit}).lean();
-                // Create the main product
-                result = await Product.create({
-                    name,
-                    description,
-                    search_tags:search_tags,
-                    category_id: categoryObjects,
-                    selling_unit:selling_unit ? sellingunit._id : null,
-                    variations:variation,
-                    conversion_unit:conversion_unit ? conversionUnit._id : null,
-                    status
-                });
+                // const sellingunit:any = await AttributeItem.findOne({id:selling_unit}).lean();
+                // // const individualpacksize:any = await AttributeItem.findOne({id:individual_pack_size}).lean();
+                // // const individualpackunit:any = await AttributeItem.findOne({id:individual_pack_unit}).lean();
+                // // const individualpackingtype:any = await AttributeItem.findOne({id:individual_packing_type}).lean();
+                // // const masterpacktype:any = await AttributeItem.findOne({id:master_pack_type}).lean();
+                // const conversionUnit:any = await AttributeItem.findOne({id:conversion_unit}).lean();
+                // // Create the main product
+                // result = await Product.create({
+                //     name,
+                //     description,
+                //     search_tags:search_tags,
+                //     category_id: categoryObjects,
+                //     selling_unit:selling_unit ? sellingunit._id : null,
+                //     variations:variation,
+                //     conversion_unit:conversion_unit ? conversionUnit._id : null,
+                //     status
+                // });
     
-                if (result) {
-                    // Handle product image if uploaded
-                    if (req.file) {
-                        const product_image = req.file.filename;
-                        await Product.findOneAndUpdate({ id: result.id }, { product_image });
-                    }
+                // if (result) {
+                //     // Handle product image if uploaded
+                //     if (req.file) {
+                //         const product_image = req.file.filename;
+                //         await Product.findOneAndUpdate({ id: result.id }, { product_image });
+                //     }
                     
     
-                    return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "product-add"), {});
-                } else {
-                    throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
-                }
+                //     return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "product-add"), {});
+                // } else {
+                //     throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
+                // }
             } else {
                 throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
             }
@@ -204,26 +204,26 @@ export default class ProductController {
                 // const individualpackunit:any = await AttributeItem.findOne({id:individual_pack_unit}).lean();
                 // const individualpackingtype:any = await AttributeItem.findOne({id:individual_packing_type}).lean();
                 // const masterpacktype:any = await AttributeItem.findOne({id:master_pack_type}).lean();
-                const conversionUnit:any = await AttributeItem.findOne({id:conversion_unit}).lean();
-                let result: any = await Product.findOneAndUpdate(
-                    { id: id },
-                    {
-                        name,
-                        description,
-                        search_tags,
-                        category_id: categoryObjects,
-                        variations:variation,
-                        conversion_unit:conversion_unit ? conversionUnit._id : null,
-                        status
-                    });
-                let product_image: any;
-                if (req.file) {
-                    product_image = req?.file?.filename;
-                    let resultimage: any = await Product.findOneAndUpdate({ id: result.id }, { product_image: product_image });
-                }
-                const updatedData: any = await Product.find({ id: id }).lean();
+                // const conversionUnit:any = await AttributeItem.findOne({id:conversion_unit}).lean();
+                // let result: any = await Product.findOneAndUpdate(
+                //     { id: id },
+                //     {
+                //         name,
+                //         description,
+                //         search_tags,
+                //         category_id: categoryObjects,
+                //         variations:variation,
+                //         conversion_unit:conversion_unit ? conversionUnit._id : null,
+                //         status
+                //     });
+                // let product_image: any;
+                // if (req.file) {
+                //     product_image = req?.file?.filename;
+                //     let resultimage: any = await Product.findOneAndUpdate({ id: result.id }, { product_image: product_image });
+                // }
+                // const updatedData: any = await Product.find({ id: id }).lean();
 
-                return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "product-update"), updatedData);
+                // return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "product-update"), updatedData);
             }else{
                 throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
             }

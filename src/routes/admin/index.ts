@@ -9,13 +9,7 @@ import StateRoutes from "./states";
 import CityRoutes from "./cities";
 import CategoryRoutes from "./category";
 import ProductsRoutes from "./products";
-import UnitsRoutes from "./unit";
-import TransactionRoutes from "./transaction";
-import InvoiceRoutes from "./invoice";
-import AttributeRoutes from "./attribute";
-import AttributeItemRoutes from "./attribute-item";
 import HelperRoutes from "./helper";
-import ProductRequest from "./productrequest";
 import Customer from "./customer";
 import Banner from "./banner";
 import BlogRoute from "./blog";
@@ -25,7 +19,10 @@ import BugReport from "./issue-report";
 import EnquiryRoute from "./enquiry";
 import TestimonialRoute from "./testimonial"
 import AwardRoute from "./award"
-import OfferRoute from "./offer";
+import BoardOfDirectorRoute from "./board-of-director"
+import KeyOfficerRoute from "./key-officer"
+import OfferRoute from "./offer"
+
 
 
 
@@ -38,15 +35,9 @@ routes.use("/permissions", PermissionsRoutes);
 routes.use("/country", CountryRoutes);
 routes.use("/state", StateRoutes);
 routes.use("/city", CityRoutes);
-routes.use("/units", UnitsRoutes);
-routes.use("/transaction", TransactionRoutes);
-routes.use("/invoice", InvoiceRoutes);
-routes.use("/attribute", AttributeRoutes);
-routes.use("/attribute/attribute-item", AttributeItemRoutes);
 routes.use("/category", CategoryRoutes);
 routes.use("/product", ProductsRoutes);
 routes.use("/helper", HelperRoutes);
-routes.use("/product-request", ProductRequest);
 routes.use("/customer", Customer);
 routes.use("/banner", Banner);
 routes.use("/faq", Faq);
@@ -56,7 +47,11 @@ routes.use("/blog", BlogRoute);
 routes.use("/enquiry", EnquiryRoute);
 routes.use("/testimonial", TestimonialRoute);
 routes.use("/award", AwardRoute);
+routes.use("/bod", BoardOfDirectorRoute);
+routes.use("/key-officer", KeyOfficerRoute);
 routes.use("/offer", OfferRoute);
+
+
 
 
 

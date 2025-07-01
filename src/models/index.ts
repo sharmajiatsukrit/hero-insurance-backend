@@ -6,33 +6,18 @@ import Permissions from "./permissions";
 import Configs from "./configs";
 import Notifications from "./notification";
 import Roles from "./roles";
-import Category from "./category";
 import Product from "./products";
-import ProductVariation from "./product-variations";
 import Country from "./country";
 import State from "./state";
 import City from "./city";
-import Unit from "./unit";
-import Attribute from "./attribute";
-import AttributeItem from "./attribute-item";
-import mongoose from 'mongoose';
-import ProductRequest from './productrequest';
-import Offers from './offers';
 import Banner from './banner';
-import Watchlist from './watchlist';
-import WatchlistItem from './watchlist-items';
-import Wallet from './wallet';
-import Transaction from './transaction';
 import Customer from './customer';
 import Deviceid from "./deviceid";
-import Location from "./location";
-import UnlockOffers from "./unlock-offers";
-import Rating from "./rating";
 import ReportIssues from "./report-issues";
 import Faqs from "./faqs";
 import Setting from "./setting";
-import Invoice from "./invoice";
 import UnifiedLead from "./unified-lead";
 import ApiLog from "./api-log";
-import Blog from "./blog"
-export { DataBase, User, Customer,ApiLog, Location, Deviceid, Sessions, Otps, Roles, Permissions, Configs, Notifications,UnifiedLead, Category, Product,ProductVariation, Country, State, City, Unit, Attribute, AttributeItem, ProductRequest, Offers, Banner, Watchlist, WatchlistItem, Wallet, Transaction, ReportIssues, Faqs, Setting,UnlockOffers,Rating,Invoice, Blog };
+
+
+export { DataBase, User, Customer,ApiLog, Deviceid, Sessions, Otps, Roles, Permissions, Configs, Notifications,UnifiedLead, Product,Country, State, City,  Banner, ReportIssues, Faqs, Setting, };

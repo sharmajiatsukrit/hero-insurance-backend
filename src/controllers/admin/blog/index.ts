@@ -1,13 +1,16 @@
 import { Request, Response } from "express";
 import { ValidationChain } from "express-validator";
 import moment from "moment";
-import { Blog, Category } from "../../../models";
+
 import { removeObjectKeys, serverResponse, serverErrorHandler, removeSpace, constructResponseMsg, serverInvalidRequest, groupByDate } from "../../../utils";
 import { HttpCodeEnum } from "../../../enums/server";
 import validate from "./validate";
 import EmailService from "../../../utils/email";
 import Logger from "../../../utils/logger";
 import ServerMessages, { ServerMessagesEnum } from "../../../config/messages";
+import Category from "../../../models/category";
+import Blog from "../../../models/blog";
+
 
 const fileName = "[admin][blog][index.ts]";
 

@@ -6,7 +6,7 @@ import mongoose from "mongoose";
 import JWT from "jsonwebtoken";
 import { DateTime } from "luxon";
 import moment from "moment";
-import { Otps, Permissions, Sessions, User, Customer, Deviceid, Setting, Wallet, Transaction } from "../../../models";
+import { Otps, Permissions, Sessions, User, Customer, Deviceid } from "../../../models";
 import { removeObjectKeys, serverResponse, getDeviceDetails, serverErrorHandler, decryptText, removeSpace, constructResponseMsg, serverInvalidRequest } from "../../../utils";
 import { HttpCodeEnum } from "../../../enums/server";
 import { UserData } from "../../../interfaces/user";

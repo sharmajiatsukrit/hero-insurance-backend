@@ -6,7 +6,7 @@ import { upload } from "../../../utils/storage";
 const routes: Router = expres.Router();
 const userController = new UserController();
 
-routes.get("/list", validateRequest, authAdmin, userController.getList.bind(userController));
+routes.get("/list", validateRequest, authAdmin, userController.validate("add"),userController.getList.bind(userController));
 routes.post("/add", validateRequest, authAdmin, upload.single("profile_img"), userController.add.bind(userController));
 routes.put("/update/:id", validateRequest, authAdmin, upload.single("profile_img"), userController.update.bind(userController));
 routes.get("/by-id/:id", validateRequest, authAdmin, userController.getById.bind(userController));

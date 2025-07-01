@@ -6,9 +6,6 @@ const routes: Router = expres.Router();
 const helperController = new HelperController();
 
 routes.get("/get-categories", validateRequest, authAdmin, helperController.getCategories.bind(helperController));
-routes.get("/get-units", validateRequest, authAdmin, helperController.getUnits.bind(helperController));
-routes.get("/get-attributes", validateRequest, authAdmin, helperController.getAttributes.bind(helperController));
-routes.get("/get-attribute-items/:attribute_id", validateRequest, authAdmin, helperController.getAttributeItems.bind(helperController));
 // routes.get("/get-attribute-items-by-key/:attribute_key", validateRequest, authAdmin, helperController.getAttributeItemsByKey.bind(helperController));
 routes.get("/get-countries", validateRequest, authAdmin, helperController.getCounties.bind(helperController));
 routes.get("/get-states", validateRequest, authAdmin, helperController.getStates.bind(helperController));
