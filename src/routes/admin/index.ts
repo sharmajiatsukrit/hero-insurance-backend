@@ -16,7 +16,6 @@ import AttributeRoutes from "./attribute";
 import AttributeItemRoutes from "./attribute-item";
 import HelperRoutes from "./helper";
 import ProductRequest from "./productrequest";
-import Offers from "./offers";
 import Customer from "./customer";
 import Banner from "./banner";
 import BlogRoute from "./blog";
@@ -25,6 +24,9 @@ import Setting from "./setting";
 import BugReport from "./issue-report";
 import EnquiryRoute from "./enquiry";
 import TestimonialRoute from "./testimonial"
+import AwardRoute from "./award"
+import OfferRoute from "./offer";
+
 
 
 
@@ -45,7 +47,6 @@ routes.use("/category", CategoryRoutes);
 routes.use("/product", ProductsRoutes);
 routes.use("/helper", HelperRoutes);
 routes.use("/product-request", ProductRequest);
-routes.use("/offer", Offers);
 routes.use("/customer", Customer);
 routes.use("/banner", Banner);
 routes.use("/faq", Faq);
@@ -54,6 +55,9 @@ routes.use("/issue-report", BugReport);
 routes.use("/blog", BlogRoute);
 routes.use("/enquiry", EnquiryRoute);
 routes.use("/testimonial", TestimonialRoute);
+routes.use("/award", AwardRoute);
+routes.use("/offer", OfferRoute);
+
 
 
 

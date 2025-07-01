@@ -1,14 +1,16 @@
 import { Request, Response } from "express";
 import { ValidationChain } from "express-validator";
-import Enquiry from "../../../models/enquiry";
 import { serverResponse, serverErrorHandler, constructResponseMsg } from "../../../utils";
 import { HttpCodeEnum } from "../../../enums/server";
+
 import validate from "./validate";
 import Logger from "../../../utils/logger";
 import ServerMessages, { ServerMessagesEnum } from "../../../config/messages";
+import KeyOfficer from "../../../models/key-officer";
 
-const fileName = "[admin][enquiry][index.ts]";
-export default class EnquiryController {
+
+const fileName = "[admin][kof][index.ts]";
+export default class KeyOfficerController {
     public locale: string = "en";
 
     public validate(endPoint: string): ValidationChain[] {
@@ -17,7 +19,7 @@ export default class EnquiryController {
 
     public async getList(req: Request, res: Response): Promise<any> {
         try {
-            const fn = "[enquiry][getList]";
+            const fn = "[kof][getList]";
             // Set locale
             const { locale, page, limit, search } = req.query;
             this.locale = (locale as string) || "en";
@@ -33,13 +35,13 @@ export default class EnquiryController {
             if (search) {
                 filter.$or = [{ name: { $regex: search, $options: "i" } }];
             }
-            const results = await Enquiry.find({...query,...filter })
+            const results = await KeyOfficer.find({ ...query, ...filter })
                 .sort({ _id: -1 })
                 .skip(skip)
                 .limit(limitNumber)
                 .lean();
 
-            const totalCount = await Enquiry.countDocuments({...query,...filter });
+            const totalCount = await KeyOfficer.countDocuments({ ...query, ...filter });
             const totalPages = Math.ceil(totalCount / limitNumber);
 
             if (results.length > 0) {
@@ -59,13 +61,13 @@ export default class EnquiryController {
 
     public async getById(req: Request, res: Response): Promise<any> {
         try {
-            const fn = "[enquiry][getById]";
+            const fn = "[kof][getById]";
             // Set locale
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
 
             const id = parseInt(req.params.id);
-            const result: any = await Enquiry.findOne({ id: id }).lean();
+            const result: any = await KeyOfficer.findOne({ id: id }).lean();
             // console.log(result);
 
             if (result) {
@@ -78,59 +80,70 @@ export default class EnquiryController {
         }
     }
 
-    //add
     public async add(req: Request, res: Response): Promise<any> {
         try {
-            const fn = "[enquiry][add]";
-            // Set locale
+            const fn = "[kof][add]";
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
 
-            const { name, email, mobile_no, description, status = true } = req.body;
-            let result: any;
+            const { name, designation, menu_order, status } = req.body;
+            Logger.info(`${fileName + fn} req.body: ${JSON.stringify(req.body)}`);
 
-            result = await Enquiry.create({
+            let kof_image: any;
+            if (req.file) {
+                kof_image = req?.file?.filename;
+            }
+
+            const result: any = await KeyOfficer.create({
                 name: name,
-                email: email,
-                mobile_no: mobile_no,
-                description: description,
+                designation: designation,
+                menu_order: menu_order,
+                kof_image: kof_image,
                 status: status,
                 created_by: req.user?.object_id,
             });
 
-            return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "enquiry-add"), result.doc);
+            Logger.info(`${fileName + fn} Created blog: ${JSON.stringify(result)}`);
+
+            return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "award-add"), {});
         } catch (err: any) {
+            // Logger.error(`${fileName + fn} Error: ${err.message}`);
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
         }
     }
-
-    //Update
     public async update(req: Request, res: Response): Promise<any> {
         try {
-            const fn = "[enquiry][update]";
-
+            const fn = "[kof][update]";
             const id = parseInt(req.params.id);
-
-            // Set locale
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
-            const { name, email, mobile_no, description, status } = req.body;
 
-            let result: any = await Enquiry.findOneAndUpdate(
+            const { name, designation, menu_order, status } = req.body;
+            Logger.info(`${fileName + fn} req.body: ${JSON.stringify(req.body)}`);
+
+            let kof_image: any;
+            if (req.file) {
+                kof_image = req.file.filename;
+            }
+
+            const keyOfficer = await KeyOfficer.findOne({ id: id });
+            if (!keyOfficer) {
+                return serverResponse(res, HttpCodeEnum.NOTFOUND, constructResponseMsg(this.locale, "award-not-found"), {});
+            }
+
+            await KeyOfficer.findOneAndUpdate(
                 { id: id },
                 {
                     name: name,
-                    email: email,
-                    mobile_no: mobile_no,
-                    description: description,
+                    designation: designation,
+                    menu_order: menu_order,
+                    kof_image: kof_image || keyOfficer.kof_image,
                     status: status,
-                    updated_by:req.user?.object_id,
+                    updated_by: req.user?.object_id,
                 }
             );
 
-            const updatedData: any = await Enquiry.find({ id: id }).lean();
-
-            return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "enquiry-update"), updatedData);
+            return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "award-update"), {});
         } catch (err: any) {
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
         }
@@ -139,13 +152,13 @@ export default class EnquiryController {
     // Delete
     public async delete(req: Request, res: Response): Promise<any> {
         try {
-            const fn = "[enquiry][delete]";
+            const fn = "[kof][delete]";
             // Set locale
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
 
             const id = parseInt(req.params.id);
-            const result = await Enquiry.deleteOne({ id: id });
+            const result = await KeyOfficer.deleteOne({ id: id });
 
             if (result) {
                 return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["enquiry-delete"]), result);
@@ -160,15 +173,15 @@ export default class EnquiryController {
     // Status
     public async status(req: Request, res: Response): Promise<any> {
         try {
-            const fn = "[enquiry][status]";
+            const fn = "[kof][status]";
             // Set locale
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
 
             const id = parseInt(req.params.id);
             const { status } = req.body;
-            const updationstatus = await Enquiry.findOneAndUpdate({ id: id }, { status: status }).lean();
-            const updatedData: any = await Enquiry.find({ id: id }).lean();
+            const updationstatus = await KeyOfficer.findOneAndUpdate({ id: id }, { status: status }).lean();
+            const updatedData: any = await KeyOfficer.find({ id: id }).lean();
             if (updationstatus) {
                 return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["enquiry-status"]), updatedData);
             } else {

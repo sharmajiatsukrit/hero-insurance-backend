@@ -1,14 +1,15 @@
 import { Request, Response } from "express";
 import { ValidationChain } from "express-validator";
-import Enquiry from "../../../models/enquiry";
 import { serverResponse, serverErrorHandler, constructResponseMsg } from "../../../utils";
 import { HttpCodeEnum } from "../../../enums/server";
+
 import validate from "./validate";
 import Logger from "../../../utils/logger";
 import ServerMessages, { ServerMessagesEnum } from "../../../config/messages";
+import Offer from "../../../models/offer";
 
-const fileName = "[admin][enquiry][index.ts]";
-export default class EnquiryController {
+const fileName = "[admin][offer][index.ts]";
+export default class OfferController {
     public locale: string = "en";
 
     public validate(endPoint: string): ValidationChain[] {
@@ -17,7 +18,7 @@ export default class EnquiryController {
 
     public async getList(req: Request, res: Response): Promise<any> {
         try {
-            const fn = "[enquiry][getList]";
+            const fn = "[kof][getList]";
             // Set locale
             const { locale, page, limit, search } = req.query;
             this.locale = (locale as string) || "en";
@@ -33,13 +34,13 @@ export default class EnquiryController {
             if (search) {
                 filter.$or = [{ name: { $regex: search, $options: "i" } }];
             }
-            const results = await Enquiry.find({...query,...filter })
+            const results = await Offer.find({ ...query, ...filter })
                 .sort({ _id: -1 })
                 .skip(skip)
                 .limit(limitNumber)
                 .lean();
 
-            const totalCount = await Enquiry.countDocuments({...query,...filter });
+            const totalCount = await Offer.countDocuments({ ...query, ...filter });
             const totalPages = Math.ceil(totalCount / limitNumber);
 
             if (results.length > 0) {
@@ -59,13 +60,13 @@ export default class EnquiryController {
 
     public async getById(req: Request, res: Response): Promise<any> {
         try {
-            const fn = "[enquiry][getById]";
+            const fn = "[offer][getById]";
             // Set locale
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
 
             const id = parseInt(req.params.id);
-            const result: any = await Enquiry.findOne({ id: id }).lean();
+            const result: any = await Offer.findOne({ id: id }).lean();
             // console.log(result);
 
             if (result) {
@@ -78,59 +79,72 @@ export default class EnquiryController {
         }
     }
 
-    //add
     public async add(req: Request, res: Response): Promise<any> {
         try {
-            const fn = "[enquiry][add]";
-            // Set locale
+            const fn = "[offer][add]";
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
 
-            const { name, email, mobile_no, description, status = true } = req.body;
-            let result: any;
+            const { offer_name, offer_link, valid_from, valid_to, status } = req.body;
+            Logger.info(`${fileName + fn} req.body: ${JSON.stringify(req.body)}`);
 
-            result = await Enquiry.create({
-                name: name,
-                email: email,
-                mobile_no: mobile_no,
-                description: description,
+            let offer_image: any;
+            if (req.file) {
+                offer_image = req?.file?.filename;
+            }
+
+            const result: any = await Offer.create({
+                offer_name: offer_name,
+                offer_link: offer_link,
+                valid_from: valid_from,
+                valid_to: valid_to,
+                offer_image: offer_image,
                 status: status,
                 created_by: req.user?.object_id,
             });
 
-            return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "enquiry-add"), result.doc);
+            Logger.info(`${fileName + fn} Created blog: ${JSON.stringify(result)}`);
+
+            return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "award-add"), {});
         } catch (err: any) {
+            // Logger.error(`${fileName + fn} Error: ${err.message}`);
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
         }
     }
-
-    //Update
     public async update(req: Request, res: Response): Promise<any> {
         try {
-            const fn = "[enquiry][update]";
-
+            const fn = "[offer][update]";
             const id = parseInt(req.params.id);
-
-            // Set locale
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
-            const { name, email, mobile_no, description, status } = req.body;
 
-            let result: any = await Enquiry.findOneAndUpdate(
+            const { offer_name, offer_link, valid_from, valid_to, status } = req.body;
+            Logger.info(`${fileName + fn} req.body: ${JSON.stringify(req.body)}`);
+
+            let offer_image: any;
+            if (req.file) {
+                offer_image = req.file.filename;
+            }
+
+            const offer = await Offer.findOne({ id: id });
+            if (!offer) {
+                return serverResponse(res, HttpCodeEnum.NOTFOUND, constructResponseMsg(this.locale, "award-not-found"), {});
+            }
+
+            await Offer.findOneAndUpdate(
                 { id: id },
                 {
-                    name: name,
-                    email: email,
-                    mobile_no: mobile_no,
-                    description: description,
+                    offer_name: offer_name,
+                    offer_link: offer_link,
+                    valid_from: valid_from,
+                    valid_to: valid_to,
+                    offer_image: offer_image || offer.offer_image,
                     status: status,
-                    updated_by:req.user?.object_id,
+                    updated_by: req.user?.object_id,
                 }
             );
 
-            const updatedData: any = await Enquiry.find({ id: id }).lean();
-
-            return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "enquiry-update"), updatedData);
+            return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "award-update"), {});
         } catch (err: any) {
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
         }
@@ -139,13 +153,13 @@ export default class EnquiryController {
     // Delete
     public async delete(req: Request, res: Response): Promise<any> {
         try {
-            const fn = "[enquiry][delete]";
+            const fn = "[offer][delete]";
             // Set locale
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
 
             const id = parseInt(req.params.id);
-            const result = await Enquiry.deleteOne({ id: id });
+            const result = await Offer.deleteOne({ id: id });
 
             if (result) {
                 return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["enquiry-delete"]), result);
@@ -160,15 +174,15 @@ export default class EnquiryController {
     // Status
     public async status(req: Request, res: Response): Promise<any> {
         try {
-            const fn = "[enquiry][status]";
+            const fn = "[offer][status]";
             // Set locale
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
 
             const id = parseInt(req.params.id);
             const { status } = req.body;
-            const updationstatus = await Enquiry.findOneAndUpdate({ id: id }, { status: status }).lean();
-            const updatedData: any = await Enquiry.find({ id: id }).lean();
+            const updationstatus = await Offer.findOneAndUpdate({ id: id }, { status: status }).lean();
+            const updatedData: any = await Offer.find({ id: id }).lean();
             if (updationstatus) {
                 return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["enquiry-status"]), updatedData);
             } else {

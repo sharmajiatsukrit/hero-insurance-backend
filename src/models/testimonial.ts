@@ -21,8 +21,8 @@ const TestimonialSchema: Schema = new Schema({
     status: { type: Boolean, default: '' },
     is_deleted: { type: Boolean, default: false },
     deleted_at: { type: String, default: '' },
-    created_by: { type: Schema.Types.ObjectId, ref: 'users', default:null },
-    updated_by: { type: Schema.Types.ObjectId, ref: 'users', default:null }
+    created_by: { type: Schema.Types.ObjectId, ref: 'users' },
+    updated_by: { type: Schema.Types.ObjectId, ref: 'users' }
 },
     {
         timestamps: true,
