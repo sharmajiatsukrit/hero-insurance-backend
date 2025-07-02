@@ -26,21 +26,19 @@ export default class BODController {
             const pageNumber = parseInt(page as string) || 1;
             const limitNumber = parseInt(limit as string) || 10;
             const skip = (pageNumber - 1) * limitNumber;
-            const query: any = {
-                is_deleted: false,
-                status: true,
-            };
-            const filter: any = {};
+           
+           const filter: any = {};
+            filter.is_deleted = false;
             if (search) {
                 filter.$or = [{ name: { $regex: search, $options: "i" } }];
             }
-            const results = await BoardOfDirector.find({ ...query, ...filter })
+            const results = await BoardOfDirector.find(filter)
                 .sort({ _id: -1 })
                 .skip(skip)
                 .limit(limitNumber)
                 .lean();
 
-            const totalCount = await BoardOfDirector.countDocuments({ ...query, ...filter });
+            const totalCount = await BoardOfDirector.countDocuments(filter);
             const totalPages = Math.ceil(totalCount / limitNumber);
 
             if (results.length > 0) {
@@ -162,7 +160,7 @@ export default class BODController {
             const result = await BoardOfDirector.deleteOne({ id: id });
 
             if (result) {
-                return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["enquiry-delete"]), result);
+                return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["enquiry-delete"]), {});
             } else {
                 throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
             }
@@ -184,7 +182,7 @@ export default class BODController {
             const updationstatus = await BoardOfDirector.findOneAndUpdate({ id: id }, { status: status }).lean();
             const updatedData: any = await BoardOfDirector.find({ id: id }).lean();
             if (updationstatus) {
-                return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["enquiry-status"]), updatedData);
+                return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["enquiry-status"]), {});
             } else {
                 throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
             }

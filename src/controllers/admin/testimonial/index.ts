@@ -25,21 +25,18 @@ export default class TestimonialController {
             const pageNumber = parseInt(page as string) || 1;
             const limitNumber = parseInt(limit as string) || 10;
             const skip = (pageNumber - 1) * limitNumber;
-            const query: any = {
-                is_deleted: false,
-                status: true,
-            };
             const filter: any = {};
+            filter.is_deleted = false;
             if (search) {
                 filter.$or = [{ name: { $regex: search, $options: "i" } }];
             }
-            const results = await Testimonial.find({...query,...filter })
+            const results = await Testimonial.find(filter)
                 .sort({ _id: -1 })
                 .skip(skip)
                 .limit(limitNumber)
                 .lean();
 
-            const totalCount = await Testimonial.countDocuments({...query,...filter });
+            const totalCount = await Testimonial.countDocuments(filter);
             const totalPages = Math.ceil(totalCount / limitNumber);
 
             if (results.length > 0) {
@@ -85,7 +82,6 @@ export default class TestimonialController {
             // Set locale
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
-
             const { name, location, star_rating, description, status = true } = req.body;
             const rating = parseInt(star_rating as string)
             let result: any;

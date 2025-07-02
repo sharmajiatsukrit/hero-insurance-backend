@@ -25,21 +25,19 @@ export default class EnquiryController {
             const pageNumber = parseInt(page as string) || 1;
             const limitNumber = parseInt(limit as string) || 10;
             const skip = (pageNumber - 1) * limitNumber;
-            const query: any = {
-                is_deleted: false,
-                status: true,
-            };
+           
             const filter: any = {};
+            filter.is_deleted = false;
             if (search) {
                 filter.$or = [{ name: { $regex: search, $options: "i" } }];
             }
-            const results = await Enquiry.find({...query,...filter })
+            const results = await Enquiry.find(filter)
                 .sort({ _id: -1 })
                 .skip(skip)
                 .limit(limitNumber)
                 .lean();
 
-            const totalCount = await Enquiry.countDocuments({...query,...filter });
+            const totalCount = await Enquiry.countDocuments(filter);
             const totalPages = Math.ceil(totalCount / limitNumber);
 
             if (results.length > 0) {
@@ -98,7 +96,7 @@ export default class EnquiryController {
                 created_by: req.user?.object_id,
             });
 
-            return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "enquiry-add"), result.doc);
+            return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "enquiry-add"), {});
         } catch (err: any) {
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
         }
@@ -130,7 +128,7 @@ export default class EnquiryController {
 
             const updatedData: any = await Enquiry.find({ id: id }).lean();
 
-            return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "enquiry-update"), updatedData);
+            return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "enquiry-update"), {});
         } catch (err: any) {
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
         }
@@ -148,7 +146,7 @@ export default class EnquiryController {
             const result = await Enquiry.deleteOne({ id: id });
 
             if (result) {
-                return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["enquiry-delete"]), result);
+                return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["enquiry-delete"]), {});
             } else {
                 throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
             }
@@ -170,7 +168,7 @@ export default class EnquiryController {
             const updationstatus = await Enquiry.findOneAndUpdate({ id: id }, { status: status }).lean();
             const updatedData: any = await Enquiry.find({ id: id }).lean();
             if (updationstatus) {
-                return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["enquiry-status"]), updatedData);
+                return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["enquiry-status"]), {});
             } else {
                 throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
             }

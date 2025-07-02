@@ -16,7 +16,7 @@ interface ITestimonial extends Document {
 const TestimonialSchema: Schema = new Schema({
     name: { type: String, default: '' },
     location: { type: String, default: '' },
-    star_rating: { type: Number, default: '' },
+    star_rating: { type: Number, default: 0 },
     description: { type: String, default: '' },
     status: { type: Boolean, default: '' },
     is_deleted: { type: Boolean, default: false },
