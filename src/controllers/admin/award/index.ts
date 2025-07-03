@@ -25,24 +25,27 @@ export default class AwardController {
             const pageNumber = parseInt(page as string) || 1;
             const limitNumber = parseInt(limit as string) || 10;
             const skip = (pageNumber - 1) * limitNumber;
-            
+
             const filter: any = {};
             filter.is_deleted = false;
             if (search) {
                 filter.$or = [{ name: { $regex: search, $options: "i" } }];
             }
-            const results = await Award.find(filter)
-                .sort({ _id: -1 })
-                .skip(skip)
-                .limit(limitNumber)
-                .lean();
+            const results = await Award.find(filter).sort({ _id: -1 }).skip(skip).limit(limitNumber).lean();
 
             const totalCount = await Award.countDocuments(filter);
             const totalPages = Math.ceil(totalCount / limitNumber);
+            let formattedResults: any[] = [];
 
             if (results.length > 0) {
+                formattedResults = results.map((item, index) => ({
+                    ...item,
+                    award_image: `${process.env.RESOURCE_URL}${item.award_image}`,
+                }));
+            }
+            if (results.length > 0) {
                 return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["faq-fetched"]), {
-                    data: results,
+                    data: formattedResults,
                     totalCount,
                     totalPages,
                     currentPage: pageNumber,
@@ -67,6 +70,7 @@ export default class AwardController {
             // console.log(result);
 
             if (result) {
+                result.award_image = `${process.env.RESOURCE_URL}${result.award_image}`;
                 return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["enquiry-fetched"]), result);
             } else {
                 throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
@@ -134,7 +138,7 @@ export default class AwardController {
                     subtitle,
                     award_date,
                     status,
-                    award_image: award_image || award.award_image, 
+                    award_image: award_image || award.award_image,
                     updated_by: req.user?.object_id,
                 }
             );
@@ -144,7 +148,6 @@ export default class AwardController {
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
         }
     }
-
 
     // Delete
     public async delete(req: Request, res: Response): Promise<any> {

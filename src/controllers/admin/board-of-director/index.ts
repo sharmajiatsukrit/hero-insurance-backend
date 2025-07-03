@@ -26,24 +26,27 @@ export default class BODController {
             const pageNumber = parseInt(page as string) || 1;
             const limitNumber = parseInt(limit as string) || 10;
             const skip = (pageNumber - 1) * limitNumber;
-           
-           const filter: any = {};
+
+            const filter: any = {};
             filter.is_deleted = false;
             if (search) {
                 filter.$or = [{ name: { $regex: search, $options: "i" } }];
             }
-            const results = await BoardOfDirector.find(filter)
-                .sort({ _id: -1 })
-                .skip(skip)
-                .limit(limitNumber)
-                .lean();
+            const results = await BoardOfDirector.find(filter).sort({ _id: -1 }).skip(skip).limit(limitNumber).lean();
 
             const totalCount = await BoardOfDirector.countDocuments(filter);
             const totalPages = Math.ceil(totalCount / limitNumber);
+            let formattedResults: any[] = [];
 
             if (results.length > 0) {
+                formattedResults = results.map((item, index) => ({
+                    ...item,
+                    bod_image: `${process.env.RESOURCE_URL}${item.bod_image}`,
+                }));
+            }
+            if (results.length > 0) {
                 return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["faq-fetched"]), {
-                    data: results,
+                    data: formattedResults,
                     totalCount,
                     totalPages,
                     currentPage: pageNumber,
@@ -68,6 +71,8 @@ export default class BODController {
             // console.log(result);
 
             if (result) {
+                result.bod_image = `${process.env.RESOURCE_URL}${result.bod_image}`;
+
                 return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["enquiry-fetched"]), result);
             } else {
                 throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));

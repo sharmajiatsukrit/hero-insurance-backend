@@ -40,10 +40,19 @@ export default class OfferController {
 
             const totalCount = await Offer.countDocuments(filter);
             const totalPages = Math.ceil(totalCount / limitNumber);
+            let formattedResults: any[] = [];
+
+            if (results.length > 0) {
+                formattedResults = results.map((item, index) => ({
+                    ...item,
+                    offer_image: `${process.env.RESOURCE_URL}${item.offer_image}`,
+                }));
+            }
+
 
             if (results.length > 0) {
                 return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["faq-fetched"]), {
-                    data: results,
+                    data: formattedResults,
                     totalCount,
                     totalPages,
                     currentPage: pageNumber,
@@ -68,6 +77,7 @@ export default class OfferController {
             // console.log(result);
 
             if (result) {
+                result.offer_image = `${process.env.RESOURCE_URL}${result.offer_image}`;
                 return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["enquiry-fetched"]), result);
             } else {
                 throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));

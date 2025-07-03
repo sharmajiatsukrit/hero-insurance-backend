@@ -41,10 +41,18 @@ export default class KeyOfficerController {
 
             const totalCount = await KeyOfficer.countDocuments(filter);
             const totalPages = Math.ceil(totalCount / limitNumber);
+            let formattedResults: any[] = [];
+
+            if (results.length > 0) {
+                formattedResults = results.map((item, index) => ({
+                    ...item,
+                    kof_image: `${process.env.RESOURCE_URL}${item.kof_image}`,
+                }));
+            }
 
             if (results.length > 0) {
                 return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["faq-fetched"]), {
-                    data: results,
+                    data: formattedResults,
                     totalCount,
                     totalPages,
                     currentPage: pageNumber,
@@ -69,6 +77,7 @@ export default class KeyOfficerController {
             // console.log(result);
 
             if (result) {
+                result.kof_image = `${process.env.RESOURCE_URL}${result.kof_image}`;
                 return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["enquiry-fetched"]), result);
             } else {
                 throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
