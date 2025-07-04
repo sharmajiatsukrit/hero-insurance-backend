@@ -29,7 +29,7 @@ routes.use("/blog", BlogRoute);
 routes.use("/recent-blog", RecentBlogRoute);
 routes.use("/offer", OfferRoute);
 routes.use("/testimonial", TestimonialRoute);
-routes.use("/award", AwardRoute);
+routes.use("/awards", AwardRoute);
 routes.use("/key-officer", KeyOfficerRoute);
 routes.use("/bod", BODRoute);
 routes.use("/enquiry", EnquiryRoute);

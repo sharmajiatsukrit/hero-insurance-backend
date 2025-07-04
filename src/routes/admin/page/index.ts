@@ -28,6 +28,7 @@ routes.post("/claims/add/heading_section", validateRequest, authAdmin,upload.sin
 // Awards Page (A)
 routes.post("/award/add/awards_section", validateRequest, authAdmin, pageController.addAS.bind(pageController));
 
-
+// Get endpoints
 routes.get("/list/:key", validateRequest, authAdmin, pageController.getList.bind(pageController));
+
 export default routes;
