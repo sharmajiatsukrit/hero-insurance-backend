@@ -34,12 +34,17 @@ export default class PageController {
             if (results.length > 0) {
                 formattedResults = results.map((item: any) => ({
                     ...item,
-                    ...(item.image && { image: `${process.env.RESOURCE_URL}${item.image}` }),
+                    value: {
+                        ...item.value,
+                        ...(item.value?.image && {
+                            image: `${process.env.RESOURCE_URL}${item.value.image}`,
+                        }),
+                    },
                 }));
             }
             if (results) {
                 // result.offer_image = `${process.env.RESOURCE_URL}${result.offer_image}`;
-                return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["enquiry-fetched"]), results);
+                return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["enquiry-fetched"]), formattedResults);
             } else {
                 throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
             }

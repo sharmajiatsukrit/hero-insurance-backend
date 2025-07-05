@@ -55,7 +55,7 @@ export default class PageController {
             if (!hbs) {
                 const result: any = await Page.create({
                     key: "home_banner_section",
-                    value: { title, sub_title },
+                    value: { title, sub_title, image },
                     created_by: req.user?.object_id,
                 });
                 return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "award-add"), {});
@@ -63,7 +63,7 @@ export default class PageController {
             await Page.findOneAndUpdate(
                 { key: "home_banner_section" },
                 {
-                    value: { title, sub_title },
+                    value: { title, sub_title, image },
                     created_by: req.user?.object_id,
                 }
             );
