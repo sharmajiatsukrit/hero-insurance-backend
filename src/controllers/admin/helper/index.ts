@@ -7,7 +7,7 @@ import validate from "./validate";
 import EmailService from "../../../utils/email";
 import Logger from "../../../utils/logger";
 import ServerMessages, { ServerMessagesEnum } from "../../../config/messages";
-import Category from "../../../models/city";
+import OfferCategory from "../../../models/offer-category";
 
 const fileName = "[admin][helper][index.ts]";
 export default class HelperController {
@@ -21,8 +21,6 @@ export default class HelperController {
     public validate(endPoint: string): ValidationChain[] {
         return validate(endPoint);
     }
-
-
 
     // Checked
     public async getCategories(req: Request, res: Response): Promise<any> {
@@ -43,7 +41,7 @@ export default class HelperController {
                 searchQuery = { status: true, };
             }
             // const result: any = await Category.find(searchQuery).select('id name').limit(10).sort({ id: -1 }).lean();
-            const result: any = await Category.aggregate([
+            const result: any = await City.aggregate([
                 {
                   $lookup: {
                     from: "categories",
@@ -201,7 +199,7 @@ export default class HelperController {
 
 
             const customers = await Customer.countDocuments({});
-            const categories = await Category.countDocuments({});
+            const categories = await City.countDocuments({});
             const products = await Product.countDocuments({});
             const totals = {
                 total_customer:customers,
@@ -220,4 +218,52 @@ export default class HelperController {
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
         }
     }
+
+    
+        // Checked
+        public async getOfferCategories(req: Request, res: Response): Promise<any> {
+            try {
+                const { locale, page, limit, search } = req.query;
+                this.locale = (locale as string) || "en";
+    
+                const pageNumber = parseInt(page as string) || 1;
+                const limitNumber = parseInt(limit as string) || 10;
+                const skip = (pageNumber - 1) * limitNumber;
+                let searchQuery: any = {};
+                if (search) {
+                    searchQuery.$or = [{ name: { $regex: search, $options: "i" } }];
+                }
+                const results = await OfferCategory.find(searchQuery)
+                    .sort({ _id: -1 }) // Sort by _id in descending order
+                    .skip(skip)
+                    .limit(limitNumber)
+                    .lean();
+    
+                // Get the total number of documents in the Category collection
+                const totalCount = await OfferCategory.countDocuments(searchQuery);
+    
+                // Calculate total pages
+                const totalPages = Math.ceil(totalCount / limitNumber);
+    
+                if (results.length > 0) {
+                    // Format each item in the result array
+                    const formattedResults = results.map((item, index) => ({
+                        ...item,
+                        image: `${process.env.RESOURCE_URL}${item.image}`,
+                    }));
+    
+                    return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["category-fetched"]), {
+                        data: formattedResults,
+                        totalCount,
+                        totalPages,
+                        currentPage: pageNumber,
+                    });
+                } else {
+                    throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
+                }
+            } catch (err: any) {
+                return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
+            }
+        }
+
 }

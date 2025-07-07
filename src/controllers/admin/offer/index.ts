@@ -7,6 +7,7 @@ import validate from "./validate";
 import Logger from "../../../utils/logger";
 import ServerMessages, { ServerMessagesEnum } from "../../../config/messages";
 import Offer from "../../../models/offer";
+import OfferCategory from "../../../models/offer-category";
 
 const fileName = "[admin][offer][index.ts]";
 export default class OfferController {
@@ -32,24 +33,18 @@ export default class OfferController {
             if (search) {
                 filter.$or = [{ name: { $regex: search, $options: "i" } }];
             }
-            const results = await Offer.find(filter)
-                .sort({ _id: -1 })
-                .skip(skip)
-                .limit(limitNumber)
-                .lean();
+            const results = await Offer.find(filter).sort({ _id: -1 }).skip(skip).limit(limitNumber).lean().populate("categoryId", "id name image");
 
             const totalCount = await Offer.countDocuments(filter);
             const totalPages = Math.ceil(totalCount / limitNumber);
             let formattedResults: any[] = [];
 
             if (results.length > 0) {
-                formattedResults = results.map((item, index) => ({
+                formattedResults = results.map((item:any) => ({
                     ...item,
-                    offer_image: `${process.env.RESOURCE_URL}${item.offer_image}`,
-                }));
+                    offer_image: item.offer_image ? `${process.env.RESOURCE_URL}${item.offer_image}` : null,
+                })); 
             }
-
-
             if (results.length > 0) {
                 return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["faq-fetched"]), {
                     data: formattedResults,
@@ -93,19 +88,27 @@ export default class OfferController {
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
 
-            const { offer_name, offer_link, valid_from, valid_to, status } = req.body;
+            const { offer_name, offer_link, valid_from, valid_to, category_id, status } = req.body;
             Logger.info(`${fileName + fn} req.body: ${JSON.stringify(req.body)}`);
 
             let offer_image: any;
             if (req.file) {
                 offer_image = req?.file?.filename;
             }
+            let categoryId: any = null;
+            let categoryObjectId = null;
 
+            if (category_id) {
+                categoryId = await OfferCategory.findOne({ id: category_id }).lean();
+                Logger.info(`${fileName + fn} Found category: ${JSON.stringify(categoryId)}`);
+                categoryObjectId = categoryId._id;
+            }
             const result: any = await Offer.create({
                 offer_name: offer_name,
                 offer_link: offer_link,
                 valid_from: valid_from,
                 valid_to: valid_to,
+                categoryId: categoryObjectId,
                 offer_image: offer_image,
                 status: status,
                 created_by: req.user?.object_id,

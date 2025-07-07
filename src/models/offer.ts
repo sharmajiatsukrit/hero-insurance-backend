@@ -7,6 +7,7 @@ interface IOffer extends Document {
     valid_from: string;
     valid_to: string;
     offer_image: string;
+    categoryId: string;
     status: boolean;
     is_deleted:boolean;
     deleted_at:string;
@@ -20,6 +21,7 @@ const OfferSchema: Schema = new Schema({
     valid_from: { type: String, default: '' },
     valid_to: { type: String, default: '' },
     offer_image: { type: String, default: '' },
+    categoryId: { type: Schema.Types.ObjectId, ref: 'offer_categories', default: null },
     status: { type: Boolean, default: true },
     is_deleted: { type: Boolean, default: false },
     deleted_at: { type: String, default: '' },

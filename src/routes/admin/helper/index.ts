@@ -13,8 +13,7 @@ routes.get("/get-cities", validateRequest, authAdmin, helperController.getCities
 
 routes.get("/get-roles", validateRequest, authAdmin, helperController.getRoles.bind(helperController));
 routes.get("/get-customers", validateRequest, authAdmin, helperController.getCustomers.bind(helperController));
-
-
 routes.get("/dashboard/get-totals", validateRequest, authAdmin, helperController.getDashboardTotals.bind(helperController));
+routes.get("/get-offer-categories", validateRequest, authAdmin, helperController.getOfferCategories.bind(helperController));
 
 export default routes;

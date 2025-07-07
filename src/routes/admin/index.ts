@@ -23,6 +23,7 @@ import BoardOfDirectorRoute from "./board-of-director"
 import KeyOfficerRoute from "./key-officer"
 import OfferRoute from "./offer"
 import PageRoute from "./page"
+import OfferCategoryRoute from "./offer-category"
 
 
 
@@ -52,6 +53,8 @@ routes.use("/bod", BoardOfDirectorRoute);
 routes.use("/key-officer", KeyOfficerRoute);
 routes.use("/offer", OfferRoute);
 routes.use("/page", PageRoute);
+routes.use("/offer-category", OfferCategoryRoute);
+
 
 
 
