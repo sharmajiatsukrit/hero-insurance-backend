@@ -10,6 +10,7 @@ import Logger from "../../../utils/logger";
 import ServerMessages, { ServerMessagesEnum } from "../../../config/messages";
 import { networkRequest } from '../../../utils/request'
 import Category from "../../../models/category";
+import Menu from "../../../models/menu";
 
 const fileName = "[user][helper][index.ts]";
 export default class HelperController {
@@ -179,5 +180,43 @@ export default class HelperController {
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
         }
     }
+
+    //
+    public async getMenuList(req: Request, res: Response): Promise<any> {
+    try {
+        const fn = "[menu][getList]";
+        // Set locale
+        const { locale, page, limit, search } = req.query;
+        this.locale = (locale as string) || "en";
+
+        const pageNumber = parseInt(page as string) || 1;
+        const limitNumber = parseInt(limit as string) || 10;
+        const skip = (pageNumber - 1) * limitNumber;
+
+        const filter: any = {};
+        filter.is_deleted = false;
+        filter.status = true;
+        if (search) {
+            filter.$or = [{ name: { $regex: search, $options: "i" } }];
+        }
+        const results = await Menu.find(filter).skip(skip).sort({menu_order:-1}).limit(limitNumber).lean().populate("created_by", "id name");
+
+        const totalCount = await Menu.countDocuments(filter);
+        const totalPages = Math.ceil(totalCount / limitNumber);
+        
+        if (results.length > 0) {
+            return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["faq-fetched"]), {
+                data: results,
+                totalCount,
+                totalPages,
+                currentPage: pageNumber,
+            });
+        } else {
+            throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
+        }
+    } catch (err: any) {
+        return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
+    }
+}
 
 }

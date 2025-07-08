@@ -1,5 +1,4 @@
 import expres, { Router } from "express";
-import { authAdmin, validateRequest } from "../../utils/middleware";
 import AuthRoutes from "../admin/auth";
 import UsersRoutes from "./users";
 import RolesRoutes from "./roles";
@@ -24,8 +23,7 @@ import KeyOfficerRoute from "./key-officer"
 import OfferRoute from "./offer"
 import PageRoute from "./page"
 import OfferCategoryRoute from "./offer-category"
-
-
+import MenuRoute from "./menu"
 
 
 
@@ -54,6 +52,8 @@ routes.use("/key-officer", KeyOfficerRoute);
 routes.use("/offer", OfferRoute);
 routes.use("/page", PageRoute);
 routes.use("/offer-category", OfferCategoryRoute);
+routes.use("/menu", MenuRoute);
+
 
 
 
