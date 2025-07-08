@@ -68,7 +68,7 @@ export default class OfferController {
             this.locale = (locale as string) || "en";
 
             const id = parseInt(req.params.id);
-            const result: any = await Offer.findOne({ id: id }).lean();
+            const result: any = await Offer.findOne({ id: id }).lean().populate("categoryId", "id name image");;
             // console.log(result);
 
             if (result) {
