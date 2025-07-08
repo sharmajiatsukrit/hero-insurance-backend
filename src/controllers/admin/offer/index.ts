@@ -40,10 +40,10 @@ export default class OfferController {
             let formattedResults: any[] = [];
 
             if (results.length > 0) {
-                formattedResults = results.map((item:any) => ({
+                formattedResults = results.map((item: any) => ({
                     ...item,
                     offer_image: item.offer_image ? `${process.env.RESOURCE_URL}${item.offer_image}` : null,
-                })); 
+                }));
             }
             if (results.length > 0) {
                 return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["faq-fetched"]), {
@@ -129,14 +129,21 @@ export default class OfferController {
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
 
-            const { offer_name, offer_link, valid_from, valid_to, status } = req.body;
+            const { offer_name, offer_link, valid_from, valid_to, category_id, status } = req.body;
             Logger.info(`${fileName + fn} req.body: ${JSON.stringify(req.body)}`);
 
             let offer_image: any;
             if (req.file) {
                 offer_image = req.file.filename;
             }
+            let categoryId: any = null;
+            let categoryObjectId = null;
 
+            if (category_id) {
+                categoryId = await OfferCategory.findOne({ id: category_id }).lean();
+                Logger.info(`${fileName + fn} Found category: ${JSON.stringify(categoryId)}`);
+                categoryObjectId = categoryId._id;
+            }
             const offer = await Offer.findOne({ id: id });
             if (!offer) {
                 return serverResponse(res, HttpCodeEnum.NOTFOUND, constructResponseMsg(this.locale, "award-not-found"), {});
@@ -150,6 +157,7 @@ export default class OfferController {
                     valid_from: valid_from,
                     valid_to: valid_to,
                     offer_image: offer_image || offer.offer_image,
+                    categoryId: categoryObjectId,
                     status: status,
                     updated_by: req.user?.object_id,
                 }
