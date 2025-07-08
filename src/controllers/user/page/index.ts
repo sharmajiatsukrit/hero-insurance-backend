@@ -39,6 +39,9 @@ export default class PageController {
                         ...(item.value?.image && {
                             image: `${process.env.RESOURCE_URL}${item.value.image}`,
                         }),
+                        ...(item.value?.additional_image && {
+                            additional_image: `${process.env.RESOURCE_URL}${item.value.additional_image}`,
+                        }),
                     },
                 }));
             }

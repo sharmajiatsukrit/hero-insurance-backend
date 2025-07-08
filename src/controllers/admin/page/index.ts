@@ -81,14 +81,13 @@ export default class PageController {
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
 
-            const { title,counter_data } = req.body;
+            const { title, counter_data } = req.body;
             Logger.info(`${fileName + fn} req.body: ${JSON.stringify(req.body)}`);
-            const newdata:any = {};
-                newdata.title = title;
-                newdata.counter_data = counter_data;
+            const newdata: any = {};
+            newdata.title = title;
+            newdata.counter_data = counter_data;
             const hpcs = await Page.findOne({ key: "home_performance_counters_section" });
             if (!hpcs) {
-                
                 const result: any = await Page.create({
                     key: "home_performance_counters_section",
                     value: newdata,
@@ -251,32 +250,21 @@ export default class PageController {
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
 
-            const { title, description } = req.body;
+            const { title, description, additional_title, additional_description } = req.body;
             Logger.info(`${fileName + fn} req.body: ${JSON.stringify(req.body)}`);
+            console.log(req?.files);
+            let image: string | undefined;
+            let additional_image: string | undefined;
 
-            let image: any;
-            if (req.file) {
-                image = req?.file?.filename;
+            if (req.files && !Array.isArray(req.files)) {
+                const files = req.files as { [key: string]: Express.Multer.File[] };
+
+                image = files.image?.[0]?.filename;
+                additional_image = files.additional_image?.[0]?.filename;
             }
-            // const hbs = await Page.findOne({ key: "about_us_header_section" });
-            // if (!hbs) {
-            //     const result: any = await Page.create({
-            //         key: "about_us_header_section",
-            //         value: { title, description },
-            //         created_by: req.user?.object_id,
-            //     });
-            //     return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "award-add"), {});
-            // }
-            // await Page.findOneAndUpdate(
-            //     { key: "about_us_header_section" },
-            //     {
-            //         value: { title, description },
-            //         created_by: req.user?.object_id,
-            //     }
-            // );
             const result: any = await Page.create({
                 key: "about_us_header_section",
-                value: { title, description },
+                value: { title, description, additional_title, additional_description, image, additional_image },
                 created_by: req.user?.object_id,
             });
 

@@ -15,7 +15,7 @@ routes.post("/home/add/awards_and_recognitions_section", validateRequest, authAd
 routes.post("/home/add/customer_testimonials_section", validateRequest, authAdmin, pageController.addHCTS.bind(pageController));
 
 // About Us Page (AU)
-routes.post("/about-us/add/header_section", validateRequest, authAdmin,upload.single("image"), pageController.addAUHS.bind(pageController));
+routes.post("/about-us/add/header_section", validateRequest, authAdmin, upload.fields([{ name: "image" }, { name: "additional_image" }]), pageController.addAUHS.bind(pageController));
 routes.post("/about-us/add/achievements_section", validateRequest, authAdmin, pageController.addAUAS.bind(pageController));
 routes.post("/about-us/add/essence_of_hero_section", validateRequest, authAdmin, pageController.addAUEOHS.bind(pageController));
 
