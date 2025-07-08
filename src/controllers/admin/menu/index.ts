@@ -52,6 +52,27 @@ export default class MenuController {
         }
     }
 
+    public async getById(req: Request, res: Response): Promise<any> {
+        try {
+            const fn = "[menu][getById]";
+            // Set locale
+            const { locale } = req.query;
+            this.locale = (locale as string) || "en";
+
+            const id = parseInt(req.params.id);
+            const result: any = await Menu.findOne({ id: id }).lean().populate("created_by", "id name");
+            // console.log(result);
+
+            if (result) {
+                return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["enquiry-fetched"]), result);
+            } else {
+                throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
+            }
+        } catch (err: any) {
+            return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
+        }
+    }
+
 
     public async add(req: Request, res: Response): Promise<any> {
         try {
@@ -74,7 +95,7 @@ export default class MenuController {
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
         }
     }
-    
+
     public async update(req: Request, res: Response): Promise<any> {
         try {
             const fn = "[menu][update]";
