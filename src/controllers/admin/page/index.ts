@@ -81,14 +81,17 @@ export default class PageController {
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
 
-            const { title } = req.body;
+            const { title,counter_data } = req.body;
             Logger.info(`${fileName + fn} req.body: ${JSON.stringify(req.body)}`);
-
+            const newdata:any = {};
+                newdata.title = title;
+                newdata.counter_data = counter_data;
             const hpcs = await Page.findOne({ key: "home_performance_counters_section" });
             if (!hpcs) {
+                
                 const result: any = await Page.create({
                     key: "home_performance_counters_section",
-                    value: { title },
+                    value: newdata,
                     created_by: req.user?.object_id,
                 });
                 return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "award-add"), {});
@@ -96,7 +99,7 @@ export default class PageController {
             await Page.findOneAndUpdate(
                 { key: "home_performance_counters_section" },
                 {
-                    value: { title },
+                    value: newdata,
                     created_by: req.user?.object_id,
                 }
             );

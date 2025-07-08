@@ -27,7 +27,7 @@ export default class TestimonialController {
             const skip = (pageNumber - 1) * limitNumber;
             const filter: any = {};
             filter.is_deleted = false;
-            filter.status = false;
+            filter.status = true;
             if (search) {
                 filter.$or = [{ name: { $regex: search, $options: "i" } }];
             }

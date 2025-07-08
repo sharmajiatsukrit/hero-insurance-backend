@@ -18,7 +18,7 @@ const TestimonialSchema: Schema = new Schema({
     location: { type: String, default: '' },
     star_rating: { type: Number, default: 0 },
     description: { type: String, default: '' },
-    status: { type: Boolean, default: '' },
+    status: { type: Boolean, default: true },
     is_deleted: { type: Boolean, default: false },
     deleted_at: { type: String, default: '' },
     created_by: { type: Schema.Types.ObjectId, ref: 'users' },
