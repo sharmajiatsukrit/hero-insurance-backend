@@ -59,7 +59,7 @@ export default class BlogController {
             if (results.length > 0) {
                 formattedResults = results.map((item, index) => ({
                     ...item,
-                    blogImage: `${process.env.RESOURCE_URL}${item.blog_image}`,
+                    blog_image: item.blog_image ? `${process.env.RESOURCE_URL}${item.blog_image}` : null,
                 }));
             }
             return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["blog-fetched"]), {

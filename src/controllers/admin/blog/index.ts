@@ -68,12 +68,19 @@ export default class BlogController {
                 .skip(skip)
                 .limit(limitNumber)
                 .lean();
+            let formattedResults: any[] = [];
 
+            if (results.length > 0) {
+                formattedResults = results.map((item: any) => ({
+                    ...item,
+                blog_image: item.blog_image ? `${process.env.RESOURCE_URL}${item.blog_image}` : null,
+                }));
+            }
             const totalCount = await Blog.countDocuments(searchQuery);
             const totalPages = Math.ceil(totalCount / limitNumber);
 
             return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["blog-fetched"]), {
-                data: results,
+                data: formattedResults,
                 totalCount,
                 totalPages,
                 currentPage: pageNumber,
@@ -94,6 +101,7 @@ export default class BlogController {
             const result: any = await Blog.findOne({ id: id }).populate("created_by", "name email").populate("updated_by", "name email").populate("categoryId", "id name").lean();
 
             if (result) {
+                result.blog_image = result.blog_image ? `${process.env.RESOURCE_URL}${result.blog_image}` : null;
                 return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["blog-fetched"]), result);
             } else {
                 throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));

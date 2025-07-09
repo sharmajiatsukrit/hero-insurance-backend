@@ -49,13 +49,13 @@ export default class UserController {
                         { name: { $regex: search, $options: 'i' } },
                         { phone: { $regex: search, $options: 'i' } },
                         { date_of_birth: { $regex: search, $options: 'i' } },
-                        { email: { $regex: search, $options: 'i' } }, // Case-insensitive search for name
+                        { email: { $regex: search, $options: 'i' } }, 
                     ]
                 };
             } else {
                 searchQuery = {};
             }
-            const result = await User.find(searchQuery)
+            const results = await User.find(searchQuery)
                 .sort({ id: -1 })
                 .skip(skip)
                 .limit(limitNumber).lean().populate("country_id","id name")
@@ -64,17 +64,26 @@ export default class UserController {
                 .populate("created_by","id name")
                 .populate("updated_by","id name")
                 .populate("role_id","id name");
+            
+            let formattedResults: any[] = [];
+
+            if (results.length > 0) {
+                formattedResults = results.map((item, index) => ({
+                    ...item,
+                    profile_img: item.profile_img ? `${process.env.RESOURCE_URL}${item.profile_img}` : null,
+                }));
+            }
 
             // Get the total number of documents in the User collection that match the filter
             const totalCount = await User.countDocuments();
 
-            if (result.length > 0) {
+            if (results.length > 0) {
                 const totalPages = Math.ceil(totalCount / limitNumber);
                 return serverResponse(
                     res,
                     HttpCodeEnum.OK,
                     ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["user-fetched"]),
-                    { data: result, totalPages, totalCount, currentPage: pageNumber }
+                    { data: formattedResults, totalPages, totalCount, currentPage: pageNumber }
                 );
             } else {
                 throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
@@ -94,7 +103,7 @@ export default class UserController {
             this.locale = (locale as string) || "en";
 
             const id = parseInt(req.params.id);
-            const result = await User.findOne({ id: id })
+            const result: any = await User.findOne({ id: id })
                                         .lean()
                                         .populate("country_id","id name")
                                         .populate("state_id","id name")
@@ -104,6 +113,7 @@ export default class UserController {
                                         .populate("role_id","id name");
 
             if (result) {
+                result.profile_img = result.profile_img ? `${process.env.RESOURCE_URL}${result.profile_img}` : null;
                 return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["user-fetched"]), result);
             } else {
                 throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
