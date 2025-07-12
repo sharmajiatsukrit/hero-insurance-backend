@@ -82,9 +82,9 @@ export default class App {
 
     loadMiddleWare(): void {
         // Body parser
-        this.app.use(express.json({ limit: "20mb" }) as RequestHandler);
+        this.app.use(express.json({ limit: '50mb' }) as RequestHandler);
 
-        this.app.use(express.urlencoded({ extended: true }) as RequestHandler);
+        this.app.use(express.urlencoded({ extended: true, limit: '50mb' }) as RequestHandler);
 
         this.app.use((req: Request, res: Response, next: NextFunction) => {
             const parts = url.parse(req.url, true);
