@@ -24,6 +24,7 @@ import OfferRoute from "./offer"
 import PageRoute from "./page"
 import OfferCategoryRoute from "./offer-category"
 import MenuRoute from "./menu"
+import LocationRoute from "./location"
 
 
 
@@ -53,6 +54,8 @@ routes.use("/offer", OfferRoute);
 routes.use("/page", PageRoute);
 routes.use("/offer-category", OfferCategoryRoute);
 routes.use("/menu", MenuRoute);
+routes.use("/location", LocationRoute);
+
 
 
 
