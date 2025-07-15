@@ -16,7 +16,7 @@ async function sendSMS(to: string,message: string): AxiosPromise<any> {
         format:"JSON",
         v:"1.1"
     };
-    console.log(messageObj);
+
     const reqHeaders = {
         "Content-Type": "application/json",
     };

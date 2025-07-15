@@ -15,5 +15,6 @@ routes.get("/get-roles", validateRequest, authAdmin, helperController.getRoles.b
 routes.get("/get-customers", validateRequest, authAdmin, helperController.getCustomers.bind(helperController));
 routes.get("/dashboard/get-totals", validateRequest, authAdmin, helperController.getDashboardTotals.bind(helperController));
 routes.get("/get-offer-categories", validateRequest, authAdmin, helperController.getOfferCategories.bind(helperController));
+routes.get("/get-location-list", validateRequest, authAdmin, helperController.getLocationList.bind(helperController));
 
 export default routes;

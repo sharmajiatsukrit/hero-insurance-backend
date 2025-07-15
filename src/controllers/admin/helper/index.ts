@@ -8,6 +8,7 @@ import EmailService from "../../../utils/email";
 import Logger from "../../../utils/logger";
 import ServerMessages, { ServerMessagesEnum } from "../../../config/messages";
 import OfferCategory from "../../../models/offer-category";
+import Location from "../../../models/location";
 
 const fileName = "[admin][helper][index.ts]";
 export default class HelperController {
@@ -220,50 +221,88 @@ export default class HelperController {
     }
 
     
-        // Checked
-        public async getOfferCategories(req: Request, res: Response): Promise<any> {
-            try {
-                const { locale, page, limit, search } = req.query;
-                this.locale = (locale as string) || "en";
-    
-                const pageNumber = parseInt(page as string) || 1;
-                const limitNumber = parseInt(limit as string) || 10;
-                const skip = (pageNumber - 1) * limitNumber;
-                let searchQuery: any = {};
-                if (search) {
-                    searchQuery.$or = [{ name: { $regex: search, $options: "i" } }];
-                }
-                const results = await OfferCategory.find(searchQuery)
-                    .sort({ _id: -1 }) // Sort by _id in descending order
-                    .skip(skip)
-                    .limit(limitNumber)
-                    .lean();
-    
-                // Get the total number of documents in the Category collection
-                const totalCount = await OfferCategory.countDocuments(searchQuery);
-    
-                // Calculate total pages
-                const totalPages = Math.ceil(totalCount / limitNumber);
-    
-                if (results.length > 0) {
-                    // Format each item in the result array
-                    const formattedResults = results.map((item, index) => ({
-                        ...item,
-                        image: `${process.env.RESOURCE_URL}${item.image}`,
-                    }));
-    
-                    return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["category-fetched"]), {
-                        data: formattedResults,
-                        totalCount,
-                        totalPages,
-                        currentPage: pageNumber,
-                    });
-                } else {
-                    throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
-                }
-            } catch (err: any) {
-                return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
+    // Checked
+    public async getOfferCategories(req: Request, res: Response): Promise<any> {
+        try {
+            const { locale, page, limit, search } = req.query;
+            this.locale = (locale as string) || "en";
+
+            const pageNumber = parseInt(page as string) || 1;
+            const limitNumber = parseInt(limit as string) || 10;
+            const skip = (pageNumber - 1) * limitNumber;
+            let searchQuery: any = {};
+            if (search) {
+                searchQuery.$or = [{ name: { $regex: search, $options: "i" } }];
             }
+            const results = await OfferCategory.find(searchQuery)
+                .sort({ _id: -1 }) // Sort by _id in descending order
+                .skip(skip)
+                .limit(limitNumber)
+                .lean();
+
+            // Get the total number of documents in the Category collection
+            const totalCount = await OfferCategory.countDocuments(searchQuery);
+
+            // Calculate total pages
+            const totalPages = Math.ceil(totalCount / limitNumber);
+
+            if (results.length > 0) {
+                // Format each item in the result array
+                const formattedResults = results.map((item, index) => ({
+                    ...item,
+                    image: `${process.env.RESOURCE_URL}${item.image}`,
+                }));
+
+                return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["category-fetched"]), {
+                    data: formattedResults,
+                    totalCount,
+                    totalPages,
+                    currentPage: pageNumber,
+                });
+            } else {
+                throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
+            }
+        } catch (err: any) {
+            return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
         }
+    }
+
+    
+    public async getLocationList(req: Request, res: Response): Promise<any> {
+        try {
+            const fn = "[location][getList]";
+            // Set locale
+            const { locale, page, limit, search } = req.query;
+            this.locale = (locale as string) || "en";
+
+            const pageNumber = parseInt(page as string) || 1;
+            const limitNumber = parseInt(limit as string) || 10;
+            const skip = (pageNumber - 1) * limitNumber;
+
+            const filter: any = {};
+            filter.is_deleted = false;
+            filter.status = true;
+            if (search) {
+                const regexSearch = { $regex: search, $options: "i" };
+                filter.$or = [
+                    { location: regexSearch },
+                    { longitude: regexSearch },
+                    { longitude: regexSearch },
+                ];
+            }
+            const results = await Location.find(filter).skip(skip).limit(limitNumber).lean()
+
+            if (results.length > 0) {
+                return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["faq-fetched"]), {
+                    data: results,
+                });
+            } else {
+                throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
+            }
+        } catch (err: any) {
+            return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
+        }
+    }
+
 
 }

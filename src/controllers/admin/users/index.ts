@@ -169,9 +169,7 @@ export default class UserController {
                 created_by: req.user.object_id
             });
 
-            const formattedUserData = await this.fetchUserDetails(userData.id);
-
-            return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "user-add"), formattedUserData);
+            return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "user-add"), {});
         } catch (err: any) {
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
         }
@@ -209,38 +207,14 @@ export default class UserController {
                 const hashedPassword = await Bcrypt.hash(password, 10);
                 await User.findOneAndUpdate({ id: id }, { password: hashedPassword });
             }
-            const userData: any = await this.fetchUserDetails(id);
+           
 
-            return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "user-update"), userData);
+            return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "user-update"), {});
         } catch (err: any) {
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
         }
     }
 
-    public async fetchUserDetails(userId: number, billing = "") {
-        try {
-            const userData: any = await User.findOne({ id: userId }, { password: false, account_status: false, subscribed_to: false });
-
-            delete userData._doc.__enc_email;
-            delete userData._doc.__enc_communication_email;
-            delete userData._doc.__enc_mobile_number;
-            delete userData._doc.__enc_city;
-
-            if (!userData) {
-                throw new Error(constructResponseMsg(this.locale, "user-nf"));
-            }
-
-            userData._doc.user_date_format = userData._doc.date_format;
-            userData._doc.user_time_format = (userData._doc.time_format === "24") ? "HH:mm" : "hh:mm a";
-            userData._doc.user_date_time_format = userData._doc.user_date_format + " " + userData._doc.user_time_format;
-
-            const formattedUserData: any = userData._doc;
-
-            return Promise.resolve(formattedUserData);
-        } catch (err: any) {
-            return Promise.reject(err);
-        }
-    }
 
     private async getExistingUser(email: string): Promise<any> {
         // Search on encrypted email field
@@ -289,9 +263,8 @@ export default class UserController {
             const id = parseInt(req.params.id);
             const { status } = req.body;
             const updationstatus = await User.findOneAndUpdate({ id: id }, { status: status }).lean();
-            const result: any = await this.fetchUserDetails(id);
             if (updationstatus) {
-                return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["user-status"]), result);
+                return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["user-status"]), {});
             } else {
                 throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
             }

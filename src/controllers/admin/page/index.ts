@@ -15,20 +15,38 @@ export default class PageController {
     public validate(endPoint: string): ValidationChain[] {
         return validate(endPoint);
     }
-    public async getList(req: Request, res: Response): Promise<any> {
+    public async getPageSectionData(req: Request, res: Response): Promise<any> {
         try {
-            const fn = "[offer][getById]";
+            const fn = "[pagesection][get]";
             // Set locale
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
 
             const { key } = req.params;
-            const result: any = await Page.find({ key: key }).lean();
+            const filter: any = {};
+            filter.key = key;
+            filter.status = true;
+            const result: any = await Page.findOne(filter).lean();
             // console.log(result);
+            let formattedResult: any = {};
 
             if (result) {
+                formattedResult = {
+                    ...result,
+                    value: {
+                        ...result.value,
+                        ...(result.value?.image && {
+                            image: `${process.env.RESOURCE_URL}${result.value.image}`,
+                        }),
+                        ...(result.value?.additional_image && {
+                            additional_image: `${process.env.RESOURCE_URL}${result.value.additional_image}`,
+                        }),
+                    },
+                };
+            }
+            if (result) {
                 // result.offer_image = `${process.env.RESOURCE_URL}${result.offer_image}`;
-                return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["enquiry-fetched"]), result);
+                return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["enquiry-fetched"]), formattedResult);
             } else {
                 throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
             }
@@ -458,6 +476,58 @@ export default class PageController {
             );
 
             return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "award-add"), {});
+        } catch (err: any) {
+            // Logger.error(`${fileName + fn} Error: ${err.message}`);
+            return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
+        }
+    }
+
+    //Seo Details
+    public async addPageSeoDetails(req: Request, res: Response): Promise<any> {
+        try {
+            const fn = "[addPageSeoDetail][add]";
+            const { locale, key } = req.query;
+            this.locale = (locale as string) || "en";
+console.log(key)
+            const { meta_title, meta_description, Key_words } = req.body;
+            Logger.info(`${fileName + fn} req.body: ${JSON.stringify(req.body)}`);
+
+            const seoDetail = await Page.findOne({ key: key });
+            if (!seoDetail) {
+                const result: any = await Page.create({
+                    key: key,
+                    value: { meta_title, meta_description, Key_words },
+                    created_by: req.user?.object_id,
+                });
+                return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "award-add"), {});
+            }
+            await Page.findOneAndUpdate(
+                { key: key },
+                {
+                    value: { meta_title, meta_description, Key_words },
+                    created_by: req.user?.object_id,
+                }
+            );
+
+            return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "award-add"), {});
+        } catch (err: any) {
+            // Logger.error(`${fileName + fn} Error: ${err.message}`);
+            return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
+        }
+    }
+
+    public async getPageSeoDetails(req: Request, res: Response): Promise<any> {
+        try {
+            const fn = "[addPageSeoDetail][add]";
+            const { locale, key } = req.query;
+            this.locale = (locale as string) || "en";
+
+            const seoDetail = await Page.findOne({ key: key }).lean();
+            if (seoDetail) {
+                return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "award-add"), seoDetail);
+            }
+
+            throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
         } catch (err: any) {
             // Logger.error(`${fileName + fn} Error: ${err.message}`);
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});

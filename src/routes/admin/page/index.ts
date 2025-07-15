@@ -28,7 +28,12 @@ routes.post("/claims/add/heading_section", validateRequest, authAdmin,upload.sin
 // Awards Page (A)
 routes.post("/award/add/awards_section", validateRequest, authAdmin, pageController.addAS.bind(pageController));
 
+//add seo detail
+routes.get("/seo-detail", validateRequest, authAdmin, pageController.getPageSeoDetails.bind(pageController));
+routes.post("/seo-detail", validateRequest, authAdmin, pageController.addPageSeoDetails.bind(pageController));
+
+
 // Get endpoints
-routes.get("/list/:key", validateRequest, authAdmin, pageController.getList.bind(pageController));
+routes.get("/list/:key", validateRequest, authAdmin, pageController.getPageSectionData.bind(pageController));
 
 export default routes;

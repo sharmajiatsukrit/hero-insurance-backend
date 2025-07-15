@@ -7,6 +7,7 @@ interface IBlog extends Document {
     blog_image: string;
     slug: string;
     categoryId: string;
+    locationId:string;
     status: number;
     created_by: number;
     updated_by: number;
@@ -17,6 +18,7 @@ const blogSchema: Schema = new Schema({
     description: { type: String, default: '' },
     blog_image: { type: String, default: '' },
     slug: { type: String, default: '', unique: true },
+    locationId: { type: Schema.Types.ObjectId, ref: 'locations',default: null },
     categoryId: { type: Schema.Types.ObjectId, ref: 'categories',default: null },
     status: { type: Number, default: 1 },
     created_by: { type: Schema.Types.ObjectId, ref: 'users' },

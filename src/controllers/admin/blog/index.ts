@@ -10,7 +10,7 @@ import Logger from "../../../utils/logger";
 import ServerMessages, { ServerMessagesEnum } from "../../../config/messages";
 import Category from "../../../models/category";
 import Blog from "../../../models/blog";
-
+import Location from "../../../models/location";
 
 const fileName = "[admin][blog][index.ts]";
 
@@ -64,6 +64,7 @@ export default class BlogController {
             const results = await Blog.find(searchQuery)
                 .populate("created_by", "name email")
                 .populate("categoryId", "id name")
+                .populate("locationId","location latitude longitude")
                 .sort({ _id: -1 })
                 .skip(skip)
                 .limit(limitNumber)
@@ -73,7 +74,7 @@ export default class BlogController {
             if (results.length > 0) {
                 formattedResults = results.map((item: any) => ({
                     ...item,
-                blog_image: item.blog_image ? `${process.env.RESOURCE_URL}${item.blog_image}` : null,
+                    blog_image: item.blog_image ? `${process.env.RESOURCE_URL}${item.blog_image}` : null,
                 }));
             }
             const totalCount = await Blog.countDocuments(searchQuery);
@@ -98,7 +99,7 @@ export default class BlogController {
 
             const id = parseInt(req.params.id);
 
-            const result: any = await Blog.findOne({ id: id }).populate("created_by", "name email").populate("updated_by", "name email").populate("categoryId", "id name").lean();
+            const result: any = await Blog.findOne({ id: id }).populate("created_by", "name email").populate("updated_by", "name email").populate("categoryId", "id name").populate("locationId","location latitude longitude").lean();
 
             if (result) {
                 result.blog_image = result.blog_image ? `${process.env.RESOURCE_URL}${result.blog_image}` : null;
@@ -117,7 +118,7 @@ export default class BlogController {
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
 
-            const { name, description, slug, categoryId, status } = req.body;
+            const { name, description, slug, categoryId, status, locationId } = req.body;
             Logger.info(`${fileName + fn} req.body: ${JSON.stringify(req.body)}`);
             const existingBlog = await Blog.findOne({ name: name }).lean();
             if (existingBlog) {
@@ -131,11 +132,17 @@ export default class BlogController {
             }
             let categoryd: any = null;
             let categoryObjectId = null;
+            let locationData: any = null;
+            let locationObjId: any = null;
 
             if (categoryId) {
                 categoryd = await Category.findOne({ id: categoryId }).lean();
                 Logger.info(`${fileName + fn} Found category: ${JSON.stringify(categoryd)}`);
                 categoryObjectId = categoryd._id;
+            }
+            if (locationId) {
+                locationData = await Location.findOne({ id: locationId }).lean();
+                locationObjId = locationData._id;
             }
 
             const result: any = await Blog.create({
@@ -144,6 +151,7 @@ export default class BlogController {
                 blog_image: blog_image,
                 slug: blogSlug,
                 categoryId: categoryObjectId,
+                locationId:locationObjId,
                 status: status || 1,
                 created_by: req.user?.object_id,
             });
@@ -182,19 +190,20 @@ export default class BlogController {
     public async update(req: Request, res: Response): Promise<any> {
         try {
             const fn = "[update]";
-
             const id = parseInt(req.params.id);
             Logger.info(`${fileName + fn} blog_id: ${id}`);
+
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
-            const { name, description, blog_image, slug, category, status } = req.body;
+            const { name, description, slug, categoryId, status, locationId } = req.body;
 
-            const existingBlog = await Blog.findOne({ id: id }).lean();
+            const existingBlog = await Blog.findOne({ id }).lean();
             if (!existingBlog) {
                 throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
             }
+
             if (name && name !== existingBlog.name) {
-                const duplicateBlog = await Blog.findOne({ name: name, id: { $ne: id } }).lean();
+                const duplicateBlog = await Blog.findOne({ name, id: { $ne: id } }).lean();
                 if (duplicateBlog) {
                     throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["blog-already-exists"]));
                 }
@@ -204,19 +213,41 @@ export default class BlogController {
                 updated_by: req.user.object_id,
             };
 
+            // Handle image
+            if (req.file?.filename) {
+                updateData.blog_image = req.file.filename;
+            }
+
+            // Optional fields
             if (name !== undefined) updateData.name = name;
             if (description !== undefined) updateData.description = description;
-            if (blog_image !== undefined) updateData.blog_image = blog_image;
-            if (category !== undefined) updateData.category = category;
             if (status !== undefined) updateData.status = status;
 
+            // Category and location references
+            let categoryd: any = null;
+            if (categoryId) {
+                categoryd = await Category.findOne({ id: categoryId }).lean();
+                if (categoryd) {
+                    updateData.categoryId = categoryd._id;
+                }
+            }
+
+            let locationData: any = null;
+            if (locationId) {
+                locationData = await Location.findOne({ id: locationId }).lean();
+                if (locationData) {
+                    updateData.locationId = locationData._id;
+                }
+            }
+
+            // Slug logic
             if (slug !== undefined) {
-                const slugExists = await Blog.findOne({ slug: slug, id: { $ne: id } }).lean();
+                const slugExists = await Blog.findOne({ slug, id: { $ne: id } }).lean();
                 if (slugExists) {
                     throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["slug-already-exists"]));
                 }
                 updateData.slug = slug;
-            } else if (name !== undefined && name !== existingBlog.name) {
+            } else if (name && name !== existingBlog.name) {
                 let newSlug = generateSlug(name);
                 let slugExists = await Blog.findOne({ slug: newSlug, id: { $ne: id } }).lean();
                 let counter = 1;
@@ -231,11 +262,27 @@ export default class BlogController {
                 updateData.slug = newSlug;
             }
 
-            await Blog.findOneAndUpdate({ id: id }, updateData);
+            Logger.info(`${fileName + fn} updateData: ${JSON.stringify(updateData)}`);
 
-            const updatedData: any = await Blog.findOne({ id: id }).populate("created_by", "name email").populate("updated_by", "name email").lean();
+            await Blog.findOneAndUpdate({ id }, updateData);
 
-            return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "blog-update"), {});
+            const updatedBlog: any = await Blog.findOne({ id }).populate("created_by", "name email").populate("updated_by", "name email").populate("categoryId", "id name").lean();
+
+            const responseData = {
+                id: updatedBlog.id,
+                name: updatedBlog.name,
+                description: updatedBlog.description,
+                blogImage: updatedBlog.blog_image,
+                slug: updatedBlog.slug,
+                categoryId: updatedBlog.categoryId ? { id: updatedBlog.categoryId.id, name: updatedBlog.categoryId.name } : null,
+                status: updatedBlog.status,
+                createdBy: updatedBlog.created_by,
+                updatedBy: updatedBlog.updated_by,
+                createdAt: updatedBlog.createdAt,
+                updatedAt: updatedBlog.updatedAt,
+            };
+
+            return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "blog-update"), responseData);
         } catch (err: any) {
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
         }
@@ -297,21 +344,21 @@ export default class BlogController {
         }
     }
     public async status(req: Request, res: Response): Promise<any> {
-            try {
-                const fn = "[status]";
-                const { locale } = req.query;
-                this.locale = (locale as string) || "en";
-                const id = parseInt(req.params.id);
-                const { status } = req.body;
-                const updationstatus = await Blog.findOneAndUpdate({ id: id }, { status: status });
-                const updatedData: any = await Blog.findOne({ id: id }).lean();
-                if (updationstatus) {
-                    return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["blog-status"]), updatedData);
-                } else {
-                    throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
-                }
-            } catch (err: any) {
-                return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
+        try {
+            const fn = "[status]";
+            const { locale } = req.query;
+            this.locale = (locale as string) || "en";
+            const id = parseInt(req.params.id);
+            const { status } = req.body;
+            const updationstatus = await Blog.findOneAndUpdate({ id: id }, { status: status });
+            const updatedData: any = await Blog.findOne({ id: id }).lean();
+            if (updationstatus) {
+                return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["blog-status"]), updatedData);
+            } else {
+                throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
             }
+        } catch (err: any) {
+            return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
         }
+    }
 }

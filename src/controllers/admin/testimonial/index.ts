@@ -6,6 +6,7 @@ import { HttpCodeEnum } from "../../../enums/server";
 import validate from "./validate";
 import Logger from "../../../utils/logger";
 import ServerMessages, { ServerMessagesEnum } from "../../../config/messages";
+import Location from "../../../models/location";
 
 const fileName = "[admin][testimonial][index.ts]";
 export default class TestimonialController {
@@ -30,11 +31,7 @@ export default class TestimonialController {
             if (search) {
                 filter.$or = [{ name: { $regex: search, $options: "i" } }];
             }
-            const results = await Testimonial.find(filter)
-                .sort({ _id: -1 })
-                .skip(skip)
-                .limit(limitNumber)
-                .lean();
+            const results = await Testimonial.find(filter).sort({ _id: -1 }).skip(skip).limit(limitNumber).populate("locationId","location latitude longitude").lean();
 
             const totalCount = await Testimonial.countDocuments(filter);
             const totalPages = Math.ceil(totalCount / limitNumber);
@@ -62,7 +59,7 @@ export default class TestimonialController {
             this.locale = (locale as string) || "en";
 
             const id = parseInt(req.params.id);
-            const result: any = await Testimonial.findOne({ id: id }).lean();
+            const result: any = await Testimonial.findOne({ id: id }).populate("locationId","location latitude longitude").lean();
             // console.log(result);
 
             if (result) {
@@ -82,19 +79,26 @@ export default class TestimonialController {
             // Set locale
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
-            const { name, location, star_rating, description, status = true } = req.body;
-            const rating = parseInt(star_rating as string)
+            const { name, location, star_rating, description, locationId, status = true } = req.body;
+            const rating = parseInt(star_rating as string);
             let result: any;
+            let locationData: any = null;
+            let locationObjId: any = null;
+            if (locationId) {
+                locationData = await Location.findOne({ id: locationId }).lean();
+                locationObjId = locationData._id;
+            }
 
             result = await Testimonial.create({
                 name: name,
                 location: location,
                 star_rating: rating,
                 description: description,
+                locationId: locationObjId,
                 status: status,
             });
 
-            return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "enquiry-add"), result.doc);
+            return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "enquiry-add"), {});
         } catch (err: any) {
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
         }
@@ -104,27 +108,40 @@ export default class TestimonialController {
     public async update(req: Request, res: Response): Promise<any> {
         try {
             const fn = "[testimonial][update]";
-
             const id = parseInt(req.params.id);
 
             // Set locale
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
-             const { name, location, star_rating, description, status = true } = req.body;
-            const rating = parseInt(star_rating as string)
 
-            let result: any = await Testimonial.findOneAndUpdate(
-                { id: id },
-                {
-                name: name,
-                location: location,
+            const { name, location, star_rating, description, locationId, status = true } = req.body;
+            const rating = parseInt(star_rating as string);
+
+            let locationData: any = null;
+            let locationObjId: any = null;
+
+            if (locationId) {
+                locationData = await Location.findOne({ id: locationId }).lean();
+                locationObjId = locationData?._id;
+            }
+
+            const updateData: any = {
+                name,
+                location,
                 star_rating: rating,
-                description: description,
-                status: status,
-                }
-            );
+                description,
+                status,
+            };
 
-            const updatedData: any = await Testimonial.find({ id: id }).lean();
+            if (locationObjId) {
+                updateData.locationId = locationObjId;
+            }
+
+            await Testimonial.findOneAndUpdate({ id }, updateData);
+
+            const updatedData: any = await Testimonial.findOne({ id })
+                .populate("locationId", "id name") // Populate location info if needed
+                .lean();
 
             return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "enquiry-update"), updatedData);
         } catch (err: any) {
