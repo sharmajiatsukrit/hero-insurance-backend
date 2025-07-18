@@ -280,12 +280,22 @@ export default class PageController {
                 image = files.image?.[0]?.filename;
                 additional_image = files.additional_image?.[0]?.filename;
             }
-            const result: any = await Page.create({
-                key: "about_us_header_section",
-                value: { title, description, additional_title, additional_description, image, additional_image },
-                created_by: req.user?.object_id,
-            });
-
+            const exixtingData = await Page.findOne({ key: "about_us_header_section" });
+            if (!exixtingData) {
+                await Page.create({
+                    key: "about_us_header_section",
+                    value: { title, description, additional_title, additional_description, image, additional_image },
+                    created_by: req.user?.object_id,
+                });
+                return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "award-add"), {});
+            }
+            await Page.findOneAndUpdate(
+                { key: "about_us_header_section" },
+                {
+                    value: { title, description, additional_title, additional_description, image, additional_image },
+                    created_by: req.user?.object_id,
+                }
+            );
             return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "award-add"), {});
         } catch (err: any) {
             // Logger.error(`${fileName + fn} Error: ${err.message}`);
@@ -302,29 +312,23 @@ export default class PageController {
 
             const { title, individual_achievements } = req.body;
             Logger.info(`${fileName + fn} req.body: ${JSON.stringify(req.body)}`);
-            const result: any = await Page.create({
-                key: "about_us_achievements_section",
-                value: { title, individual_achievements },
-                created_by: req.user?.object_id,
-            });
+            const exixtingData = await Page.findOne({ key: "about_us_achievements_section" });
+            if (!exixtingData) {
+                const result: any = await Page.create({
+                    key: "about_us_achievements_section",
+                    value: { title, individual_achievements },
+                    created_by: req.user?.object_id,
+                });
+                return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "award-add"), {});
+            }
+            await Page.findOneAndUpdate(
+                { key: "about_us_achievements_section" },
+                {
+                    value: { title, individual_achievements },
+                    created_by: req.user?.object_id,
+                }
+            );
             return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "award-add"), {});
-            //const hibds = await Page.findOne({ key: "about_us_achievements_section" });
-            // if (!hibds) {
-            //     const result: any = await Page.create({
-            //         key: "about_us_achievements_section",
-            //         value: { title, individual_achievements },
-            //         created_by: req.user?.object_id,
-            //     });
-            //     return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "award-add"), {});
-            // }
-            // await Page.findOneAndUpdate(
-            //     { key: "about_us_achievements_section" },
-            //     {
-            //         value: { title, individual_achievements },
-            //         created_by: req.user?.object_id,
-            //     }
-            // );
-            // return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "award-add"), {});
         } catch (err: any) {
             // Logger.error(`${fileName + fn} Error: ${err.message}`);
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
@@ -488,15 +492,15 @@ export default class PageController {
             const fn = "[addPageSeoDetail][add]";
             const { locale, key } = req.query;
             this.locale = (locale as string) || "en";
-console.log(key)
-            const { meta_title, meta_description, Key_words } = req.body;
+            console.log(key);
+            const { meta_title, meta_description, key_words } = req.body;
             Logger.info(`${fileName + fn} req.body: ${JSON.stringify(req.body)}`);
 
             const seoDetail = await Page.findOne({ key: key });
             if (!seoDetail) {
                 const result: any = await Page.create({
                     key: key,
-                    value: { meta_title, meta_description, Key_words },
+                    value: { meta_title, meta_description, key_words },
                     created_by: req.user?.object_id,
                 });
                 return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "award-add"), {});
@@ -504,7 +508,7 @@ console.log(key)
             await Page.findOneAndUpdate(
                 { key: key },
                 {
-                    value: { meta_title, meta_description, Key_words },
+                    value: { meta_title, meta_description, key_words },
                     created_by: req.user?.object_id,
                 }
             );

@@ -5,6 +5,7 @@ interface ILocation extends Document {
     location: string;
     latitude: string;
     longitude: string;
+    region:string;
     status: boolean;
     is_deleted: boolean;
     created_by: number;
@@ -13,9 +14,10 @@ interface ILocation extends Document {
 
 const LocationSchema: Schema = new Schema(
     {
-        location: { type: String, default: "", index: { unique: true } },
-        latitude: { type: String, default: "", index: { unique: true } },
-        longitude: { type: String, default: "", index: { unique: true } },
+        location: { type: String, default: "", },
+        latitude: { type: String, default: "",  },
+        longitude: { type: String, default: "",  },
+        region:{ type: String, default: "" },
         status: { type: Boolean, default: true },
         is_deleted: { type: Boolean, default: false },
         created_by: { type: Schema.Types.ObjectId, ref: "users" },

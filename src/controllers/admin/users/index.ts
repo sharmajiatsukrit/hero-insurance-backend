@@ -188,6 +188,10 @@ export default class UserController {
             const country: any = await Country.findOne({ id: country_id }).lean();
             const state: any = await State.findOne({ id: state_id }).lean();
             const city: any = await City.findOne({ id: city_id }).lean();
+            let profile_img: any;
+            if (req.file) {
+                profile_img = req?.file?.filename;
+            }
             // console.log(role,country,state,city);
             await User.findOneAndUpdate({ id: id }, {
                 name: name,
@@ -200,6 +204,7 @@ export default class UserController {
                 address: address,
                 role_id: role?._id,
                 status: 1,
+                profile_img,
                 updated_by: req.user.object_id
             });
 
