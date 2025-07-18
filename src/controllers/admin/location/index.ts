@@ -84,12 +84,13 @@ export default class LocationController {
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
 
-            const { location, latitude, longitude, status = true } = req.body;
+            const { location, latitude, longitude, region, status = true } = req.body;
 
             const result: any = await Location.create({
                 location,
                 latitude,
                 longitude,
+                region,
                 status: status,
                 created_by: req.user?.object_id,
             });
@@ -107,7 +108,7 @@ export default class LocationController {
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
 
-            const { location, latitude, longitude, status } = req.body;
+            const { location, latitude, longitude, region, status } = req.body;
 
             const menu = await Location.findOne({ id: id });
             if (!menu) {
@@ -120,6 +121,7 @@ export default class LocationController {
                     location,
                     latitude,
                     longitude,
+                    region,
                     status: status,
                     updated_by: req.user?.object_id,
                 }

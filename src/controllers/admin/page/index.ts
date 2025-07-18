@@ -392,7 +392,7 @@ export default class PageController {
             if (!hbs) {
                 const result: any = await Page.create({
                     key: "contact_us_section",
-                    value: { email, description, locations: JSON.parse(locations) },
+                    value: { email, description, image, locations: JSON.parse(locations) },
                     created_by: req.user?.object_id,
                 });
                 return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "award-add"), {});
@@ -400,7 +400,7 @@ export default class PageController {
             await Page.findOneAndUpdate(
                 { key: "contact_us_section" },
                 {
-                    value: { email, description, locations: JSON.parse(locations) },
+                    value: { email, description, image, locations: JSON.parse(locations) },
                     created_by: req.user?.object_id,
                 }
             );
@@ -431,7 +431,7 @@ export default class PageController {
             if (!hbs) {
                 const result: any = await Page.create({
                     key: "claims_heading_section",
-                    value: { title },
+                    value: { title, image },
                     created_by: req.user?.object_id,
                 });
                 return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "award-add"), {});
@@ -439,7 +439,7 @@ export default class PageController {
             await Page.findOneAndUpdate(
                 { key: "claims_heading_section" },
                 {
-                    value: { title },
+                    value: { title, image },
                     created_by: req.user?.object_id,
                 }
             );
