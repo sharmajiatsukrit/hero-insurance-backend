@@ -35,6 +35,7 @@ export default class TestimonialController {
                 .sort({ _id: -1 })
                 .skip(skip)
                 .limit(limitNumber)
+                .populate("locationId", "id region location latitude longitude")
                 .lean();
 
             const totalCount = await Testimonial.countDocuments(filter);
@@ -63,7 +64,7 @@ export default class TestimonialController {
             this.locale = (locale as string) || "en";
 
             const id = parseInt(req.params.id);
-            const result: any = await Testimonial.findOne({ id: id }).lean();
+            const result: any = await Testimonial.findOne({ id: id }).populate("locationId", "id region location latitude longitude").lean();
             // console.log(result);
 
             if (result) {

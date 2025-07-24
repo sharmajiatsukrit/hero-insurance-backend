@@ -31,7 +31,7 @@ export default class TestimonialController {
             if (search) {
                 filter.$or = [{ name: { $regex: search, $options: "i" } }];
             }
-            const results = await Testimonial.find(filter).sort({ _id: -1 }).skip(skip).limit(limitNumber).populate("locationId","location latitude longitude").lean();
+            const results = await Testimonial.find(filter).sort({ _id: -1 }).skip(skip).limit(limitNumber).populate("locationId", "id region location latitude longitude").lean();
 
             const totalCount = await Testimonial.countDocuments(filter);
             const totalPages = Math.ceil(totalCount / limitNumber);
@@ -59,7 +59,7 @@ export default class TestimonialController {
             this.locale = (locale as string) || "en";
 
             const id = parseInt(req.params.id);
-            const result: any = await Testimonial.findOne({ id: id }).populate("locationId","location latitude longitude").lean();
+            const result: any = await Testimonial.findOne({ id: id }).populate("locationId", "id region location latitude longitude").lean();
             // console.log(result);
 
             if (result) {
@@ -140,7 +140,7 @@ export default class TestimonialController {
             await Testimonial.findOneAndUpdate({ id }, updateData);
 
             const updatedData: any = await Testimonial.findOne({ id })
-                .populate("locationId", "id name") // Populate location info if needed
+                .populate("locationId", "id region location latitude longitude") // Populate location info if needed
                 .lean();
 
             return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "enquiry-update"), updatedData);

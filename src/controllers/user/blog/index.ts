@@ -47,6 +47,7 @@ export default class BlogController {
             const results = await Blog.find(searchQuery)
                 .populate("created_by", "name email")
                 .populate("categoryId", "id name")
+                .populate("locationId", "id region location latitude longitude")
                 .sort({ _id: -1 })
                 .skip(skip)
                 .limit(limitNumber)
@@ -82,7 +83,7 @@ export default class BlogController {
 
             const id = parseInt(req.params.id);
 
-            const result: any = await Blog.findOne({ id: id }).populate("created_by", "name email").populate("updated_by", "name email").populate("categoryId", "id name").lean();
+            const result: any = await Blog.findOne({ id: id }).populate("created_by", "name email").populate("updated_by", "name email").populate("categoryId", "id name").populate("locationId", "id region location latitude longitude").lean();
             if (result) {
                 result.blogImage = `${process.env.RESOURCE_URL}${result.blog_image}`;
             }
