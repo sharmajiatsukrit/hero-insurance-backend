@@ -167,4 +167,10 @@ export const MessageKey: IObjectKeys = {
     "enquiry-add": "enquiry-add",
     "enquiry-delete": "enquiry-delete",
     "enquiry-status": "enquiry-status",
+
+    "insurance-type-fetched" : "insurance-type-fetched",
+    "insurance-type-add" : "insurance-type-add",
+    "insurance-type-update" : "insurance-type-update",
+    "insurance-type-delete" : "insurance-type-delete",
+    "insurance-type-status" : "insurance-type-status",
 };

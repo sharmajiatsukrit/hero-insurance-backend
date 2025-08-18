@@ -184,7 +184,13 @@
     "enquiry-fetched": "Enquiry fetched successfully",
     "enquiry-add": "Your enquiry was submitted successfully",
     "enquiry-delete": "Enquiry deleted successfully",
-    "enquiry-status": "Enquiry status updated successfully"
+    "enquiry-status": "Enquiry status updated successfully",
+
+    "insurance-type-fetched": "Insurance Type Details Fetched",
+    "insurance-type-add": "New Insurance Type Added successfully",
+    "insurance-type-update":"Insurance Type Updated successfully",
+    "insurance-type-delete": "Insurance Type Deleted successfully",
+    "insurance-type-status": "Insurance Type Status successfully Updated"
 
    
 }

@@ -117,7 +117,7 @@ export default class CategoryController {
 
             const { name, description, parent_id, status } = req.body;
             const category: any = await Category.findOne({ id: parent_id }).lean();
-            console.log(category);
+
             
             const result: any = await Category.create({
                 name: name,

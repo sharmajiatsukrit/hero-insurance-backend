@@ -1,54 +1,56 @@
 import { Request, Response } from "express";
 import { ValidationChain } from "express-validator";
-import { serverResponse, serverErrorHandler, constructResponseMsg } from "../../../utils";
+import { removeObjectKeys, serverResponse, serverErrorHandler, removeSpace, constructResponseMsg, serverInvalidRequest, groupByDate } from "../../../utils";
 import { HttpCodeEnum } from "../../../enums/server";
-
 import validate from "./validate";
 import Logger from "../../../utils/logger";
 import ServerMessages, { ServerMessagesEnum } from "../../../config/messages";
-import Location from "../../../models/location";
+import TestimonialCategory from "../../../models/testimonial-category";
 
-const fileName = "[admin][location][index.ts]";
-export default class LocationController {
+const fileName = "[admin][category][index.ts]";
+export default class TestimonialCategoryController {
     public locale: string = "en";
 
     public validate(endPoint: string): ValidationChain[] {
         return validate(endPoint);
     }
 
+
+    // Checked
     public async getList(req: Request, res: Response): Promise<any> {
         try {
-            const fn = "[location][getList]";
-            // Set locale
             const { locale, page, limit, search } = req.query;
             this.locale = (locale as string) || "en";
 
             const pageNumber = parseInt(page as string) || 1;
             const limitNumber = parseInt(limit as string) || 10;
             const skip = (pageNumber - 1) * limitNumber;
-
-            const filter: any = {};
-            filter.is_deleted = false;
+            let searchQuery:any = {};
             if (search) {
-                const regexSearch = { $regex: search, $options: "i" };
-                filter.$or = [
-                    { location: regexSearch },
-                    { longitude: regexSearch },
-                    { longitude: regexSearch },
+                searchQuery.$or = [
+                    { name: { $regex: search, $options: 'i' } }
                 ];
             }
-            const results = await Location.find(filter).skip(skip).limit(limitNumber).lean().populate("created_by", "id name");
+            const results = await TestimonialCategory.find(searchQuery)
+                .sort({ _id: -1 }) 
+                .skip(skip)
+                .limit(limitNumber)
+                .populate("created_by id name")
+                .lean();
 
-            const totalCount = await Location.countDocuments(filter);
+            // Get the total number of documents in the Category collection
+            const totalCount = await TestimonialCategory.countDocuments(searchQuery);
+
+            // Calculate total pages
             const totalPages = Math.ceil(totalCount / limitNumber);
 
             if (results.length > 0) {
-                return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["faq-fetched"]), {
-                    data: results,
-                    totalCount,
-                    totalPages,
-                    currentPage: pageNumber,
-                });
+                return serverResponse(
+                    res,
+                    HttpCodeEnum.OK,
+                    ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["category-fetched"]),
+                    { data: results, totalCount, totalPages, currentPage: pageNumber }
+                );
             } else {
                 throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
             }
@@ -56,20 +58,21 @@ export default class LocationController {
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
         }
     }
-
     public async getById(req: Request, res: Response): Promise<any> {
         try {
-            const fn = "[location][getById]";
+            const fn = "[getById]";
             // Set locale
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
 
             const id = parseInt(req.params.id);
-            const result: any = await Location.findOne({ id: id }).lean().populate("created_by", "id name");
-            // console.log(result);
+
+            // Find category by id and fetch details
+            const result: any = await TestimonialCategory.findOne({ id }).populate("created_by id name").lean();
 
             if (result) {
-                return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["enquiry-fetched"]), result);
+        
+                return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["category-fetched"]), result);
             } else {
                 throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
             }
@@ -78,55 +81,52 @@ export default class LocationController {
         }
     }
 
+    //add
     public async add(req: Request, res: Response): Promise<any> {
-        const fn = "[location][add]";
         try {
+            const fn = "[add]";
+            // Set locale
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
 
-            const { location, latitude, longitude, region, status = true } = req.body;
-
-            const result: any = await Location.create({
-                location,
-                latitude,
-                longitude,
-                region,
+            const { name, status } = req.body;
+            const result: any = await TestimonialCategory.create({
+                name: name,
                 status: status,
-                created_by: req.user?.object_id,
+                created_by: req.user.object_id
             });
-            return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "award-add"), {});
+
+            if (result) {
+                return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "category-add"), {});
+            } else {
+                throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
+            }
+
         } catch (err: any) {
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
         }
     }
-
+    //Update
     public async update(req: Request, res: Response): Promise<any> {
         try {
-            const fn = "[location][update]";
+            const fn = "[update]";
+
             const id = parseInt(req.params.id);
+            Logger.info(`${fileName + fn} category_id: ${id}`);
+
+            // Set locale
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
-
-            const { location, latitude, longitude, region, status } = req.body;
-
-            const menu = await Location.findOne({ id: id });
-            if (!menu) {
-                return serverResponse(res, HttpCodeEnum.NOTFOUND, constructResponseMsg(this.locale, "award-not-found"), {});
-            }
-
-            await Location.findOneAndUpdate(
+            const { name, status } = req.body;
+            let result: any = await TestimonialCategory.findOneAndUpdate(
                 { id: id },
                 {
-                    location,
-                    latitude,
-                    longitude,
-                    region,
+                    name: name,
                     status: status,
-                    updated_by: req.user?.object_id,
-                }
-            );
-
-            return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "award-update"), {});
+                    updated_by: req.user.object_id
+                });
+           
+            return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "category-update"), {});
         } catch (err: any) {
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
         }
@@ -135,16 +135,16 @@ export default class LocationController {
     // Delete
     public async delete(req: Request, res: Response): Promise<any> {
         try {
-            const fn = "[location][delete]";
+            const fn = "[delete]";
             // Set locale
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
 
             const id = parseInt(req.params.id);
-            const result = await Location.deleteOne({ id: id });
+            const result = await TestimonialCategory.deleteOne({ id: id });
 
             if (result) {
-                return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["enquiry-delete"]), {});
+                return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["category-delete"]), {});
             } else {
                 throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
             }
@@ -156,17 +156,16 @@ export default class LocationController {
     // Status
     public async status(req: Request, res: Response): Promise<any> {
         try {
-            const fn = "[location][status]";
+            const fn = "[status]";
             // Set locale
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
 
             const id = parseInt(req.params.id);
             const { status } = req.body;
-            const updationstatus = await Location.findOneAndUpdate({ id: id }, { status: status }).lean();
-
+            const updationstatus = await TestimonialCategory.findOneAndUpdate({ id: id }, { status: status }).lean();
             if (updationstatus) {
-                return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["enquiry-status"]), {});
+                return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["category-status"]), {});
             } else {
                 throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
             }
@@ -174,4 +173,5 @@ export default class LocationController {
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
         }
     }
+
 }

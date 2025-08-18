@@ -20,6 +20,7 @@ const TestimonialSchema: Schema = new Schema({
     star_rating: { type: Number, default: 0 },
     description: { type: String, default: '' },
     locationId: { type: Schema.Types.ObjectId, ref: 'locations',default: null },
+    categoryId: { type: Schema.Types.ObjectId, ref: "testimonial_categories", default: null },
     status: { type: Boolean, default: true },
     is_deleted: { type: Boolean, default: false },
     deleted_at: { type: String, default: '' },

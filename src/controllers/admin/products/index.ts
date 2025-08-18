@@ -121,7 +121,6 @@ export default class ProductController {
             const { name, description,search_tags, category_id,variations,selling_unit,individual_pack_size,individual_pack_unit,individual_packing_type,master_pack_qty,master_pack_type,conversion_unit, status } = req.body;
             let result: any;
             const variation = JSON.parse(variations);
-            console.log(variation);
             const cat:any = JSON.parse(category_id);
             const categoryObjects = await Promise.all(
                 cat.map(async (categoryId:any) => {

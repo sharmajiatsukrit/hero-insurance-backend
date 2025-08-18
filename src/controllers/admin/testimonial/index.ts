@@ -7,6 +7,7 @@ import validate from "./validate";
 import Logger from "../../../utils/logger";
 import ServerMessages, { ServerMessagesEnum } from "../../../config/messages";
 import Location from "../../../models/location";
+import TestimonialCategory from "../../../models/testimonial-category";
 
 const fileName = "[admin][testimonial][index.ts]";
 export default class TestimonialController {
@@ -31,7 +32,7 @@ export default class TestimonialController {
             if (search) {
                 filter.$or = [{ name: { $regex: search, $options: "i" } }];
             }
-            const results = await Testimonial.find(filter).sort({ _id: -1 }).skip(skip).limit(limitNumber).populate("locationId", "id region location latitude longitude").lean();
+            const results = await Testimonial.find(filter).sort({ _id: -1 }).skip(skip).limit(limitNumber).populate("locationId", "id region location latitude longitude").populate("categoryId", "id name").lean();
 
             const totalCount = await Testimonial.countDocuments(filter);
             const totalPages = Math.ceil(totalCount / limitNumber);
@@ -59,7 +60,7 @@ export default class TestimonialController {
             this.locale = (locale as string) || "en";
 
             const id = parseInt(req.params.id);
-            const result: any = await Testimonial.findOne({ id: id }).populate("locationId", "id region location latitude longitude").lean();
+            const result: any = await Testimonial.findOne({ id: id }).populate("locationId", "id region location latitude longitude").populate("categoryId", "id name").lean();
             // console.log(result);
 
             if (result) {
@@ -79,22 +80,28 @@ export default class TestimonialController {
             // Set locale
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
-            const { name, location, star_rating, description, locationId, status = true } = req.body;
+            const { name, location, star_rating, description, locationId, categoryId, status = true } = req.body;
             const rating = parseInt(star_rating as string);
             let result: any;
             let locationData: any = null;
             let locationObjId: any = null;
+            let categoryData: any = null;
+            let categoryObjectId = null;
             if (locationId) {
                 locationData = await Location.findOne({ id: locationId }).lean();
                 locationObjId = locationData._id;
             }
-
+            if (categoryId) {
+                categoryData = await TestimonialCategory.findOne({ id: categoryId }).lean();
+                categoryObjectId = categoryData?._id;
+            }
             result = await Testimonial.create({
                 name: name,
                 location: location,
                 star_rating: rating,
                 description: description,
                 locationId: locationObjId,
+                categoryId:categoryObjectId,
                 status: status,
             });
 
@@ -114,15 +121,21 @@ export default class TestimonialController {
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
 
-            const { name, location, star_rating, description, locationId, status = true } = req.body;
+            const { name, location, star_rating, description, locationId, categoryId, status = true } = req.body;
             const rating = parseInt(star_rating as string);
 
             let locationData: any = null;
             let locationObjId: any = null;
+            let categoryData: any = null;
+            let categoryObjectId = null;
 
             if (locationId) {
                 locationData = await Location.findOne({ id: locationId }).lean();
                 locationObjId = locationData?._id;
+            }
+             if (categoryId) {
+                categoryData = await TestimonialCategory.findOne({ id: categoryId }).lean();
+                categoryObjectId = categoryData?._id;
             }
 
             const updateData: any = {
@@ -130,6 +143,8 @@ export default class TestimonialController {
                 location,
                 star_rating: rating,
                 description,
+                locationId: locationObjId,
+                categoryId:categoryObjectId,
                 status,
             };
 

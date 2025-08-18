@@ -25,6 +25,10 @@ import PageRoute from "./page"
 import OfferCategoryRoute from "./offer-category"
 import MenuRoute from "./menu"
 import LocationRoute from "./location"
+import TestimonialCategoryRoute from "./testimonial-category"
+import InsuranceTypeRoute from "./insurance-type"
+import ClaimRequestRoute from "./claim-request"
+import OurJourneyRoute from "./our-journey"
 
 
 
@@ -47,6 +51,7 @@ routes.use("/issue-report", BugReport);
 routes.use("/blog", BlogRoute);
 routes.use("/enquiry", EnquiryRoute);
 routes.use("/testimonial", TestimonialRoute);
+routes.use("/testimonial-category", TestimonialCategoryRoute);
 routes.use("/award", AwardRoute);
 routes.use("/bod", BoardOfDirectorRoute);
 routes.use("/key-officer", KeyOfficerRoute);
@@ -55,6 +60,9 @@ routes.use("/page", PageRoute);
 routes.use("/offer-category", OfferCategoryRoute);
 routes.use("/menu", MenuRoute);
 routes.use("/location", LocationRoute);
+routes.use("/insurance-type", InsuranceTypeRoute);
+routes.use("/claim-request", ClaimRequestRoute);
+routes.use("/our-journey", OurJourneyRoute);
 
 
 

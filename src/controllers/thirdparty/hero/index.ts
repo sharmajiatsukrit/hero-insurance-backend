@@ -1,7 +1,17 @@
 import { Request, Response } from "express";
 import { ValidationChain } from "express-validator";
 import moment from "moment";
-import { removeObjectKeys, serverResponse,serverResponse2, serverErrorHandler,serverThirdPartyErrorHandler, removeSpace, constructResponseMsg, serverInvalidRequest, groupByDate } from "../../../utils";
+import {
+    removeObjectKeys,
+    serverResponse,
+    serverResponse2,
+    serverErrorHandler,
+    serverThirdPartyErrorHandler,
+    removeSpace,
+    constructResponseMsg,
+    serverInvalidRequest,
+    groupByDate,
+} from "../../../utils";
 import { HttpCodeEnum } from "../../../enums/server";
 import validate from "./validate";
 import EmailService from "../../../utils/email";
@@ -10,7 +20,9 @@ import ServerMessages, { ServerMessagesEnum } from "../../../config/messages";
 import { networkRequest } from "../../../utils/request";
 import { randomUUID } from "crypto";
 import { UnifiedLead } from "../../../models";
-import {sendMail} from "../../../utils/mail";
+import { sendMail } from "../../../utils/mail";
+import { getMispToken } from "../../../utils/thirdparty/misptoken";
+
 const fileName = "[user][dashboard][index.ts]";
 export default class HeroController {
     public locale: string = "en";
@@ -24,27 +36,25 @@ export default class HeroController {
         return validate(endPoint);
     }
 
-
     public async leadGeneration(req: Request, res: Response): Promise<any> {
-            try {
-                const { locale } = req.query;
-                this.locale = (locale as string) || "en";
-    
-                const { first_name, last_name,mobile_no,email_id, reg_no,segment,redirection,source,utm,seller_details } = req.body;
+        try {
+            const { locale } = req.query;
+            this.locale = (locale as string) || "en";
 
-                const data:any = { first_name, last_name,mobile_no,email_id, reg_no,segment,redirection,source,utm,seller_details };
-                const headers:any = {};
-                const result = await networkRequest('POST','https://apimotor.heroinsurance.com/api/hibl-lead-generation',data,headers);
-                console.log(result.data);
-                
-                if (result) {
-                    return serverResponse(res, HttpCodeEnum.OK, "Success", result.data);
-                } else {
-                    throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
-                }
-            } catch (err: any) {
-                return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
+            const { first_name, last_name, mobile_no, email_id, reg_no, segment, redirection, source, utm, seller_details } = req.body;
+
+            const data: any = { first_name, last_name, mobile_no, email_id, reg_no, segment, redirection, source, utm, seller_details };
+            const headers: any = {};
+            const result = await networkRequest("POST", "https://apimotor.heroinsurance.com/api/hibl-lead-generation", data, headers);
+
+            if (result) {
+                return serverResponse(res, HttpCodeEnum.OK, "Success", result.data);
+            } else {
+                throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
             }
+        } catch (err: any) {
+            return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
+        }
     }
 
     public async tokenValidation(req: Request, res: Response): Promise<any> {
@@ -54,62 +64,79 @@ export default class HeroController {
 
             const { formdata } = req.body;
 
+            const login = await networkRequest(
+                "POST",
+                "https://dashboard.heroinsurance.com/generate_login_token_hero_sso",
+                {
+                    username: "HEROPRODSSO",
+                    password: "M9r0HL8sRado",
+                },
+                {}
+            );
+            // console.log(login,"data");
+            if (login.data.status) {
+                const data: any = { "access-token": login.data.token, formdata: formdata };
+                const headers: any = {};
+                const result = await networkRequest("POST", "https://dashboard.heroinsurance.com/login_token_validate", data, headers);
+                // console.log(result,"test");
 
-            const login = await networkRequest('POST','https://dashboard.heroinsurance.com/generate_login_token_hero_sso',{
-                                    username:"HEROPRODSSO",
-                                    password:"M9r0HL8sRado"
-                                },{});
-            console.log(login.data);
-            if(login.data.status){
-                const data:any = { "access-token":login.data.token, formdata:formdata };
-                const headers:any = {};
-                const result = await networkRequest('POST','https://dashboard.heroinsurance.com/login_token_validate',data,headers);
-                // console.log(result.data);
-                
                 if (result) {
                     return serverResponse(res, HttpCodeEnum.OK, "Success", result.data);
                 } else {
                     throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
                 }
-            }else{
+            } else {
                 throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
             }
-            
+
             // throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
         } catch (err: any) {
+            // console.log(err,"testErr")
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
         }
     }
-    
+
     public async healthQuote(req: Request, res: Response): Promise<any> {
         try {
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
 
-            const { section, name,email,gender, mobile,source,params,utm,seller_details,type,from_unified_enquiry } = req.body;
-            const lastNO:any = await UnifiedLead.findOne({  }).sort({ unique_no: -1 });
-            
+            const { section, name, email, gender, mobile, source, params, utm, seller_details, type, from_unified_enquiry } = req.body;
+            const lastNO: any = await UnifiedLead.findOne({}).sort({ unique_no: -1 });
+
             let unique_generate: any = 0;
             if (lastNO) {
                 unique_generate = parseInt(lastNO.unique_no) + 1;
             } else {
                 unique_generate = 1;
             }
-            
-            const unique_id:any = await UnifiedLead.create({unique_no: unique_generate.toString().padStart(7, '0')});
-            const data:any = { section, name,email,gender, mobile,params,source,utm,seller_details,type,unified_lead:'UL'+unique_id.unique_no.toString().padStart(7, '0'),from_unified_enquiry };
+
+            const unique_id: any = await UnifiedLead.create({ unique_no: unique_generate.toString().padStart(7, "0") });
+            const data: any = {
+                section,
+                name,
+                email,
+                gender,
+                mobile,
+                params,
+                source,
+                utm,
+                seller_details,
+                type,
+                unified_lead: "UL" + unique_id.unique_no.toString().padStart(7, "0"),
+                from_unified_enquiry,
+            };
             // console.log(data);
-            const headers:any = {'SHOW-FULL-TRACE':''};
-            const result = await networkRequest('POST','https://apihealth.heroinsurance.com/api/v1/unified_enquiries',data,headers);
+            const headers: any = { "SHOW-FULL-TRACE": "" };
+            const result = await networkRequest("POST", "https://apihealth.heroinsurance.com/api/v1/unified_enquiries", data, headers);
             // console.log(result);
-                
-                if (result) {
-                    return serverResponse(res, HttpCodeEnum.OK, "Success", result.data);
-                } else {
-                    throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
-                }
+
+            if (result) {
+                return serverResponse(res, HttpCodeEnum.OK, "Success", result.data);
+            } else {
+                throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
+            }
         } catch (err: any) {
-            console.log(err.response);
             return res.status(500).json({
                 status: err.response.data.status,
                 code: err.response.data.code,
@@ -125,20 +152,18 @@ export default class HeroController {
         try {
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
-            const authorization:any = req.headers.authorization;
+            const { data: token } = await getMispToken();
             const { username, password } = req.body;
-            const token = authorization.split(" ")[1];
-            console.log(token);
-            const data:any = { username, password };
-                const headers:any = {"Authorization":"Bearer "+token};
-                const result = await networkRequest('POST','https://misp.heroinsurance.com/prod/services/HeroOne/api/Login/ValidateMISPLogin',data,headers);
-                console.log(result.data);
-                
-                if (result) {
-                    return serverResponse(res, HttpCodeEnum.OK, "Success", result.data);
-                } else {
-                    throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
-                }
+            const data: any = { username, password };
+            const headers: any = { Authorization: "Bearer " + token };
+            const result = await networkRequest("POST", "https://misp.heroinsurance.com/prod/services/HeroOne/api/Login/ValidateMISPLogin", data, headers);
+            console.log(result.data);
+
+            if (result) {
+                return serverResponse(res, HttpCodeEnum.OK, "Success", result.data);
+            } else {
+                throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
+            }
         } catch (err: any) {
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
         }
@@ -150,11 +175,11 @@ export default class HeroController {
             this.locale = (locale as string) || "en";
 
             const { auth_user, auth_pass } = req.body;
-            const data:any = { auth_user, auth_pass };
-            const headers:any = {};
-            const result = await networkRequest('GET','https://misp.heroinsurance.com/prod/services/HeroOne/api/Authenticate/MISPAuthorization',data,headers);
+            const data: any = { auth_user, auth_pass };
+            const headers: any = {};
+            const result = await networkRequest("GET", "https://misp.heroinsurance.com/prod/services/HeroOne/api/Authenticate/MISPAuthorization", data, headers);
             // console.log(result.data);
-            
+
             if (result) {
                 return serverResponse(res, HttpCodeEnum.OK, "Success", result.data);
             } else {
@@ -169,20 +194,20 @@ export default class HeroController {
         try {
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
-            const authorization:any = req.headers.authorization;
-            const { MobileNo, Registration_No,CPId } = req.body;
-            const token = authorization.split(" ")[1];
-            console.log(token);
-            const data:any = { MobileNo, Registration_No,CPId };
-                const headers:any = {"Authorization":"Bearer "+token};
-                const result = await networkRequest('POST','https://misp.heroinsurance.com/prod/services/HeroOne/api/Policy/RenewalLink',data,headers);
-                console.log(result.data);
-                
-                if (result) {
-                    return serverResponse(res, HttpCodeEnum.OK, "Success", result.data);
-                } else {
-                    throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
-                }
+
+            // Always get the token internally
+            const { data: token } = await getMispToken();
+            const { MobileNo, Registration_No, CPId } = req.body;
+            const data: any = { MobileNo, Registration_No, CPId };
+            const headers: any = { Authorization: "Bearer " + token };
+
+            const result = await networkRequest("POST", "https://misp.heroinsurance.com/prod/services/HeroOne/api/Policy/RenewalLink", data, headers);
+
+            if (result) {
+                return serverResponse(res, HttpCodeEnum.OK, "Success", result.data);
+            } else {
+                throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
+            }
         } catch (err: any) {
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
         }
@@ -192,20 +217,18 @@ export default class HeroController {
         try {
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
-            const authorization:any = req.headers.authorization;
+           const { data: token } = await getMispToken();
             const { CPID } = req.body;
-            const token = authorization.split(" ")[1];
-            // console.log(token);
-            const data:any = { CPID };
-                const headers:any = {"Authorization":"Bearer "+token};
-                const result = await networkRequest('POST','https://misp.heroinsurance.com/prod/services/HeroOne/api/ChannelPartner/CPDetails',data,headers);
-                // console.log(result.data);
-                
-                if (result) {
-                    return serverResponse(res, HttpCodeEnum.OK, "Success", result.data);
-                } else {
-                    throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
-                }
+            const data: any = { CPID };
+           const headers: any = { Authorization: "Bearer " + token };
+            const result = await networkRequest("POST", "https://misp.heroinsurance.com/prod/services/HeroOne/api/ChannelPartner/CPDetails", data, headers);
+            // console.log(result.data);
+
+            if (result) {
+                return serverResponse(res, HttpCodeEnum.OK, "Success", result.data);
+            } else {
+                throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
+            }
         } catch (err: any) {
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
         }
@@ -215,9 +238,9 @@ export default class HeroController {
         try {
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
-            const authorization:any = req.headers.authorization;
-            const { name, email,mobile,insurance_type,details } = req.body;
-            const body:string = `Hello Admin,<br>
+            const authorization: any = req.headers.authorization;
+            const { name, email, mobile, insurance_type, details } = req.body;
+            const body: string = `Hello Admin,<br>
                                     New Claim Registration request received. Below are the details.<br>
                                     <strong>Name: </strong>${name}<br>
                                     <strong>Email: </strong>${email}<br>
@@ -226,13 +249,13 @@ export default class HeroController {
                                     <strong>Details: </strong>${details}<br>
                                     Thanks,<br> Regards Hero Insurance
                                     `;
-            await sendMail('ravi.anand@heroibil.com,shailendra@sukritinfotech.com','New Claim Registration',body,[]);
-                
-                // if (result) {
-                    return serverResponse(res, HttpCodeEnum.OK, "Claim Registration successfully submitted.", []);
-                // } else {
-                //     throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
-                // }
+            await sendMail("ravi.anand@heroibil.com,shailendra@sukritinfotech.com", "New Claim Registration", body, []);
+
+            // if (result) {
+            return serverResponse(res, HttpCodeEnum.OK, "Claim Registration successfully submitted.", []);
+            // } else {
+            //     throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
+            // }
         } catch (err: any) {
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
         }
@@ -244,15 +267,15 @@ export default class HeroController {
             this.locale = (locale as string) || "en";
 
             const { d } = req.body;
-            const data:any = { d:d };
-            const headers1:any = req.headers
-            const accountID = req.headers['x-clevertap-account-id'];
-            const accountPass = req.headers['x-clevertap-passcode'];
-            console.log(accountID,accountPass,headers1);
-            const headers:any = {"X-CleverTap-Account-Id":accountID,"X-CleverTap-Passcode":accountPass};
-            const result = await networkRequest('POST','https://in1.api.clevertap.com/1/upload',data,headers);
+            const data: any = { d: d };
+            const headers1: any = req.headers;
+            const accountID = req.headers["x-clevertap-account-id"];
+            const accountPass = req.headers["x-clevertap-passcode"];
+            console.log(accountID, accountPass, headers1);
+            const headers: any = { "X-CleverTap-Account-Id": accountID, "X-CleverTap-Passcode": accountPass };
+            const result = await networkRequest("POST", "https://in1.api.clevertap.com/1/upload", data, headers);
             // console.log(result.data);https://in1.api.clevertap.com/1/upload
-            
+
             if (result) {
                 return serverResponse(res, HttpCodeEnum.OK, "Success", result.data);
             } else {
@@ -267,42 +290,41 @@ export default class HeroController {
         try {
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
-            const authorization:any = req.headers.authorization;
+            const authorization: any = req.headers.authorization;
             const { MobileNo, Registration_No } = req.body;
             const token = authorization.split(" ")[1];
             // console.log(token);
-            const data:any = { MobileNo, Registration_No };
-                const headers:any = {"Authorization":"Bearer "+token};
-                const result = await networkRequest('POST','https://misp.heroinsurance.com/uat/services/HeroOne/api/Policy/PolicyDetails',data,headers);
-                console.log(result.data);
-                
-                if (result) {
-                    return serverResponse(res, HttpCodeEnum.OK, "Success", result.data);
-                } else {
-                    throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
-                }
+            const data: any = { MobileNo, Registration_No };
+            const headers: any = { Authorization: "Bearer " + token };
+            const result = await networkRequest("POST", "https://misp.heroinsurance.com/uat/services/HeroOne/api/Policy/PolicyDetails", data, headers);
+            console.log(result.data);
+
+            if (result) {
+                return serverResponse(res, HttpCodeEnum.OK, "Success", result.data);
+            } else {
+                throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
+            }
         } catch (err: any) {
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
         }
     }
 
-
     public async generateProposalToken(req: Request, res: Response): Promise<any> {
         try {
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
-            const authorization:any = req.headers.authorization;
+            const authorization: any = req.headers.authorization;
             // console.log(token);
-            const data:any = { api_endpoint:"https://uatmotorapi.heroinsurance.com/api/proposalReports" };
-                const headers:any = {"Authorization":"Basic d2Vic2VydmljZTFAZnludHVuZS5jb206VGVzdGluZ0AxMjM0"};
-                const result = await networkRequest('POST','https://uatmotorapi.heroinsurance.com/api/tokenGeneration',data,headers);
-                console.log(result.data);
-                
-                if (result) {
-                    return serverResponse(res, HttpCodeEnum.OK, "Success", result.data);
-                } else {
-                    throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
-                }
+            const data: any = { api_endpoint: "https://uatmotorapi.heroinsurance.com/api/proposalReports" };
+            const headers: any = { Authorization: "Basic d2Vic2VydmljZTFAZnludHVuZS5jb206VGVzdGluZ0AxMjM0" };
+            const result = await networkRequest("POST", "https://uatmotorapi.heroinsurance.com/api/tokenGeneration", data, headers);
+            console.log(result.data);
+
+            if (result) {
+                return serverResponse(res, HttpCodeEnum.OK, "Success", result.data);
+            } else {
+                throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
+            }
         } catch (err: any) {
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
         }
@@ -310,21 +332,21 @@ export default class HeroController {
 
     public async proposalReport(req: Request, res: Response): Promise<any> {
         try {
-            const { locale,page } = req.query;
+            const { locale, page } = req.query;
             this.locale = (locale as string) || "en";
-            const validation:any = req.headers.validation;
-            
+            const validation: any = req.headers.validation;
+
             // console.log(token);
-            const data:any = req.body;
-                const headers:any = {"validation":validation};
-                const result = await networkRequest('POST','https://uatmotorapi.heroinsurance.com/api/proposalReports?page='+page,data,headers);
-                console.log(result.data);
-                
-                if (result) {
-                    return serverResponse2(res, HttpCodeEnum.OK, "Success", result.data);
-                } else {
-                    throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
-                }
+            const data: any = req.body;
+            const headers: any = { validation: validation };
+            const result = await networkRequest("POST", "https://uatmotorapi.heroinsurance.com/api/proposalReports?page=" + page, data, headers);
+            console.log(result.data);
+
+            if (result) {
+                return serverResponse2(res, HttpCodeEnum.OK, "Success", result.data);
+            } else {
+                throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
+            }
         } catch (err: any) {
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
         }
@@ -332,21 +354,26 @@ export default class HeroController {
 
     public async mispLoginPolicy(req: Request, res: Response): Promise<any> {
         try {
-            const { locale,page } = req.query;
+            const { locale, page } = req.query;
             this.locale = (locale as string) || "en";
-            const validation:any = req.headers.validation;
-            
+            const validation: any = req.headers.validation;
+
             // console.log(token);
-                const data:any = req.body;
-                const headers:any = {};
-                const result = await networkRequest('GET',`https://misp.heroinsurance.com/prod/services/BOT/api/Authenticate/Login?Username=${data.Username}&Password=${data.Password}`,{},headers);
-                console.log(result.data);
-                
-                if (result) {
-                    return serverResponse(res, HttpCodeEnum.OK, "Success", result.data);
-                } else {
-                    throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
-                }
+            const data: any = req.body;
+            const headers: any = {};
+            const result = await networkRequest(
+                "GET",
+                `https://misp.heroinsurance.com/prod/services/BOT/api/Authenticate/Login?Username=${data.Username}&Password=${data.Password}`,
+                {},
+                headers
+            );
+            console.log(result.data);
+
+            if (result) {
+                return serverResponse(res, HttpCodeEnum.OK, "Success", result.data);
+            } else {
+                throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
+            }
         } catch (err: any) {
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
         }
@@ -354,23 +381,23 @@ export default class HeroController {
 
     public async mispDownloadPolicy(req: Request, res: Response): Promise<any> {
         try {
-            const { locale,page } = req.query;
+            const { locale, page } = req.query;
             this.locale = (locale as string) || "en";
-            const Authorization:any = req.headers.authorization;
-            
+            const Authorization: any = req.headers.authorization;
+
             // console.log(token);
-                const data:any = req.body;
-                const param:any = req.query;
-                const headers:any = {"Authorization":Authorization};
-                // console.log(param,Authorization);
-                const result = await networkRequest('POST',`https://misp.heroinsurance.com/prod/services/BOT/api/Shedule/PolicyShedulebyMobile?mobNo=${param.mobNo}`,{},headers);
-                // console.log(result.data);
-                
-                if (result) {
-                    return serverResponse(res, HttpCodeEnum.OK, "Success", result.data);
-                } else {
-                    throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
-                }
+            const data: any = req.body;
+            const param: any = req.query;
+            const headers: any = { Authorization: Authorization };
+            // console.log(param,Authorization);
+            const result = await networkRequest("POST", `https://misp.heroinsurance.com/prod/services/BOT/api/Shedule/PolicyShedulebyMobile?mobNo=${param.mobNo}`, {}, headers);
+            // console.log(result.data);
+
+            if (result) {
+                return serverResponse(res, HttpCodeEnum.OK, "Success", result.data);
+            } else {
+                throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
+            }
         } catch (err: any) {
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
         }
@@ -378,14 +405,14 @@ export default class HeroController {
 
     public async sendPolicyDetails(req: Request, res: Response): Promise<any> {
         try {
-            const { locale,page } = req.query;
+            const { locale, page } = req.query;
             this.locale = (locale as string) || "en";
-            const Authorization:any = req.headers.authorization;
-            
+            const Authorization: any = req.headers.authorization;
+
             // console.log(token);
-                const {to,policy_no,customer_name,vehicle_no,insurer_name,od_coverage,tp_coverage} = req.body;
-                
-                const body:string = `<!DOCTYPE html>
+            const { to, policy_no, customer_name, vehicle_no, insurer_name, od_coverage, tp_coverage } = req.body;
+
+            const body: string = `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -659,14 +686,14 @@ export default class HeroController {
     </div>
 </body>
 </html>`;
-                const mail = await sendMail(to,'New Policy registered',body,[]);
-                
-                // console.log(mail);
-                // if (mail) {
-                    return serverResponse(res, HttpCodeEnum.OK, "Successfully sent!", {});
-                // } else {
-                //     throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
-                // }
+            const mail = await sendMail(to, "New Policy registered", body, []);
+
+            // console.log(mail);
+            // if (mail) {
+            return serverResponse(res, HttpCodeEnum.OK, "Successfully sent!", {});
+            // } else {
+            //     throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
+            // }
         } catch (err: any) {
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
         }

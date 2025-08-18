@@ -67,7 +67,6 @@ export default class HelperController {
                   $limit: 10,
                 },
               ]);
-            console.log(result);
             if (result.length > 0) {
                 return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "category-fetched"), result);
             } else {

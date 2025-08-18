@@ -1,10 +1,9 @@
 import { Request, Response } from "express";
 import { ValidationChain } from "express-validator";
 import Enquiry from "../../../models/enquiry";
-import { serverResponse, serverErrorHandler, constructResponseMsg } from "../../../utils";
+import { serverResponse, serverErrorHandler } from "../../../utils";
 import { HttpCodeEnum } from "../../../enums/server";
 import validate from "./validate";
-import Logger from "../../../utils/logger";
 import ServerMessages, { ServerMessagesEnum } from "../../../config/messages";
 
 const fileName = "[admin][enquiry][index.ts]";
@@ -27,7 +26,6 @@ export default class EnquiryController {
             const skip = (pageNumber - 1) * limitNumber;
            
             const filter: any = {};
-            filter.is_deleted = false;
             if (search) {
                 filter.$or = [{ name: { $regex: search, $options: "i" } }];
             }
@@ -76,104 +74,4 @@ export default class EnquiryController {
         }
     }
 
-    //add
-    public async add(req: Request, res: Response): Promise<any> {
-        try {
-            const fn = "[enquiry][add]";
-            // Set locale
-            const { locale } = req.query;
-            this.locale = (locale as string) || "en";
-
-            const { name, email, mobile_no, description, status = true } = req.body;
-            let result: any;
-
-            result = await Enquiry.create({
-                name: name,
-                email: email,
-                mobile_no: mobile_no,
-                description: description,
-                status: status,
-                created_by: req.user?.object_id,
-            });
-
-            return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "enquiry-add"), {});
-        } catch (err: any) {
-            return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
-        }
-    }
-
-    //Update
-    public async update(req: Request, res: Response): Promise<any> {
-        try {
-            const fn = "[enquiry][update]";
-
-            const id = parseInt(req.params.id);
-
-            // Set locale
-            const { locale } = req.query;
-            this.locale = (locale as string) || "en";
-            const { name, email, mobile_no, description, status } = req.body;
-
-            let result: any = await Enquiry.findOneAndUpdate(
-                { id: id },
-                {
-                    name: name,
-                    email: email,
-                    mobile_no: mobile_no,
-                    description: description,
-                    status: status,
-                    updated_by:req.user?.object_id,
-                }
-            );
-
-            const updatedData: any = await Enquiry.find({ id: id }).lean();
-
-            return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "enquiry-update"), {});
-        } catch (err: any) {
-            return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
-        }
-    }
-
-    // Delete
-    public async delete(req: Request, res: Response): Promise<any> {
-        try {
-            const fn = "[enquiry][delete]";
-            // Set locale
-            const { locale } = req.query;
-            this.locale = (locale as string) || "en";
-
-            const id = parseInt(req.params.id);
-            const result = await Enquiry.deleteOne({ id: id });
-
-            if (result) {
-                return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["enquiry-delete"]), {});
-            } else {
-                throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
-            }
-        } catch (err: any) {
-            return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
-        }
-    }
-
-    // Status
-    public async status(req: Request, res: Response): Promise<any> {
-        try {
-            const fn = "[enquiry][status]";
-            // Set locale
-            const { locale } = req.query;
-            this.locale = (locale as string) || "en";
-
-            const id = parseInt(req.params.id);
-            const { status } = req.body;
-            const updationstatus = await Enquiry.findOneAndUpdate({ id: id }, { status: status }).lean();
-            const updatedData: any = await Enquiry.find({ id: id }).lean();
-            if (updationstatus) {
-                return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["enquiry-status"]), {});
-            } else {
-                throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
-            }
-        } catch (err: any) {
-            return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
-        }
-    }
 }

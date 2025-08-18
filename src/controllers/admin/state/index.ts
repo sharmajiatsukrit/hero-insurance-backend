@@ -102,8 +102,6 @@ export default class StateController {
                 status: status,
                 created_by: req.user.object_id
             });
-            console.log(result);
-
 
             return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "state-add"), result.doc);
         } catch (err: any) {

@@ -270,7 +270,6 @@ export default class PageController {
 
             const { title, description, additional_title, additional_description } = req.body;
             Logger.info(`${fileName + fn} req.body: ${JSON.stringify(req.body)}`);
-            console.log(req?.files);
             let image: string | undefined;
             let additional_image: string | undefined;
 
@@ -344,29 +343,29 @@ export default class PageController {
 
             const { core_values } = req.body;
             Logger.info(`${fileName + fn} req.body: ${JSON.stringify(req.body)}`);
-            const result: any = await Page.create({
-                key: "about_us_essence_of_hero_section",
-                value: { core_values },
-                created_by: req.user?.object_id,
-            });
-            return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "award-add"), {});
-            //const hibds = await Page.findOne({ key: "about_us_essence_of_hero_section" });
-            // if (!hibds) {
-            //     const result: any = await Page.create({
-            //         key: "about_us_essence_of_hero_section",
-            //         value: { core_values },
-            //         created_by: req.user?.object_id,
-            //     });
-            //     return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "award-add"), {});
-            // }
-            // await Page.findOneAndUpdate(
-            //     { key: "about_us_essence_of_hero_section" },
-            //     {
-            //         value: { core_values },
-            //         created_by: req.user?.object_id,
-            //     }
-            // );
+            // const result: any = await Page.create({
+            //     key: "about_us_essence_of_hero_section",
+            //     value: { core_values },
+            //     created_by: req.user?.object_id,
+            // });
             // return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "award-add"), {});
+            const exist = await Page.findOne({ key: "about_us_essence_of_hero_section" });
+            if (!exist) {
+                const result: any = await Page.create({
+                    key: "about_us_essence_of_hero_section",
+                    value: { core_values },
+                    created_by: req.user?.object_id,
+                });
+                return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "award-add"), {});
+            }
+            await Page.findOneAndUpdate(
+                { key: "about_us_essence_of_hero_section" },
+                {
+                    value: { core_values },
+                    created_by: req.user?.object_id,
+                }
+            );
+            return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "award-add"), {});
         } catch (err: any) {
             // Logger.error(`${fileName + fn} Error: ${err.message}`);
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
@@ -492,7 +491,6 @@ export default class PageController {
             const fn = "[addPageSeoDetail][add]";
             const { locale, key } = req.query;
             this.locale = (locale as string) || "en";
-            console.log(key);
             const { meta_title, meta_description, key_words } = req.body;
             Logger.info(`${fileName + fn} req.body: ${JSON.stringify(req.body)}`);
 

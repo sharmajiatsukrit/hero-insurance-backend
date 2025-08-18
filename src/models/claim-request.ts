@@ -1,15 +1,17 @@
 import { Document, Schema, model } from 'mongoose';
 import { autoIncrement } from 'mongoose-plugin-autoinc';
 
-interface IEnquiry extends Document {
-    name: string;
-    mobile_no:string;
-    email: string;
+interface IClaimRequest extends Document {
+    insurance_type:string;
     description: string;
+    mobile_no:string;
+    name: string;
+    email: string;
     status: boolean;
 }
 
-const EnquirySchema: Schema = new Schema({
+const ClaimRequestSchema: Schema = new Schema({
+    insurance_type: { type: Schema.Types.ObjectId, ref: "insurance_types", default: null },
     name: { type: String, default: '' },
     email: { type: String, default: '' },
     mobile_no: { type: String, default: '' },
@@ -21,8 +23,8 @@ const EnquirySchema: Schema = new Schema({
         versionKey: false
     });
 
-EnquirySchema.plugin(autoIncrement, { model: 'enquiries', field: 'id', startAt: 1 });
+ClaimRequestSchema.plugin(autoIncrement, { model: 'claims_requests', field: 'id', startAt: 1 });
 
-const Enquiry = model<IEnquiry>('enquiries', EnquirySchema);
+const ClaimRequest = model<IClaimRequest>('claims_requests', ClaimRequestSchema);
 
-export default Enquiry;
+export default ClaimRequest;

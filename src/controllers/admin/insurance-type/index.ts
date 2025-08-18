@@ -1,15 +1,12 @@
 import { Request, Response } from "express";
 import { ValidationChain } from "express-validator";
-import { serverResponse, serverErrorHandler, constructResponseMsg } from "../../../utils";
-import { HttpCodeEnum } from "../../../enums/server";
-
 import validate from "./validate";
-import Logger from "../../../utils/logger";
+import InsuranceType from "../../../models/insurance-type";
+import { constructResponseMsg, serverErrorHandler, serverResponse } from "../../../utils";
+import { HttpCodeEnum } from "../../../enums/server";
 import ServerMessages, { ServerMessagesEnum } from "../../../config/messages";
-import Location from "../../../models/location";
 
-const fileName = "[admin][location][index.ts]";
-export default class LocationController {
+export default class InsuranceTypeController {
     public locale: string = "en";
 
     public validate(endPoint: string): ValidationChain[] {
@@ -18,7 +15,7 @@ export default class LocationController {
 
     public async getList(req: Request, res: Response): Promise<any> {
         try {
-            const fn = "[location][getList]";
+            const fn = "[getList]";
             // Set locale
             const { locale, page, limit, search } = req.query;
             this.locale = (locale as string) || "en";
@@ -26,24 +23,17 @@ export default class LocationController {
             const pageNumber = parseInt(page as string) || 1;
             const limitNumber = parseInt(limit as string) || 10;
             const skip = (pageNumber - 1) * limitNumber;
-
-            const filter: any = {};
-            filter.is_deleted = false;
+            let searchQuery: any = {};
             if (search) {
-                const regexSearch = { $regex: search, $options: "i" };
-                filter.$or = [
-                    { location: regexSearch },
-                    { longitude: regexSearch },
-                    { longitude: regexSearch },
-                ];
+                searchQuery.$or = [{ name: { $regex: search, $options: "i" } }];
             }
-            const results = await Location.find(filter).skip(skip).limit(limitNumber).lean().populate("created_by", "id name");
+            const results = await InsuranceType.find(searchQuery).sort({ _id: -1 }).skip(skip).limit(limitNumber).lean();
 
-            const totalCount = await Location.countDocuments(filter);
+            const totalCount = await InsuranceType.countDocuments(searchQuery);
             const totalPages = Math.ceil(totalCount / limitNumber);
 
             if (results.length > 0) {
-                return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["faq-fetched"]), {
+                return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["insurance-type-fetched"]), {
                     data: results,
                     totalCount,
                     totalPages,
@@ -59,17 +49,16 @@ export default class LocationController {
 
     public async getById(req: Request, res: Response): Promise<any> {
         try {
-            const fn = "[location][getById]";
+            const fn = "[getById]";
             // Set locale
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
 
             const id = parseInt(req.params.id);
-            const result: any = await Location.findOne({ id: id }).lean().populate("created_by", "id name");
-            // console.log(result);
+            const result: any = await InsuranceType.findOne({ id: id }).lean();
 
             if (result) {
-                return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["enquiry-fetched"]), result);
+                return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["insurance-type-fetched"]), result);
             } else {
                 throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
             }
@@ -78,55 +67,47 @@ export default class LocationController {
         }
     }
 
+    //add
     public async add(req: Request, res: Response): Promise<any> {
-        const fn = "[location][add]";
         try {
+            const fn = "[add]";
+            // Set locale
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
 
-            const { location, latitude, longitude, region, status = true } = req.body;
-
-            const result: any = await Location.create({
-                location,
-                latitude,
-                longitude,
-                region,
-                status: status,
-                created_by: req.user?.object_id,
+            const { name } = req.body;
+            await InsuranceType.create({
+                name: name,
+                created_by: req.user.object_id,
             });
-            return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "award-add"), {});
+
+            return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "insurance-type-add"), {});
         } catch (err: any) {
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
         }
     }
 
+    //Update
     public async update(req: Request, res: Response): Promise<any> {
         try {
-            const fn = "[location][update]";
+            const fn = "[update]";
+
             const id = parseInt(req.params.id);
+
+            // Set locale
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
-
-            const { location, latitude, longitude, region, status } = req.body;
-
-            const menu = await Location.findOne({ id: id });
-            if (!menu) {
-                return serverResponse(res, HttpCodeEnum.NOTFOUND, constructResponseMsg(this.locale, "award-not-found"), {});
-            }
-
-            await Location.findOneAndUpdate(
+            const { name, status } = req.body;
+            let result: any = await InsuranceType.findOneAndUpdate(
                 { id: id },
                 {
-                    location,
-                    latitude,
-                    longitude,
-                    region,
+                    name: name,
                     status: status,
-                    updated_by: req.user?.object_id,
+                    updated_by: req.user.object_id,
                 }
             );
 
-            return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "award-update"), {});
+            return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "insurance-type-update"), {});
         } catch (err: any) {
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
         }
@@ -135,16 +116,16 @@ export default class LocationController {
     // Delete
     public async delete(req: Request, res: Response): Promise<any> {
         try {
-            const fn = "[location][delete]";
+            const fn = "[delete]";
             // Set locale
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
 
             const id = parseInt(req.params.id);
-            const result = await Location.deleteOne({ id: id });
+            const result = await InsuranceType.deleteOne({ id: id });
 
             if (result) {
-                return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["enquiry-delete"]), {});
+                return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["insurance-type-delete"]), {});
             } else {
                 throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
             }
@@ -156,17 +137,16 @@ export default class LocationController {
     // Status
     public async status(req: Request, res: Response): Promise<any> {
         try {
-            const fn = "[location][status]";
+            const fn = "[status]";
             // Set locale
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
 
             const id = parseInt(req.params.id);
             const { status } = req.body;
-            const updationstatus = await Location.findOneAndUpdate({ id: id }, { status: status }).lean();
-
+            const updationstatus = await InsuranceType.findOneAndUpdate({ id: id }, { status: status }).lean();
             if (updationstatus) {
-                return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["enquiry-status"]), {});
+                return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["insurance-type-status"]), {});
             } else {
                 throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
             }
