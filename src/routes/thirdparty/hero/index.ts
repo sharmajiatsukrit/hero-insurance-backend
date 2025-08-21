@@ -9,6 +9,7 @@ const heroController = new HeroController();
 
 routes.post("/lead-generation", validateRequest, heroController.leadGeneration.bind(heroController));
 routes.post("/token-validation", validateRequest, heroController.tokenValidation.bind(heroController));
+routes.post("/token-validation-otp-verify", validateRequest, heroController.verifyTokenValidationOTP.bind(heroController));
 routes.post("/health-quote", validateRequest, heroController.healthQuote.bind(heroController));
 routes.post("/misp-login", validateRequest, heroController.mispLogin.bind(heroController));
 routes.post("/misp-auth", validateRequest, heroController.mispAuth.bind(heroController));

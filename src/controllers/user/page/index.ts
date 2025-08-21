@@ -47,7 +47,7 @@ export default class PageController {
             }
             if (results) {
                 // result.offer_image = `${process.env.RESOURCE_URL}${result.offer_image}`;
-                return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["enquiry-fetched"]), formattedResults);
+                return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["enquiry-fetched"]), formattedResults[0]);
             } else {
                 throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
             }

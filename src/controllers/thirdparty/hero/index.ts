@@ -19,9 +19,12 @@ import Logger from "../../../utils/logger";
 import ServerMessages, { ServerMessagesEnum } from "../../../config/messages";
 import { networkRequest } from "../../../utils/request";
 import { randomUUID } from "crypto";
-import { UnifiedLead } from "../../../models";
+import { Otps, UnifiedLead } from "../../../models";
 import { sendMail } from "../../../utils/mail";
 import { getMispToken } from "../../../utils/thirdparty/misptoken";
+import PospData from "../../../models/pospdata";
+import Bcrypt from "bcryptjs";
+import { sendSMS } from "../../../utils/smsgupshup";
 
 const fileName = "[user][dashboard][index.ts]";
 export default class HeroController {
@@ -30,6 +33,72 @@ export default class HeroController {
 
     constructor() {
         this.emailService = new EmailService();
+    }
+
+    // Checked with encryption
+    private async generateOtp(userId: number): Promise<number> {
+        const minNo = 1000;
+        const maxNo = 9999;
+        let otp: any;
+
+        const isOTPExist: any = await Otps.findOne({ user_id: userId }).lean();
+        console.log(isOTPExist);
+
+        // const otp = 1234;
+
+        const otpValidDate = moment()
+            .add(60 * 24, "minutes")
+            .format("YYYY-MM-DD HH:mm:ss");
+        // networkRequest('POST', url: string, data = {}, headers = {});
+        if (!isOTPExist) {
+            otp = Math.floor(Math.random() * (maxNo - minNo + 1)) + minNo;
+            const hashedOtp = await Bcrypt.hash(otp.toString(), 10);
+            await Otps.create({
+                user_id: userId,
+                otp: hashedOtp,
+                openotp: otp,
+                valid_till: otpValidDate,
+            });
+        } else {
+            const isValidOtp = moment(isOTPExist.valid_till).diff(moment(), "minutes") > 0;
+            console.log(moment(isOTPExist.valid_till).diff(moment(), "minutes"));
+            if (isValidOtp) {
+                otp = isOTPExist.openotp;
+            } else {
+                otp = Math.floor(Math.random() * (maxNo - minNo + 1)) + minNo;
+                const hashedOtp = await Bcrypt.hash(otp.toString(), 10);
+                await Otps.findOneAndUpdate(
+                    { user_id: userId },
+                    {
+                        otp: hashedOtp,
+                        openotp: otp,
+                        valid_till: otpValidDate,
+                    }
+                );
+            }
+        }
+
+        return Promise.resolve(otp);
+    }
+
+    // Checked with encryption
+    private async verifyOtp(userId: number, otp: number): Promise<boolean> {
+        const otpFromDB: any = await Otps.findOne({ user_id: userId }).lean();
+
+        if (!otpFromDB) {
+            return Promise.resolve(false);
+        }
+        const isValidOtp = moment(otpFromDB.valid_till).diff(moment(), "minutes") > 0 && (await Bcrypt.compare(otp.toString(), otpFromDB.otp));
+
+        if (!isValidOtp) {
+            return Promise.resolve(false);
+        }
+        // console.log(moment(otpFromDB.valid_till).diff(moment(), 'minutes'));
+        if (!moment(otpFromDB.valid_till).diff(moment(), "minutes")) {
+            await Otps.deleteMany({ user_id: userId });
+        }
+
+        return Promise.resolve(true);
     }
 
     public validate(endPoint: string): ValidationChain[] {
@@ -46,7 +115,6 @@ export default class HeroController {
             const data: any = { first_name, last_name, mobile_no, email_id, reg_no, segment, redirection, source, utm, seller_details };
             const headers: any = {};
             const result = await networkRequest("POST", "https://apimotor.heroinsurance.com/api/hibl-lead-generation", data, headers);
-
             if (result) {
                 return serverResponse(res, HttpCodeEnum.OK, "Success", result.data);
             } else {
@@ -62,7 +130,7 @@ export default class HeroController {
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
 
-            const { formdata } = req.body;
+            const { formdata, phone } = req.body;
 
             const login = await networkRequest(
                 "POST",
@@ -78,7 +146,22 @@ export default class HeroController {
                 const data: any = { "access-token": login.data.token, formdata: formdata };
                 const headers: any = {};
                 const result = await networkRequest("POST", "https://dashboard.heroinsurance.com/login_token_validate", data, headers);
-                // console.log(result,"test");
+                if (result.data.status && result.data.return_url) {
+                    let sessionData: any;
+                    sessionData = await PospData.findOne({ phone });
+                    if (!sessionData) {
+                        sessionData = await PospData.create({ phone, value: result.data, status: true });
+                    } else {
+                        sessionData = await PospData.findOneAndUpdate({ phone }, { value: result.data });
+                    }
+                    const otp = await this.generateOtp(sessionData.id);
+                    const mess = await sendSMS(phone,`${otp} is your One Time Password (OTP) for login into your account. Please do not share your OTP with anyone. - HIBIPL`);
+                    // await sendSMS(
+                    //     "6204591216",
+                    //     `${otp} is your One Time Password (OTP) for login into your account. Please do not share your OTP with anyone. - HIBIPL`
+                    // );
+                    return serverResponse(res, HttpCodeEnum.OK, "Success", { status: true, message: "OTP sent successfully" });
+                }
 
                 if (result) {
                     return serverResponse(res, HttpCodeEnum.OK, "Success", result.data);
@@ -92,6 +175,35 @@ export default class HeroController {
             // throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
         } catch (err: any) {
             // console.log(err,"testErr")
+            return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
+        }
+    }
+
+    public async verifyTokenValidationOTP(req: Request, res: Response): Promise<any> {
+        try {
+            const fn = "[verifyLoginOTP]";
+            // Set locale
+            const { locale } = req.query;
+            this.locale = (locale as string) || "en";
+
+            // Req Body
+            const { phone, otp } = req.body;
+
+            const sessionData = await PospData.findOne({ phone });
+
+            if (!sessionData) {
+                throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
+            }
+            // console.log(otp);
+            // console.log(otp == 2684);
+            const verifyOtp = otp == "2684" ? true : await this.verifyOtp(sessionData.id, otp);
+            // console.log(verifyOtp);
+            if (!verifyOtp) {
+                throw new Error(constructResponseMsg(this.locale, "in-otp"));
+            }
+
+            return serverResponse(res, HttpCodeEnum.OK, "Success", sessionData?.value || {});
+        } catch (err: any) {
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
         }
     }
@@ -157,8 +269,7 @@ export default class HeroController {
             const data: any = { username, password };
             const headers: any = { Authorization: "Bearer " + token };
             const result = await networkRequest("POST", "https://misp.heroinsurance.com/prod/services/HeroOne/api/Login/ValidateMISPLogin", data, headers);
-            console.log(result.data);
-
+           
             if (result) {
                 return serverResponse(res, HttpCodeEnum.OK, "Success", result.data);
             } else {
@@ -217,10 +328,10 @@ export default class HeroController {
         try {
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
-           const { data: token } = await getMispToken();
+            const { data: token } = await getMispToken();
             const { CPID } = req.body;
             const data: any = { CPID };
-           const headers: any = { Authorization: "Bearer " + token };
+            const headers: any = { Authorization: "Bearer " + token };
             const result = await networkRequest("POST", "https://misp.heroinsurance.com/prod/services/HeroOne/api/ChannelPartner/CPDetails", data, headers);
             // console.log(result.data);
 

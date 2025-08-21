@@ -4,7 +4,7 @@ import PageController from "../../../../controllers/user/page";
 
 const routes: Router= expres.Router();
 const pageController = new PageController();
-routes.get("/list/:key", validateRequest, pageController.getPageSection.bind(pageController));
+routes.get("/:key", validateRequest, pageController.getPageSection.bind(pageController));
 
 
 export default routes;
