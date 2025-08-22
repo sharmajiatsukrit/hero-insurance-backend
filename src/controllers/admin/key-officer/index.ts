@@ -93,7 +93,7 @@ export default class KeyOfficerController {
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
 
-            const { name, designation, menu_order, status } = req.body;
+            const { name, designation, menu_order, description, status } = req.body;
             Logger.info(`${fileName + fn} req.body: ${JSON.stringify(req.body)}`);
 
             let kof_image: any;
@@ -104,6 +104,7 @@ export default class KeyOfficerController {
             const result: any = await KeyOfficer.create({
                 name: name,
                 designation: designation,
+                description:description,
                 menu_order: menu_order,
                 kof_image: kof_image,
                 status: status,
@@ -125,10 +126,11 @@ export default class KeyOfficerController {
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
 
-            const { name, designation, menu_order, status } = req.body;
+            const { name, designation, menu_order, description, status } = req.body;
             Logger.info(`${fileName + fn} req.body: ${JSON.stringify(req.body)}`);
 
             let kof_image: any;
+            
             if (req.file) {
                 kof_image = req.file.filename;
             }
@@ -144,6 +146,7 @@ export default class KeyOfficerController {
                     name: name,
                     designation: designation,
                     menu_order: menu_order,
+                    description:description,
                     kof_image: kof_image || keyOfficer.kof_image,
                     status: status,
                     updated_by: req.user?.object_id,

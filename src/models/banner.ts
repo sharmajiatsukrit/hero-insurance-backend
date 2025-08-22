@@ -1,6 +1,4 @@
 import { Document, Schema, model } from 'mongoose';
-import { BillingGatewayEnum } from "../enums";
-import { BillingAdressType } from "../interfaces";
 import { autoIncrement } from 'mongoose-plugin-autoinc';
 
 interface IBanner extends Document {

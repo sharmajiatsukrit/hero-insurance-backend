@@ -29,6 +29,7 @@ import TestimonialCategoryRoute from "./testimonial-category"
 import InsuranceTypeRoute from "./insurance-type"
 import ClaimRequestRoute from "./claim-request"
 import OurJourneyRoute from "./our-journey"
+import InsuranceSolutionyRoute from "./insurance-solution"
 
 
 
@@ -63,6 +64,8 @@ routes.use("/location", LocationRoute);
 routes.use("/insurance-type", InsuranceTypeRoute);
 routes.use("/claim-request", ClaimRequestRoute);
 routes.use("/our-journey", OurJourneyRoute);
+routes.use("/insurance-solution", InsuranceSolutionyRoute);
+
 
 
 

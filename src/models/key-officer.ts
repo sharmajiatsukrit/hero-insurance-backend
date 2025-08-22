@@ -6,6 +6,7 @@ interface IKeyOfficer extends Document {
     designation:string;
     menu_order: number;
     kof_image: string;
+    description: string;
     status: boolean;
     is_deleted:boolean;
     deleted_at:string;
@@ -18,6 +19,7 @@ const KeyOfficerSchema: Schema = new Schema({
     designation: { type: String, default: '' },
     menu_order: { type: Number, default: '' },
     kof_image: { type: String, default: '' },
+    description: { type: String, default: '' },
     status: { type: Boolean, default: true },
     is_deleted: { type: Boolean, default: false },
     deleted_at: { type: String, default: '' },

@@ -7,13 +7,16 @@ import NotificationRoutes from "../user/notification";
 import HelperRoutes from "../user/helper";
 import BlogRoute from "./blog/index";
 import RecentBlogRoute from "./home/recent-blogs/index";
-import OfferRoute from "./heroOne/offer";
-import TestimonialRoute from "./heroOne/testimonial";
-import AwardRoute from "./heroOne/award";
-import BODRoute from "./heroOne/board-of-director";
-import EnquiryRoute from "./heroOne/enquiry";
-import KeyOfficerRoute from "./heroOne/key-officer";
-import PageSectionRoute from "./heroOne/page";
+import OfferRoute from "./offer";
+import TestimonialRoute from "./testimonial";
+import AwardRoute from "./award";
+import BODRoute from "./board-of-director";
+import EnquiryRoute from "./enquiry";
+import ClaimRequestRoute from "./claim-request";
+import KeyOfficerRoute from "./key-officer";
+import PageSectionRoute from "./page";
+import InsuranceSolutionyRoute from "./insurance-solution"
+
 
 
 
@@ -33,7 +36,10 @@ routes.use("/awards", AwardRoute);
 routes.use("/key-officer", KeyOfficerRoute);
 routes.use("/bod", BODRoute);
 routes.use("/enquiry", EnquiryRoute);
+routes.use("/claim-request", ClaimRequestRoute);
 routes.use("/page", PageSectionRoute);
+routes.use("/insurance-solution", InsuranceSolutionyRoute);
+
 
 
 export default routes;

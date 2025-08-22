@@ -21,42 +21,28 @@ export default class KeyOfficerController {
         try {
             const fn = "[kof][getList]";
             // Set locale
-            const { locale, page, limit, search } = req.query;
+            const { locale } = req.query;
             this.locale = (locale as string) || "en";
 
-            const pageNumber = parseInt(page as string) || 1;
-            const limitNumber = parseInt(limit as string) || 10;
-            const skip = (pageNumber - 1) * limitNumber;
-           
             const filter: any = {};
             filter.is_deleted = false;
             filter.status = true;
-            if (search) {
-                filter.$or = [{ name: { $regex: search, $options: "i" } }];
-            }
             const results = await KeyOfficer.find(filter)
-                .sort({ _id: -1 })
-                .skip(skip)
-                .limit(limitNumber)
+                .sort({ menu_order: 1 })
                 .lean();
 
-            const totalCount = await KeyOfficer.countDocuments(filter);
-            const totalPages = Math.ceil(totalCount / limitNumber);
             let formattedResults: any[] = [];
 
             if (results.length > 0) {
                 formattedResults = results.map((item, index) => ({
                     ...item,
-                    kof_image: `${process.env.RESOURCE_URL}${item.kof_image}`,
+                    kof_image: item.kof_image?`${process.env.RESOURCE_URL}${item.kof_image}`:"",
                 }));
             }
 
             if (results.length > 0) {
                 return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["faq-fetched"]), {
-                    data: formattedResults,
-                    totalCount,
-                    totalPages,
-                    currentPage: pageNumber,
+                    data: formattedResults
                 });
             } else {
                 throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));

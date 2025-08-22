@@ -15,6 +15,7 @@ export default class PageController {
     public validate(endPoint: string): ValidationChain[] {
         return validate(endPoint);
     }
+    
     public async getPageSectionData(req: Request, res: Response): Promise<any> {
         try {
             const fn = "[pagesection][get]";

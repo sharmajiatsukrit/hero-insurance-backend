@@ -7,6 +7,7 @@ const helperController = new HelperController();
 
 routes.get("/get-my-profile", validateRequest, authRequest, helperController.getMyProfile.bind(helperController));
 routes.get("/get-menu-list", validateRequest, authRequest, helperController.getMenuList.bind(helperController));
+routes.get("/get-insurance-type-list", validateRequest, helperController.getInsuranceTypeList.bind(helperController));
 
 
 

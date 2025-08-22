@@ -33,7 +33,8 @@ export default class ClaimRequestController {
                 .sort({ _id: -1 })
                 .skip(skip)
                 .limit(limitNumber)
-                .lean();
+                .lean()
+                .populate({ path: "insurance_type", select: "name id" });
 
             const totalCount = await ClaimRequest.countDocuments(filter);
             const totalPages = Math.ceil(totalCount / limitNumber);
