@@ -155,7 +155,7 @@ export default class HeroController {
                         sessionData = await PospData.findOneAndUpdate({ phone }, { value: result.data });
                     }
                     const otp = await this.generateOtp(sessionData.id);
-                    const mess = await sendSMS(phone,`${otp} is your One Time Password (OTP) for login into your account. Please do not share your OTP with anyone. - HIBIPL`);
+                    const mess = await sendSMS(phone, `${otp} is your One Time Password (OTP) for login into your account. Please do not share your OTP with anyone. - HIBIPL`);
                     // await sendSMS(
                     //     "6204591216",
                     //     `${otp} is your One Time Password (OTP) for login into your account. Please do not share your OTP with anyone. - HIBIPL`
@@ -269,7 +269,7 @@ export default class HeroController {
             const data: any = { username, password };
             const headers: any = { Authorization: "Bearer " + token };
             const result = await networkRequest("POST", "https://misp.heroinsurance.com/prod/services/HeroOne/api/Login/ValidateMISPLogin", data, headers);
-           
+
             if (result) {
                 return serverResponse(res, HttpCodeEnum.OK, "Success", result.data);
             } else {
@@ -397,21 +397,142 @@ export default class HeroController {
         }
     }
 
+    public formatPolicyListData(type: string, data: any): any {
+        try {
+            if (type === "misp") {
+                let parsedData = [];
+                if (typeof data.data === "string") {
+                    parsedData = JSON.parse(data.data);
+                } else {
+                    parsedData = data.data;
+                }
+                const formattedData = parsedData.map((item: any) => {
+                    return {
+                        ...item,
+                        common_data:{
+                        first_name: item?.first_name||"",
+                        last_name: item?.last_name||"",
+                        policy_no: item?.policy_no||"",
+                        start_date: item?.ODStartDate||"",
+                        end_date: item?.ODENDdate||"",
+                        renew_date: item?.ODENDdate||"",
+                        product_name: item?.product_code||"",
+                        product_type: item?.product_type||"", 
+                        renew_link: item?.renewal_redirection_url||"",
+                        }
+                    };
+                });
+                return {
+                    ...data,
+                    data: formattedData,
+                };
+                
+            } else {
+                 let parsedData = [];
+                if (typeof data.data === "string") {
+                    parsedData = JSON.parse(data.data);
+                } else {
+                    parsedData = data.data;
+                }
+                const formattedData = parsedData.map((item: any) => {
+                    return {
+                        ...item,
+                        common_data:{
+                        first_name: item?.first_name||"",
+                        last_name: item?.last_name||"",
+                        policy_no: item?.policy_no||"",
+                        start_date: item?.policy_start_date||"",
+                        end_date: item?.policy_end_date||"",
+                        renew_date: item?.policy_end_date||"",
+                        product_name: item?.company_name||"",
+                        product_type: item?.product_type||"",
+                        renew_link: item?.renewal_redirection_url||"",
+                        }
+                    };
+                });
+                return {
+                    ...data,
+                    data: formattedData,
+                };
+
+            }
+        } catch (err: any) {}
+    }
+
+    public async getPolicyList(req: Request, res: Response): Promise<any> {
+        try {
+            const { locale, page = 1 } = req.query;
+            this.locale = (locale as string) || "en";
+
+            const [mispPolicyDataRes, pospPolicyDataRes] = await Promise.all([this.getDetailsData(req), this.proposalReportData(req)]);
+            const combinedData = {
+                mispPolicyData: this.formatPolicyListData("misp",mispPolicyDataRes),
+                pospPolicyData: this.formatPolicyListData("posp",pospPolicyDataRes),
+            };
+
+            return serverResponse(res, HttpCodeEnum.OK, "Success", combinedData);
+        } catch (err: any) {
+            console.log(err,"ppo");
+            return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
+        }
+    }
+
+    private async getDetailsData(req: Request): Promise<any> {
+        const { locale } = req.query;
+        this.locale = (locale as string) || "en";
+        const { mobile, registration_no = "" } = req.body;
+        const { data: token } = await getMispToken();
+        const headers: any = { Authorization: "Bearer " + token };
+        const data: any = { MobileNo: mobile, Registration_No: registration_no };
+        const result = await networkRequest("POST", "https://misp.heroinsurance.com/uat/services/HeroOne/api/Policy/PolicyDetails", data, headers);
+        return result?.data || null;
+    }
+
+    private async proposalReportData(req: Request): Promise<any> {
+        const { locale, page } = req.query;
+        this.locale = (locale as string) || "en";
+        console.log(page);
+        const validation: any = req.headers.validation;
+        const { mobile, email = "" } = req.body;
+        const headers: any = { validation: validation };
+        const data: any = { mobile , email, pagination:[page] };
+        const result = await networkRequest("POST", `https://uatmotorapi.heroinsurance.com/api/proposalReports`, data, headers);
+        return result?.data || null;
+    }
+
     public async getDetails(req: Request, res: Response): Promise<any> {
         try {
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
-            const authorization: any = req.headers.authorization;
             const { MobileNo, Registration_No } = req.body;
-            const token = authorization.split(" ")[1];
-            // console.log(token);
-            const data: any = { MobileNo, Registration_No };
+            const { data: token } = await getMispToken();
             const headers: any = { Authorization: "Bearer " + token };
+            const data: any = { MobileNo, Registration_No };
             const result = await networkRequest("POST", "https://misp.heroinsurance.com/uat/services/HeroOne/api/Policy/PolicyDetails", data, headers);
+            if (result) {
+                return serverResponse(res, HttpCodeEnum.OK, "Success", result.data);
+            } else {
+                throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
+            }
+        } catch (err: any) {
+            return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
+        }
+    }
+
+    public async proposalReport(req: Request, res: Response): Promise<any> {
+        try {
+            const { locale, page } = req.query;
+            this.locale = (locale as string) || "en";
+            const validation: any = req.headers.validation;
+
+            // console.log(token);
+            const data: any = req.body;
+            const headers: any = { validation: validation };
+            const result = await networkRequest("POST",`https://uatmotorapi.heroinsurance.com/api/proposalReports?page=${5}&per_page=1`, data, headers);
             console.log(result.data);
 
             if (result) {
-                return serverResponse(res, HttpCodeEnum.OK, "Success", result.data);
+                return serverResponse2(res, HttpCodeEnum.OK, "Success", result.data);
             } else {
                 throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
             }
@@ -433,28 +554,6 @@ export default class HeroController {
 
             if (result) {
                 return serverResponse(res, HttpCodeEnum.OK, "Success", result.data);
-            } else {
-                throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
-            }
-        } catch (err: any) {
-            return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
-        }
-    }
-
-    public async proposalReport(req: Request, res: Response): Promise<any> {
-        try {
-            const { locale, page } = req.query;
-            this.locale = (locale as string) || "en";
-            const validation: any = req.headers.validation;
-
-            // console.log(token);
-            const data: any = req.body;
-            const headers: any = { validation: validation };
-            const result = await networkRequest("POST", "https://uatmotorapi.heroinsurance.com/api/proposalReports?page=" + page, data, headers);
-            console.log(result.data);
-
-            if (result) {
-                return serverResponse2(res, HttpCodeEnum.OK, "Success", result.data);
             } else {
                 throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
             }

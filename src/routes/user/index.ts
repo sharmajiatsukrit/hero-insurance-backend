@@ -16,6 +16,7 @@ import ClaimRequestRoute from "./claim-request";
 import KeyOfficerRoute from "./key-officer";
 import PageSectionRoute from "./page";
 import InsuranceSolutionyRoute from "./insurance-solution"
+import MenuRoute from "./menu";
 
 
 
@@ -39,6 +40,7 @@ routes.use("/enquiry", EnquiryRoute);
 routes.use("/claim-request", ClaimRequestRoute);
 routes.use("/page", PageSectionRoute);
 routes.use("/insurance-solution", InsuranceSolutionyRoute);
+routes.use("/menu", MenuRoute);
 
 
 

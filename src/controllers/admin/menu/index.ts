@@ -4,12 +4,11 @@ import { serverResponse, serverErrorHandler, constructResponseMsg } from "../../
 import { HttpCodeEnum } from "../../../enums/server";
 
 import validate from "./validate";
-import Logger from "../../../utils/logger";
 import ServerMessages, { ServerMessagesEnum } from "../../../config/messages";
-import Menu from "../../../models/menu";
+import MenuItem from "../../../models/menu";
 
 const fileName = "[admin][menu][index.ts]";
-export default class MenuController {
+export default class MenuItemController {
     public locale: string = "en";
 
     public validate(endPoint: string): ValidationChain[] {
@@ -18,32 +17,18 @@ export default class MenuController {
 
     public async getList(req: Request, res: Response): Promise<any> {
         try {
-            const fn = "[menu][getList]";
-            // Set locale
-            const { locale, page, limit, search } = req.query;
+            const { locale, search } = req.query;
             this.locale = (locale as string) || "en";
 
-            const pageNumber = parseInt(page as string) || 1;
-            const limitNumber = parseInt(limit as string) || 10;
-            const skip = (pageNumber - 1) * limitNumber;
-
             const filter: any = {};
-            filter.is_deleted = false;
+            filter.status = true; // Usually, 'true' means active; change if needed
             if (search) {
                 filter.$or = [{ name: { $regex: search, $options: "i" } }];
             }
-            const results = await Menu.find(filter).skip(skip).limit(limitNumber).lean().populate("created_by", "id name");
+            const results: any = await MenuItem.find(filter).lean().populate("created_by", "id name");
 
-            const totalCount = await Menu.countDocuments(filter);
-            const totalPages = Math.ceil(totalCount / limitNumber);
-            
             if (results.length > 0) {
-                return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["faq-fetched"]), {
-                    data: results,
-                    totalCount,
-                    totalPages,
-                    currentPage: pageNumber,
-                });
+                return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["faq-fetched"]), { data: results });
             } else {
                 throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
             }
@@ -60,7 +45,7 @@ export default class MenuController {
             this.locale = (locale as string) || "en";
 
             const id = parseInt(req.params.id);
-            const result: any = await Menu.findOne({ id: id }).lean().populate("created_by", "id name");
+            const result: any = await MenuItem.findOne({ id: id }).lean().populate("created_by", "id name");
             // console.log(result);
 
             if (result) {
@@ -73,19 +58,26 @@ export default class MenuController {
         }
     }
 
-
     public async add(req: Request, res: Response): Promise<any> {
         try {
             const fn = "[menu][add]";
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
 
-            const { name, link, menu_order, status } = req.body;
-
-            const result: any = await Menu.create({
-                name,
-                link,
+            const { title, url, parent_id, menu_order, is_main_menu_item, status } = req.body;
+            let existingParent_Id: any;
+            if (parent_id) {
+                existingParent_Id = await MenuItem.findOne({ id: +parent_id });
+                if (!existingParent_Id) {
+                    throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
+                }
+            }
+            const result: any = await MenuItem.create({
+                title,
+                url,
                 menu_order,
+                parent_id: parent_id || null,
+                is_main_menu_item,
                 status: status,
                 created_by: req.user?.object_id,
             });
@@ -103,19 +95,28 @@ export default class MenuController {
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
 
-            const { name, link, menu_order, status } = req.body;
+            const { title, url, parent_id, menu_order, is_main_menu_item, status } = req.body;
 
-            const menu = await Menu.findOne({ id: id });
+            const menu = await MenuItem.findOne({ id: id });
             if (!menu) {
                 return serverResponse(res, HttpCodeEnum.NOTFOUND, constructResponseMsg(this.locale, "award-not-found"), {});
             }
+            let existingParent_Id: any;
+            if (parent_id) {
+                existingParent_Id = await MenuItem.findOne({ id: +parent_id });
+                if (!existingParent_Id) {
+                    throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
+                }
+            }
 
-            await Menu.findOneAndUpdate(
+            await MenuItem.findOneAndUpdate(
                 { id: id },
                 {
-                    name,
-                    link,
+                    title,
+                    url,
                     menu_order,
+                    parent_id: parent_id || null,
+                    is_main_menu_item,
                     status: status,
                     updated_by: req.user?.object_id,
                 }
@@ -136,7 +137,7 @@ export default class MenuController {
             this.locale = (locale as string) || "en";
 
             const id = parseInt(req.params.id);
-            const result = await Menu.deleteOne({ id: id });
+            const result = await MenuItem.deleteOne({ id: id });
 
             if (result) {
                 return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["enquiry-delete"]), {});
@@ -158,8 +159,8 @@ export default class MenuController {
 
             const id = parseInt(req.params.id);
             const { status } = req.body;
-            const updationstatus = await Menu.findOneAndUpdate({ id: id }, { status: status }).lean();
-            const updatedData: any = await Menu.find({ id: id }).lean();
+            const updationstatus = await MenuItem.findOneAndUpdate({ id: id }, { status: status }).lean();
+            const updatedData: any = await MenuItem.find({ id: id }).lean();
             if (updationstatus) {
                 return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["enquiry-status"]), {});
             } else {

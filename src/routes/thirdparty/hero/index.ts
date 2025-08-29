@@ -19,6 +19,7 @@ routes.post("/register-claim", validateRequest, heroController.registerCliam.bin
 routes.post("/cleaver-tap-event", validateRequest, heroController.cleaverTapEvent.bind(heroController));
 
 routes.post("/get-details", validateRequest, heroController.getDetails.bind(heroController));
+routes.post("/get-policy-list", validateRequest, heroController.getPolicyList.bind(heroController));
 
 
 routes.post("/get-proposal-token", validateRequest, heroController.generateProposalToken.bind(heroController));

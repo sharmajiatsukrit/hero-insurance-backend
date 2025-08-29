@@ -62,7 +62,7 @@ export default class ClaimRequestController {
             this.locale = (locale as string) || "en";
 
             const id = parseInt(req.params.id);
-            const result: any = await ClaimRequest.findOne({ id: id }).lean();
+            const result: any = await ClaimRequest.findOne({ id: id }).lean().populate({ path: "insurance_type", select: "name id" });;
             // console.log(result);
 
             if (result) {
