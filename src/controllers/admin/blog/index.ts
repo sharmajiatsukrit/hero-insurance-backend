@@ -123,7 +123,7 @@ export default class BlogController {
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
 
-            const { name, description, slug, categoryId, status, locationId, meta_title, meta_description, key_words, meta_tag, alt_tag } = req.body;
+            const { name, description, introduction, slug, categoryId, status, locationId, meta_title, meta_description, key_words, meta_tag, alt_tag } = req.body;
             Logger.info(`${fileName + fn} req.body: ${JSON.stringify(req.body)}`);
             const existingBlog = await Blog.findOne({ name: name }).lean();
             if (existingBlog) {
@@ -186,7 +186,7 @@ export default class BlogController {
 
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
-            const { name, description, slug, categoryId, status, locationId, meta_title, meta_description, key_words, meta_tag, alt_tag } = req.body;
+            const { name, description, introduction, slug, categoryId, status, locationId, meta_title, meta_description, key_words, meta_tag, alt_tag } = req.body;
 
             const existingBlog = await Blog.findOne({ id }).lean();
             if (!existingBlog) {

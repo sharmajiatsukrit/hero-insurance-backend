@@ -190,7 +190,10 @@
     "insurance-type-add": "New Insurance Type Added successfully",
     "insurance-type-update":"Insurance Type Updated successfully",
     "insurance-type-delete": "Insurance Type Deleted successfully",
-    "insurance-type-status": "Insurance Type Status successfully Updated"
+    "insurance-type-status": "Insurance Type Status successfully Updated",
+
+    "user-detail-updated": "User Updated successfully",
+    "user-detail-fetched": "User fetched successfully"
 
    
 }

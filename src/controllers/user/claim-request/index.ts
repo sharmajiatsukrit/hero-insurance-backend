@@ -5,6 +5,8 @@ import { HttpCodeEnum } from "../../../enums/server";
 import validate from "./validate";
 import ClaimRequest from "../../../models/claim-request";
 import InsuranceType from "../../../models/insurance-type";
+import { sendMail } from "../../../utils/mail";
+import { claims_request_template, fillTemplate } from "../../../utils/templates";
 
 const fileName = "[admin][enquiry][index.ts]";
 export default class ClaimRequestController {
@@ -33,6 +35,19 @@ export default class ClaimRequestController {
                 description: description,
             });
 
+            const templateData = {
+                customer:name,
+                customer_mobile:mobile,
+                admin_team:"Hero Team",
+                policy_no:"Test",
+                insurance_type:insuranceType?.name,
+                date_incident:"",
+                description:description
+            }
+
+            const body : any = fillTemplate(claims_request_template,templateData)
+
+            const mail = await sendMail("rohit@sukritinfotech.com", "Claim Request", body, []);
             return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "enquiry-add"), {});
         } catch (err: any) {
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});

@@ -95,7 +95,7 @@ export default class AuthController {
             this.locale = (locale as string) || "en";
 
             // Req Body
-            const { phone, otp, remember = true } = req.body;
+            const { phone, otp, remember = false } = req.body;
 
             const userData = await Customer.findOne({ phone });
 
@@ -109,9 +109,8 @@ export default class AuthController {
             if (!verifyOtp) {
                 throw new Error(constructResponseMsg(this.locale, "in-otp"));
             }
-            await Customer.findOneAndUpdate({id:userData.id},{is_sms_verified:true});
-
-            const formattedUserData = await this.fetchUserDetails(userData.id);
+           
+            const formattedUserData : any = {}
             const session = await this.createSession(userData._id, userData.id, phone, req, userData.status, remember);
 
             if (session) {

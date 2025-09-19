@@ -81,13 +81,56 @@ export default class BlogController {
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
 
-            const id = parseInt(req.params.id);
+            const slug = req.params.slug;
+            // await Blog.findOneAndUpdate({ id: id }, { $inc: { visited_count: 1 } });
 
-            const result: any = await Blog.findOne({ id: id }).populate("created_by", "name email").populate("updated_by", "name email").populate("categoryId", "id name").populate("locationId", "id region location latitude longitude").lean();
+            // const result: any = await Blog.findOne({ id: id })
+            //     .populate("created_by", "name email")
+            //     .populate("updated_by", "name email")
+            //     .populate("categoryId", "id name")
+            //     .populate("locationId", "id region location latitude longitude")
+            //     .lean();
+            const result: any = await Blog.findOneAndUpdate(
+                { slug: slug },
+                { $inc: { visited_count: 1 } },
+                {
+                    new: true, 
+                    lean: true,
+                }
+            )
+                .populate("created_by", "name email")
+                .populate("updated_by", "name email")
+                .populate("categoryId", "id name")
+                .populate("locationId", "id region location latitude longitude");
             if (result) {
                 result.blogImage = `${process.env.RESOURCE_URL}${result.blog_image}`;
             }
             if (result) {
+                return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["blog-fetched"]), result);
+            } else {
+                throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
+            }
+        } catch (err: any) {
+            return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
+        }
+    }
+
+    public async getTrendingBlog(req: Request, res: Response): Promise<any> {
+        try {
+            const fn = "[getTrendingBlog]";
+            const { locale } = req.query;
+            this.locale = (locale as string) || "en";
+
+            const result: any = await Blog.findOne({})
+                .sort({ visited_count: -1 })
+                .populate("created_by", "name email")
+                .populate("updated_by", "name email")
+                .populate("categoryId", "id name")
+                .populate("locationId", "id region location latitude longitude")
+                .lean();
+
+            if (result) {
+                result.blogImage = `${process.env.RESOURCE_URL}${result.blog_image}`;
                 return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["blog-fetched"]), result);
             } else {
                 throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));

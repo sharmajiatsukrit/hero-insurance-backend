@@ -16,6 +16,7 @@ export default class MenuController {
     public buildTree(items: any, parent: number | null = null) {
         return items
             .filter((item:any) => item.parent_id === parent)
+            .sort((a: any, b: any) => a.menu_order - b.menu_order)
             .map((item:any) => ({
                 title: item.title,
                 url: item.url,
@@ -33,6 +34,7 @@ export default class MenuController {
             filter.status = true;
 
             const results: any = await MenuItem.find(filter).lean();
+            console.log(results)
             const formatedResult = this.buildTree(results, null);
 
             if (results.length > 0) {

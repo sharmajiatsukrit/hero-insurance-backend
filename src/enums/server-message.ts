@@ -173,4 +173,7 @@ export enum ServerMessagesEnum {
     "insurance-type-update" = "insurance-type-update",
     "insurance-type-delete" = "insurance-type-delete",
     "insurance-type-status" = "insurance-type-status",
+
+    "user-detail-updated" = "user-detail-updated",
+    "user-detail-fetched" = "user-detail-fetched",
 }

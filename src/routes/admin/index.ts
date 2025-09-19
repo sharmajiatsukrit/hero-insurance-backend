@@ -30,6 +30,13 @@ import InsuranceTypeRoute from "./insurance-type"
 import ClaimRequestRoute from "./claim-request"
 import OurJourneyRoute from "./our-journey"
 import InsuranceSolutionyRoute from "./insurance-solution"
+import UserDetailRoute from "./user-detail"
+import CorporateInsuranceRequestRoute from "./corporate-insurance"
+import AllInsuranceRequestRoute from "./all-insurance"
+import CallBackRequestRoute from "./call-back-request"
+import InsuranceLeadRoute from "./insurance-lead"
+
+
 
 
 
@@ -65,6 +72,13 @@ routes.use("/insurance-type", InsuranceTypeRoute);
 routes.use("/claim-request", ClaimRequestRoute);
 routes.use("/our-journey", OurJourneyRoute);
 routes.use("/insurance-solution", InsuranceSolutionyRoute);
+routes.use("/user-detail", UserDetailRoute);
+routes.use("/corporate-insurance-request", CorporateInsuranceRequestRoute);
+routes.use("/all-insurance-request", AllInsuranceRequestRoute);
+routes.use("/call-back-request", CallBackRequestRoute);
+routes.use("/insurance-lead", InsuranceLeadRoute);
+
+
 
 
 

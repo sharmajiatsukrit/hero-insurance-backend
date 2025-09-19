@@ -14,6 +14,7 @@ interface IBlog extends Document {
     meta_tag: string;
     alt_tag: string;
     status: number;
+    visited_count: number;
     created_by: number;
     updated_by: number;
 }
@@ -31,6 +32,7 @@ const blogSchema: Schema = new Schema(
         key_words: { type: [String], default: [] },
         meta_tag: { type: String, default: "" },
         alt_tag: { type: String, default: "" },
+        visited_count: { type: Number, default: 0 },
         status: { type: Number, default: 1 },
         created_by: { type: Schema.Types.ObjectId, ref: "users" },
         updated_by: { type: Schema.Types.ObjectId, ref: "users" },

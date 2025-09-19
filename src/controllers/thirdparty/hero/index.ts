@@ -25,6 +25,9 @@ import { getMispToken } from "../../../utils/thirdparty/misptoken";
 import PospData from "../../../models/pospdata";
 import Bcrypt from "bcryptjs";
 import { sendSMS } from "../../../utils/smsgupshup";
+import UserDetail from "../../../models/user-detail";
+import e from "cors";
+import PolicyDetail from "../../../models/policy-detail";
 
 const fileName = "[user][dashboard][index.ts]";
 export default class HeroController {
@@ -397,6 +400,30 @@ export default class HeroController {
         }
     }
 
+    public async addNewPolicy(req: Request, res: Response): Promise<any> {
+        try {
+            const fn = "[add]";
+            // Set locale
+            const { locale } = req.query;
+            this.locale = (locale as string) || "en";
+
+            const { mobile, policy_no, product_name, product_type, start_date, end_date } = req.body;
+
+            await PolicyDetail.create({
+                mobile_no: mobile,
+                policy_no,
+                product_name,
+                product_type,
+                start_date,
+                end_date,
+                renew_date: end_date,
+            });
+            return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "user-detail-updated"), {});
+        } catch (err: any) {
+            return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
+        }
+    }
+
     public formatPolicyListData(type: string, data: any): any {
         try {
             if (type === "misp") {
@@ -409,26 +436,25 @@ export default class HeroController {
                 const formattedData = parsedData.map((item: any) => {
                     return {
                         ...item,
-                        common_data:{
-                        first_name: item?.first_name||"",
-                        last_name: item?.last_name||"",
-                        policy_no: item?.policy_no||"",
-                        start_date: item?.ODStartDate||"",
-                        end_date: item?.ODENDdate||"",
-                        renew_date: item?.ODENDdate||"",
-                        product_name: item?.product_code||"",
-                        product_type: item?.product_type||"", 
-                        renew_link: item?.renewal_redirection_url||"",
-                        }
+                        common_data: {
+                            first_name: item?.first_name || "",
+                            last_name: item?.last_name || "",
+                            policy_no: item?.policy_no || "",
+                            start_date: item?.ODStartDate || "",
+                            end_date: item?.ODENDdate || "",
+                            renew_date: item?.ODENDdate || "",
+                            product_name: item?.product_code || "",
+                            product_type: item?.product_type || "",
+                            renew_link: item?.renewal_redirection_url || "",
+                        },
                     };
                 });
                 return {
                     ...data,
                     data: formattedData,
                 };
-                
             } else {
-                 let parsedData = [];
+                let parsedData = [];
                 if (typeof data.data === "string") {
                     parsedData = JSON.parse(data.data);
                 } else {
@@ -437,24 +463,23 @@ export default class HeroController {
                 const formattedData = parsedData.map((item: any) => {
                     return {
                         ...item,
-                        common_data:{
-                        first_name: item?.first_name||"",
-                        last_name: item?.last_name||"",
-                        policy_no: item?.policy_no||"",
-                        start_date: item?.policy_start_date||"",
-                        end_date: item?.policy_end_date||"",
-                        renew_date: item?.policy_end_date||"",
-                        product_name: item?.company_name||"",
-                        product_type: item?.product_type||"",
-                        renew_link: item?.renewal_redirection_url||"",
-                        }
+                        common_data: {
+                            first_name: item?.first_name || "",
+                            last_name: item?.last_name || "",
+                            policy_no: item?.policy_no || "",
+                            start_date: item?.policy_start_date || "",
+                            end_date: item?.policy_end_date || "",
+                            renew_date: item?.policy_end_date || "",
+                            product_name: item?.company_name || "",
+                            product_type: item?.product_type || "",
+                            renew_link: item?.renewal_redirection_url || "",
+                        },
                     };
                 });
                 return {
                     ...data,
                     data: formattedData,
                 };
-
             }
         } catch (err: any) {}
     }
@@ -464,15 +489,20 @@ export default class HeroController {
             const { locale, page = 1 } = req.query;
             this.locale = (locale as string) || "en";
 
-            const [mispPolicyDataRes, pospPolicyDataRes] = await Promise.all([this.getDetailsData(req), this.proposalReportData(req)]);
+            const [mispPolicyDataRes, pospPolicyDataRes, newPolicyListRes] = await Promise.all([
+                this.getDetailsData(req),
+                this.proposalReportData(req),
+                this.getNewPolicyList(req),
+            ]);
             const combinedData = {
-                mispPolicyData: this.formatPolicyListData("misp",mispPolicyDataRes),
-                pospPolicyData: this.formatPolicyListData("posp",pospPolicyDataRes),
+                mispPolicyData: this.formatPolicyListData("misp", mispPolicyDataRes),
+                pospPolicyData: this.formatPolicyListData("posp", pospPolicyDataRes),
+                newPolicyData: newPolicyListRes,
             };
 
             return serverResponse(res, HttpCodeEnum.OK, "Success", combinedData);
         } catch (err: any) {
-            console.log(err,"ppo");
+            console.log(err, "ppo");
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
         }
     }
@@ -488,6 +518,21 @@ export default class HeroController {
         return result?.data || null;
     }
 
+    private async getNewPolicyList(req: Request): Promise<any> {
+        try {
+            const fn = "[add]";
+            // Set locale
+            const { locale } = req.query;
+            this.locale = (locale as string) || "en";
+            const { mobile } = req.body;
+
+            const results = await PolicyDetail.find({ mobile_no: mobile }).lean();
+            return results || [];
+        } catch (err: any) {
+            return [];
+        }
+    }
+
     private async proposalReportData(req: Request): Promise<any> {
         const { locale, page } = req.query;
         this.locale = (locale as string) || "en";
@@ -495,9 +540,51 @@ export default class HeroController {
         const validation: any = req.headers.validation;
         const { mobile, email = "" } = req.body;
         const headers: any = { validation: validation };
-        const data: any = { mobile , email, pagination:[page] };
+        const data: any = { mobile, email, pagination: [page] };
         const result = await networkRequest("POST", `https://uatmotorapi.heroinsurance.com/api/proposalReports`, data, headers);
         return result?.data || null;
+    }
+
+    public async updateProfileDetail(req: Request, res: Response): Promise<any> {
+        try {
+            const fn = "[add]";
+            // Set locale
+            const { locale } = req.query;
+            this.locale = (locale as string) || "en";
+
+            const { name, gender, dob, email, mobile, annual_income, marital_status, city, check_mob } = req.body;
+            const existingData: any = await UserDetail.findOne({ check_mob: check_mob }).lean();
+            if (!existingData) {
+                await UserDetail.create({
+                    name,
+                    gender,
+                    dob,
+                    email,
+                    mobile,
+                    annual_income,
+                    marital_status,
+                    city,
+                });
+                return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "user-detail-updated"), {});
+            } else {
+                await UserDetail.findOneAndUpdate(
+                    { check_mob: check_mob },
+                    {
+                        name,
+                        gender,
+                        dob,
+                        email,
+                        mobile,
+                        annual_income,
+                        marital_status,
+                        city,
+                    }
+                );
+                return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "user-detail-updated"), {});
+            }
+        } catch (err: any) {
+            return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
+        }
     }
 
     public async getDetails(req: Request, res: Response): Promise<any> {
@@ -528,7 +615,7 @@ export default class HeroController {
             // console.log(token);
             const data: any = req.body;
             const headers: any = { validation: validation };
-            const result = await networkRequest("POST",`https://uatmotorapi.heroinsurance.com/api/proposalReports?page=${5}&per_page=1`, data, headers);
+            const result = await networkRequest("POST", `https://uatmotorapi.heroinsurance.com/api/proposalReports?page=${5}&per_page=1`, data, headers);
             console.log(result.data);
 
             if (result) {

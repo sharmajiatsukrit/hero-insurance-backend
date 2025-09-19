@@ -31,5 +31,7 @@ routes.post("/misp/login-policy", validateRequest, heroController.mispLoginPolic
 routes.get("/misp/download-policy", validateRequest, heroController.mispDownloadPolicy.bind(heroController));
 
 routes.post("/send-policy-mail", validateRequest, heroController.sendPolicyDetails.bind(heroController));
+routes.post("/save-user-profile", validateRequest, heroController.updateProfileDetail.bind(heroController));
+routes.post("/add-new-policy", validateRequest, heroController.addNewPolicy.bind(heroController));
 
 export default routes;
