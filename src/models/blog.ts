@@ -22,6 +22,8 @@ interface IBlog extends Document {
 const blogSchema: Schema = new Schema(
     {
         name: { type: String, default: "" },
+        introduction: { type: String, default: "" },
+        sub_description: { type: String, default: "" },
         description: { type: String, default: "" },
         blog_image: { type: String, default: "" },
         slug: { type: String, default: "", unique: true },

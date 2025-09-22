@@ -417,6 +417,7 @@ export default class HeroController {
                 start_date,
                 end_date,
                 renew_date: end_date,
+                created_by: req.customer.object_id
             });
             return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "user-detail-updated"), {});
         } catch (err: any) {
@@ -524,9 +525,8 @@ export default class HeroController {
             // Set locale
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
-            const { mobile } = req.body;
 
-            const results = await PolicyDetail.find({ mobile_no: mobile }).lean();
+            const results = await PolicyDetail.find({ created_by: req.customer.object_id }).lean();
             return results || [];
         } catch (err: any) {
             return [];
@@ -543,48 +543,6 @@ export default class HeroController {
         const data: any = { mobile, email, pagination: [page] };
         const result = await networkRequest("POST", `https://uatmotorapi.heroinsurance.com/api/proposalReports`, data, headers);
         return result?.data || null;
-    }
-
-    public async updateProfileDetail(req: Request, res: Response): Promise<any> {
-        try {
-            const fn = "[add]";
-            // Set locale
-            const { locale } = req.query;
-            this.locale = (locale as string) || "en";
-
-            const { name, gender, dob, email, mobile, annual_income, marital_status, city, check_mob } = req.body;
-            const existingData: any = await UserDetail.findOne({ check_mob: check_mob }).lean();
-            if (!existingData) {
-                await UserDetail.create({
-                    name,
-                    gender,
-                    dob,
-                    email,
-                    mobile,
-                    annual_income,
-                    marital_status,
-                    city,
-                });
-                return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "user-detail-updated"), {});
-            } else {
-                await UserDetail.findOneAndUpdate(
-                    { check_mob: check_mob },
-                    {
-                        name,
-                        gender,
-                        dob,
-                        email,
-                        mobile,
-                        annual_income,
-                        marital_status,
-                        city,
-                    }
-                );
-                return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "user-detail-updated"), {});
-            }
-        } catch (err: any) {
-            return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
-        }
     }
 
     public async getDetails(req: Request, res: Response): Promise<any> {

@@ -6,6 +6,7 @@ interface IUserDetail extends Document {
     name: string;
     gender: string;
     dob: string;
+    driving_licence: string;
     email: string;
     mobile: string;
     annual_income:string;
@@ -14,10 +15,11 @@ interface IUserDetail extends Document {
 }
 
 const userDetailSchema: Schema = new Schema({
-    check_mob: { type: String, default: '' },
+    customer_id: { type: Schema.Types.ObjectId, ref: "customers", default: null },
     name: { type: String, default: '' },
     gender: { type: String, default: '' },
     dob: { type: String, default: '' },
+    driving_licence: { type: String, default: '' },
     email: { type: String, default: '' },
     mobile: { type: String, default: '' },
     annual_income: { type: String, default: '' },

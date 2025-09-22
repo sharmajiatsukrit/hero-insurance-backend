@@ -19,7 +19,7 @@ routes.post("/register-claim", validateRequest, heroController.registerCliam.bin
 routes.post("/cleaver-tap-event", validateRequest, heroController.cleaverTapEvent.bind(heroController));
 
 routes.post("/get-details", validateRequest, heroController.getDetails.bind(heroController));
-routes.post("/get-policy-list", validateRequest, heroController.getPolicyList.bind(heroController));
+routes.post("/get-policy-list", validateRequest, authRequest, heroController.getPolicyList.bind(heroController));
 
 
 routes.post("/get-proposal-token", validateRequest, heroController.generateProposalToken.bind(heroController));
@@ -31,7 +31,6 @@ routes.post("/misp/login-policy", validateRequest, heroController.mispLoginPolic
 routes.get("/misp/download-policy", validateRequest, heroController.mispDownloadPolicy.bind(heroController));
 
 routes.post("/send-policy-mail", validateRequest, heroController.sendPolicyDetails.bind(heroController));
-routes.post("/save-user-profile", validateRequest, heroController.updateProfileDetail.bind(heroController));
-routes.post("/add-new-policy", validateRequest, heroController.addNewPolicy.bind(heroController));
+routes.post("/add-new-policy", validateRequest, authRequest, heroController.addNewPolicy.bind(heroController));
 
 export default routes;

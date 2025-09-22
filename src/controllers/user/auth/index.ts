@@ -56,8 +56,8 @@ export default class AuthController {
 
             if (!userData) {
                 // User does not exist, register the user
-                const newUser = await Customer.create({ phone: phone,status:1 });
-                
+                const newUser = await Customer.create({ phone: phone, status: 1 });
+
                 userData = newUser;
             }
 
@@ -65,23 +65,22 @@ export default class AuthController {
             const otp = await this.generateOtp(userData.id);
             // const mess = {data:{}};
             const log = {
-                phone:phone,
-                otp:otp,
-            }
+                phone: phone,
+                otp: otp,
+            };
             let logdata = JSON.stringify(log);
             const singleQuotedString = logdata.replace(/"/g, "'");
             // console.log(`"${singleQuotedString}"`);
-            const logs:any =  await axios({
-                url:"https://misp.heroinsurance.com/prod/services/HeroOne/api/Policy/SaveMongoLog",
-                method:"POST",
+            const logs: any = await axios({
+                url: "https://misp.heroinsurance.com/prod/services/HeroOne/api/Policy/SaveMongoLog",
+                method: "POST",
                 maxBodyLength: Infinity,
-                data:`"${singleQuotedString}"`,
-                headers: {"Content-Type": "application/json"},
+                data: `"${singleQuotedString}"`,
+                headers: { "Content-Type": "application/json" },
             });
-            const mess = await sendSMS(phone,`${otp} is your One Time Password (OTP) for login into your account. Please do not share your OTP with anyone. - HIBIPL`);
+            const mess = await sendSMS(phone, `${otp} is your One Time Password (OTP) for login into your account. Please do not share your OTP with anyone. - HIBIPL`);
             // console.log(mess.data);
             return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "otp-sent"), mess.data);
-
         } catch (err: any) {
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
         }
@@ -95,9 +94,9 @@ export default class AuthController {
             this.locale = (locale as string) || "en";
 
             // Req Body
-            const { phone, otp, remember = false } = req.body;
+            const { mobile, otp, remember = false } = req.body;
 
-            const userData = await Customer.findOne({ phone });
+            const userData = await Customer.findOne({ phone: mobile }).lean();
 
             if (!userData) {
                 throw new Error(constructResponseMsg(this.locale, "user-nf"));
@@ -109,12 +108,13 @@ export default class AuthController {
             if (!verifyOtp) {
                 throw new Error(constructResponseMsg(this.locale, "in-otp"));
             }
-           
-            const formattedUserData : any = {}
-            const session = await this.createSession(userData._id, userData.id, phone, req, userData.status, remember);
+
+            const formattedUserData: any = {};
+            const session = await this.createSession(userData._id, userData.id, mobile, req, userData.status, remember);
 
             if (session) {
                 formattedUserData.token = session.token;
+                formattedUserData.user = userData;
             }
 
             return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "otp-verified"), formattedUserData);
@@ -140,7 +140,50 @@ export default class AuthController {
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
         }
     }
+    public async updateProfileDetail(req: Request, res: Response): Promise<any> {
+        try {
+            const fn = "[add]";
+            // Set locale
+            const { locale } = req.query;
+            this.locale = (locale as string) || "en";
+            const { name, gender, dob, email, mobile, annual_income, marital_status, city, driving_licence_expiry } = req.body;
+            const existingData: any = await Customer.findOne({ _id: req.customer.object_id }).lean();
+            if (existingData) {
+                await Customer.findOneAndUpdate(
+                    { _id: req.customer.object_id },
+                    {
+                        name,
+                        gender,
+                        dob,
+                        email,
+                        mobile,
+                        annual_income,
+                        marital_status,
+                        driving_licence_expiry,
+                        city,
+                    }
+                );
+                return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "user-detail-updated"), {});
+            }
+        } catch (err: any) {
+            return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
+        }
+    }
 
+    public async getProfileDetail(req: Request, res: Response): Promise<any> {
+        try {
+            const { locale } = req.query;
+            this.locale = (locale as string) || "en";
+            const result = await Customer.findOne({ _id: req.customer.object_id }).lean();
+            if (result) {
+                return serverResponse(res, HttpCodeEnum.OK, "Success", result);
+            } else {
+                throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
+            }
+        } catch (err: any) {
+            return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
+        }
+    }
 
     // Customer  start
 
@@ -148,16 +191,16 @@ export default class AuthController {
     private async generateOtp(userId: number): Promise<number> {
         const minNo = 1000;
         const maxNo = 9999;
-        let otp:any;
+        let otp: any;
 
-        const isOTPExist:any = await Otps.findOne({ user_id: userId }).lean();
+        const isOTPExist: any = await Otps.findOne({ user_id: userId }).lean();
         console.log(isOTPExist);
-       
-        
-        // const otp = 1234;
-        
 
-        const otpValidDate = moment().add(60*24, 'minutes').format('YYYY-MM-DD HH:mm:ss');
+        // const otp = 1234;
+
+        const otpValidDate = moment()
+            .add(60 * 24, "minutes")
+            .format("YYYY-MM-DD HH:mm:ss");
         // networkRequest('POST', url: string, data = {}, headers = {});
         if (!isOTPExist) {
             otp = Math.floor(Math.random() * (maxNo - minNo + 1)) + minNo;
@@ -166,24 +209,25 @@ export default class AuthController {
                 user_id: userId,
                 otp: hashedOtp,
                 openotp: otp,
-                valid_till: otpValidDate
+                valid_till: otpValidDate,
             });
         } else {
-            const isValidOtp = moment(isOTPExist.valid_till).diff(moment(), 'minutes') > 0;
-            console.log(moment(isOTPExist.valid_till).diff(moment(), 'minutes'));
-            if(isValidOtp){
-                 otp = isOTPExist.openotp;
-            }else{
-                 otp = Math.floor(Math.random() * (maxNo - minNo + 1)) + minNo;
-                 const hashedOtp = await Bcrypt.hash(otp.toString(), 10);
-                    await Otps.findOneAndUpdate({ user_id: userId }, {
+            const isValidOtp = moment(isOTPExist.valid_till).diff(moment(), "minutes") > 0;
+            console.log(moment(isOTPExist.valid_till).diff(moment(), "minutes"));
+            if (isValidOtp) {
+                otp = isOTPExist.openotp;
+            } else {
+                otp = Math.floor(Math.random() * (maxNo - minNo + 1)) + minNo;
+                const hashedOtp = await Bcrypt.hash(otp.toString(), 10);
+                await Otps.findOneAndUpdate(
+                    { user_id: userId },
+                    {
                         otp: hashedOtp,
                         openotp: otp,
-                        valid_till: otpValidDate
-                    });
+                        valid_till: otpValidDate,
+                    }
+                );
             }
-
-            
         }
 
         return Promise.resolve(otp);
@@ -191,21 +235,21 @@ export default class AuthController {
 
     // Checked with encryption
     private async verifyOtp(userId: number, otp: number): Promise<boolean> {
-        const otpFromDB:any = await Otps.findOne({ user_id: userId }).lean();
+        const otpFromDB: any = await Otps.findOne({ user_id: userId }).lean();
 
         if (!otpFromDB) {
             return Promise.resolve(false);
         }
-        const isValidOtp = moment(otpFromDB.valid_till).diff(moment(), 'minutes') > 0 && await Bcrypt.compare(otp.toString(), otpFromDB.otp);
+        const isValidOtp = moment(otpFromDB.valid_till).diff(moment(), "minutes") > 0 && (await Bcrypt.compare(otp.toString(), otpFromDB.otp));
 
         if (!isValidOtp) {
             return Promise.resolve(false);
         }
         // console.log(moment(otpFromDB.valid_till).diff(moment(), 'minutes'));
-        if(!moment(otpFromDB.valid_till).diff(moment(), 'minutes')){
+        if (!moment(otpFromDB.valid_till).diff(moment(), "minutes")) {
             await Otps.deleteMany({ user_id: userId });
         }
-        
+
         return Promise.resolve(true);
     }
 
@@ -221,7 +265,9 @@ export default class AuthController {
 
             const ipAddress: string = (req.headers["X-Forwarded-For"] as string) || "";
             const deviceDetails = getDeviceDetails(req);
-            const expiresIn = DateTime.now().plus({ days: (remember) ? 30 : 1 }).toISO();
+            const expiresIn = DateTime.now()
+                .plus({ days: remember ? 30 : 1 })
+                .toISO();
 
             const sessionData = await Sessions.create({
                 user_id,
@@ -239,11 +285,11 @@ export default class AuthController {
                     object_id,
                     mobile_number,
                     user_id,
-                    session_id: sessionData.id
+                    session_id: sessionData.id,
                 },
                 process.env.JWT_SECRET,
                 {
-                    expiresIn: (remember) ? "30d" : "1d",
+                    expiresIn: remember ? "30d" : "1d",
                 }
             );
 
@@ -268,7 +314,6 @@ export default class AuthController {
             return Promise.reject(err);
         }
     }
-
 
     // Checked
     public async authCheck(req: Request, res: Response) {
@@ -299,10 +344,8 @@ export default class AuthController {
             }
 
             userData._doc.user_date_format = userData._doc.date_format;
-            userData._doc.user_time_format = (userData._doc.time_format === "24") ? "HH:mm" : "hh:mm a";
+            userData._doc.user_time_format = userData._doc.time_format === "24" ? "HH:mm" : "hh:mm a";
             userData._doc.user_date_time_format = userData._doc.user_date_format + " " + userData._doc.user_time_format;
-
-
 
             // const fetchSubscriberData = await Promise.all(subscribedDetailData);
             const formattedUserData: any = userData._doc;
@@ -313,15 +356,13 @@ export default class AuthController {
         }
     }
 
-
-
     // Checked with encryption
     private async checkIfUserExists(email: string): Promise<Boolean> {
         // Search on encrypted email field
         const emailToSearchWith: any = new User({ email: removeSpace(email) });
         emailToSearchWith.encryptFieldsSync();
 
-        const isUserExist: any = await User.findOne({ is_email_verified: true, "$or": [{ email: emailToSearchWith.email }, { communication_email: emailToSearchWith.email }] });
+        const isUserExist: any = await User.findOne({ is_email_verified: true, $or: [{ email: emailToSearchWith.email }, { communication_email: emailToSearchWith.email }] });
 
         if (isUserExist) {
             // const socialData: any = await Socials.find({ email: emailToSearchWith.email });
@@ -344,7 +385,7 @@ export default class AuthController {
         const messageToSearchWith: any = new User({ email });
         messageToSearchWith.encryptFieldsSync();
 
-        const userData: any = await User.findOne({ "$or": [{ email: messageToSearchWith.email }, { communication_email: messageToSearchWith.email }] });
+        const userData: any = await User.findOne({ $or: [{ email: messageToSearchWith.email }, { communication_email: messageToSearchWith.email }] });
 
         if (userData) {
             return Promise.resolve(userData._doc);
@@ -353,7 +394,6 @@ export default class AuthController {
         return Promise.resolve({ is_email_verified: false });
     }
 
-
     public async getUserDetails(req: Request, res: Response): Promise<any> {
         try {
             const fn = "[getUserDetails]";
@@ -361,13 +401,13 @@ export default class AuthController {
 
             // Set locale
             const { locale } = req.query;
-            const billing: any = req.query.billing || "0"
+            const billing: any = req.query.billing || "0";
 
             this.locale = (locale as string) || "en";
             Logger.info(`${fileName + fn} user_id: ${user_id}`);
             const userData = await this.fetchUserDetails(user_id, billing);
 
-            // userData.email = userData.email.split("@")[1] !== "socialemailnotfound.com" ? userData.email : null; 
+            // userData.email = userData.email.split("@")[1] !== "socialemailnotfound.com" ? userData.email : null;
 
             return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "user-ds"), userData);
         } catch (err: any) {
@@ -451,14 +491,14 @@ export default class AuthController {
             const messageToSearchWith: any = new User({ email });
             messageToSearchWith.encryptFieldsSync();
 
-            let userData: any = await User.findOne({ "$or": [{ email: messageToSearchWith.email }, { communication_email: messageToSearchWith.email }] });
+            let userData: any = await User.findOne({ $or: [{ email: messageToSearchWith.email }, { communication_email: messageToSearchWith.email }] });
 
             if (!userData) {
                 if (!updateEmail) throw new Error(constructResponseMsg(this.locale, "user-nf"));
             }
 
             if (updateEmail) {
-                userData = await User.findOne({ "$or": [{ email: messageToSearchWith.email }, { communication_email: messageToSearchWith.email }] });
+                userData = await User.findOne({ $or: [{ email: messageToSearchWith.email }, { communication_email: messageToSearchWith.email }] });
             }
             delete userData._doc.__enc_email;
             delete userData._doc.__enc_communication_email;
@@ -515,7 +555,7 @@ export default class AuthController {
             const emailToSearchWith: any = new User({ email });
             emailToSearchWith.encryptFieldsSync();
 
-            let userData: any = await User.findOne({ "$or": [{ email: emailToSearchWith.email }, { communication_email: emailToSearchWith.email }] });
+            let userData: any = await User.findOne({ $or: [{ email: emailToSearchWith.email }, { communication_email: emailToSearchWith.email }] });
 
             if (!userData) {
                 throw new Error(constructResponseMsg(this.locale, "user-nf"));
@@ -546,7 +586,6 @@ export default class AuthController {
         }
     }
 
-
     // Checked
     public async getUserDetailsByid(req: Request, res: Response): Promise<any> {
         try {
@@ -568,7 +607,6 @@ export default class AuthController {
         }
     }
 
-
     // UnChecked
     public async refreshUserToken(req: Request, res: Response): Promise<any> {
         try {
@@ -584,7 +622,7 @@ export default class AuthController {
             const session: any = await this.createSession(object_id, formattedUserData.id, formattedUserData.communication_email, req, formattedUserData.account_status, true);
             await Sessions.deleteOne({ id: currentToken.id });
 
-            return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "token-ref"), { "token": session.token });
+            return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "token-ref"), { token: session.token });
         } catch (err: any) {
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
         }
@@ -601,7 +639,6 @@ export default class AuthController {
             // Req Body
             const { latitude, longitude } = req.body;
             // Logger.info(`${fileName + fn} req.body: ${JSON.stringify(req.body)}`);
-
 
             await Customer.findOneAndUpdate({ id: req.customer.user_id }, { latitude: latitude, longitude: longitude });
 
@@ -628,7 +665,6 @@ export default class AuthController {
             if (!device) {
                 await Deviceid.create({ device_id: device_id, type: type, created_by: req.customer.object_id });
             }
-
 
             return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "deviceid-add"), {});
         } catch (err: any) {

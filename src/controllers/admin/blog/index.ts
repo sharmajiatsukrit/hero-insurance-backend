@@ -123,7 +123,7 @@ export default class BlogController {
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
 
-            const { name, description, introduction, slug, categoryId, status, locationId, meta_title, meta_description, key_words, meta_tag, alt_tag } = req.body;
+            const { name, description, introduction, sub_description, slug, categoryId, status, locationId, meta_title, meta_description, key_words, meta_tag, alt_tag } = req.body;
             Logger.info(`${fileName + fn} req.body: ${JSON.stringify(req.body)}`);
             const existingBlog = await Blog.findOne({ name: name }).lean();
             if (existingBlog) {
@@ -155,6 +155,8 @@ export default class BlogController {
                 slug: blogSlug,
                 categoryId: categoryObjectId,
                 locationId: locationObjId,
+                introduction, 
+                sub_description,
                 meta_title,
                 meta_description,
                 key_words,
@@ -186,7 +188,7 @@ export default class BlogController {
 
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
-            const { name, description, introduction, slug, categoryId, status, locationId, meta_title, meta_description, key_words, meta_tag, alt_tag } = req.body;
+            const { name, description, introduction, sub_description, slug, categoryId, status, locationId, meta_title, meta_description, key_words, meta_tag, alt_tag } = req.body;
 
             const existingBlog = await Blog.findOne({ id }).lean();
             if (!existingBlog) {
@@ -218,6 +220,8 @@ export default class BlogController {
             if (name !== undefined) updateData.name = name;
             if (description !== undefined) updateData.description = description;
             if (status !== undefined) updateData.status = status;
+            if (introduction !== undefined) updateData.introduction = introduction;
+            if (sub_description !== undefined) updateData.sub_description = sub_description;
 
             // Category and location references
             let categoryd: any = null;
