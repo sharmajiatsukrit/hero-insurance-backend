@@ -485,30 +485,55 @@ export default class HeroController {
         } catch (err: any) {}
     }
 
-    public async getPolicyList(req: Request, res: Response): Promise<any> {
-        try {
-            const { locale, page = 1 } = req.query;
-            this.locale = (locale as string) || "en";
+public async getPolicyList(req: Request, res: Response): Promise<any> {
+    try {
+        const { locale } = req.query;
+        this.locale = (locale as string) || "en";
 
-            const [mispPolicyDataRes, pospPolicyDataRes, newPolicyListRes] = await Promise.all([
-                this.getDetailsData(req),
-                this.proposalReportData(req),
-                this.getNewPolicyList(req),
-            ]);
-            const combinedData = {
-                mispPolicyData: this.formatPolicyListData("misp", mispPolicyDataRes),
-                pospPolicyData: this.formatPolicyListData("posp", pospPolicyDataRes),
-                newPolicyData: newPolicyListRes,
-            };
+        const [mispResult, pospResult, newPolicyResult] = await Promise.allSettled([
+            this.getMispData(req),
+            this.proposalReportData(req),
+            this.getNewPolicyList(req),
+        ]);
+        const mispPolicyData = 
+            mispResult.status === 'fulfilled' 
+                ? this.formatPolicyListData("misp", mispResult.value) 
+                : { error: "Failed to fetch MISP data" }; 
 
-            return serverResponse(res, HttpCodeEnum.OK, "Success", combinedData);
-        } catch (err: any) {
-            console.log(err, "ppo");
-            return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
+        const pospPolicyData = 
+            pospResult.status === 'fulfilled' 
+                ? this.formatPolicyListData("posp", pospResult.value) 
+                : { error: "Failed to fetch POSP data" };
+
+        const newPolicyData = 
+            newPolicyResult.status === 'fulfilled' 
+                ? newPolicyResult.value 
+                : { error: "Failed to fetch new policy list" };
+
+        if (mispResult.status === 'rejected') {
+            console.error("Error in getMispData:", mispResult.reason);
         }
-    }
+        if (pospResult.status === 'rejected') {
+            console.error("Error in proposalReportData:", pospResult.reason);
+        }
+        if (newPolicyResult.status === 'rejected') {
+            console.error("Error in getNewPolicyList:", newPolicyResult.reason);
+        }
 
-    private async getDetailsData(req: Request): Promise<any> {
+        const combinedData = {
+            mispPolicyData,
+            pospPolicyData,
+            newPolicyData,
+        };
+
+        return serverResponse(res, HttpCodeEnum.OK, "Success", combinedData);
+    } catch (err: any) {
+
+        return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
+    }
+}
+
+    private async getMispData(req: Request): Promise<any> {
         const { locale } = req.query;
         this.locale = (locale as string) || "en";
         const { mobile, registration_no = "" } = req.body;
