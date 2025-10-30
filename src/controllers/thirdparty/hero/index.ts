@@ -21,7 +21,7 @@ import { networkRequest } from "../../../utils/request";
 import { randomUUID } from "crypto";
 import { Otps, UnifiedLead } from "../../../models";
 import { sendMail } from "../../../utils/mail";
-import { getMispToken } from "../../../utils/thirdparty/misptoken";
+import { getMispToken, getPospToken } from "../../../utils/thirdparty/misptoken";
 import PospData from "../../../models/pospdata";
 import Bcrypt from "bcryptjs";
 import { sendSMS } from "../../../utils/smsgupshup";
@@ -417,7 +417,7 @@ export default class HeroController {
                 start_date,
                 end_date,
                 renew_date: end_date,
-                created_by: req.customer.object_id
+                created_by: req.customer.object_id,
             });
             return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "user-detail-updated"), {});
         } catch (err: any) {
@@ -438,8 +438,7 @@ export default class HeroController {
                     return {
                         ...item,
                         common_data: {
-                            first_name: item?.first_name || "",
-                            last_name: item?.last_name || "",
+                            name: item?.name || "",
                             policy_no: item?.policy_no || "",
                             start_date: item?.ODStartDate || "",
                             end_date: item?.ODENDdate || "",
@@ -447,6 +446,7 @@ export default class HeroController {
                             product_name: item?.product_code || "",
                             product_type: item?.product_type || "",
                             renew_link: item?.renewal_redirection_url || "",
+                            vehicle_no: item?.VehicleNo,
                         },
                     };
                 });
@@ -465,8 +465,7 @@ export default class HeroController {
                     return {
                         ...item,
                         common_data: {
-                            first_name: item?.first_name || "",
-                            last_name: item?.last_name || "",
+                            name: item?.name || "",
                             policy_no: item?.policy_no || "",
                             start_date: item?.policy_start_date || "",
                             end_date: item?.policy_end_date || "",
@@ -485,53 +484,39 @@ export default class HeroController {
         } catch (err: any) {}
     }
 
-public async getPolicyList(req: Request, res: Response): Promise<any> {
-    try {
-        const { locale } = req.query;
-        this.locale = (locale as string) || "en";
+    public async getPolicyList(req: Request, res: Response): Promise<any> {
+        try {
+            const { locale } = req.query;
+            this.locale = (locale as string) || "en";
 
-        const [mispResult, pospResult, newPolicyResult] = await Promise.allSettled([
-            this.getMispData(req),
-            this.proposalReportData(req),
-            this.getNewPolicyList(req),
-        ]);
-        const mispPolicyData = 
-            mispResult.status === 'fulfilled' 
-                ? this.formatPolicyListData("misp", mispResult.value) 
-                : { error: "Failed to fetch MISP data" }; 
+            const [mispResult, pospResult, newPolicyResult] = await Promise.allSettled([this.getMispData(req), this.proposalReportData(req), this.getNewPolicyList(req)]);
+            const mispPolicyData = mispResult.status === "fulfilled" ? this.formatPolicyListData("misp", mispResult.value) : { error: "Failed to fetch MISP data" };
 
-        const pospPolicyData = 
-            pospResult.status === 'fulfilled' 
-                ? this.formatPolicyListData("posp", pospResult.value) 
-                : { error: "Failed to fetch POSP data" };
+            const pospPolicyData = pospResult.status === "fulfilled" ? this.formatPolicyListData("posp", pospResult.value) : { error: "Failed to fetch POSP data" };
 
-        const newPolicyData = 
-            newPolicyResult.status === 'fulfilled' 
-                ? newPolicyResult.value 
-                : { error: "Failed to fetch new policy list" };
+            const newPolicyData = newPolicyResult.status === "fulfilled" ? newPolicyResult.value : { error: "Failed to fetch new policy list" };
 
-        if (mispResult.status === 'rejected') {
-            console.error("Error in getMispData:", mispResult.reason);
+            if (mispResult.status === "rejected") {
+                console.error("Error in getMispData:", mispResult.reason);
+            }
+            if (pospResult.status === "rejected") {
+                console.error("Error in proposalReportData:", pospResult.reason);
+            }
+            if (newPolicyResult.status === "rejected") {
+                console.error("Error in getNewPolicyList:", newPolicyResult.reason);
+            }
+
+            const combinedData = {
+                mispPolicyData,
+                pospPolicyData,
+                newPolicyData,
+            };
+
+            return serverResponse(res, HttpCodeEnum.OK, "Success", combinedData);
+        } catch (err: any) {
+            return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
         }
-        if (pospResult.status === 'rejected') {
-            console.error("Error in proposalReportData:", pospResult.reason);
-        }
-        if (newPolicyResult.status === 'rejected') {
-            console.error("Error in getNewPolicyList:", newPolicyResult.reason);
-        }
-
-        const combinedData = {
-            mispPolicyData,
-            pospPolicyData,
-            newPolicyData,
-        };
-
-        return serverResponse(res, HttpCodeEnum.OK, "Success", combinedData);
-    } catch (err: any) {
-
-        return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
     }
-}
 
     private async getMispData(req: Request): Promise<any> {
         const { locale } = req.query;
@@ -562,12 +547,33 @@ public async getPolicyList(req: Request, res: Response): Promise<any> {
         const { locale, page } = req.query;
         this.locale = (locale as string) || "en";
         console.log(page);
-        const validation: any = req.headers.validation;
+        const { token } = await getPospToken();
+        console.log(token, "ppo");
         const { mobile, email = "" } = req.body;
-        const headers: any = { validation: validation };
+        const headers: any = { validation: token };
         const data: any = { mobile, email, pagination: [page] };
         const result = await networkRequest("POST", `https://uatmotorapi.heroinsurance.com/api/proposalReports`, data, headers);
         return result?.data || null;
+    }
+
+    public async getMispPolicyDetails(req: Request, res: Response): Promise<any> {
+        try {
+            const { locale } = req.query;
+            this.locale = (locale as string) || "en";
+            const policy_id  = req.params.policy_id;
+            const result = await networkRequest(
+                "POST",
+                `https://misp.heroinsurance.com/uat/services/BitlyWebAPI/api/GenPDFOnline/GenPDFOnline?APIKEY=H$E@R0@123&Policy_id=${policy_id}&TransactionID=1&UserID=1&MachineIp=1&Request_Type=1`
+            );
+            if (result) {
+                console.log(result);
+                return serverResponse(res, HttpCodeEnum.OK, "Success", result.data);
+            } else {
+                throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
+            }
+        } catch (err: any) {
+            return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
+        }
     }
 
     public async getDetails(req: Request, res: Response): Promise<any> {

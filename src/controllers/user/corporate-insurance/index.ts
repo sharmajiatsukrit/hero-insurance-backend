@@ -5,6 +5,7 @@ import { HttpCodeEnum } from "../../../enums/server";
 import validate from "./validate";
 import InsuranceType from "../../../models/insurance-type";
 import CorporateInsurance from "../../../models/corporate-insurance";
+import CorporateInsuranceType from "../../../models/corporate-insurance-type";
 
 const fileName = "[admin][enquiry][index.ts]";
 export default class CorporateInsuranceRequestController {
@@ -24,7 +25,7 @@ export default class CorporateInsuranceRequestController {
 
             const { plan_type, company_name, contact_person, mobile_no, email, number_of_employe } = req.body;
             let result: any;
-            const insuranceType: any = await InsuranceType.findOne({ id: +plan_type });
+            const insuranceType: any = await CorporateInsuranceType.findOne({ id: +plan_type });
             result = await CorporateInsurance.create({
                 plan_type: insuranceType?._id,
                 company_name,

@@ -3,8 +3,8 @@ import { ValidationChain } from "express-validator";
 import { serverResponse, serverErrorHandler, constructResponseMsg } from "../../../utils";
 import { HttpCodeEnum } from "../../../enums/server";
 import validate from "./validate";
-import InsuranceType from "../../../models/insurance-type";
 import AllInsurance from "../../../models/all-insurance";
+import TailoredBusinessInsuranceType from "../../../models/tailored-business-insurance-type";
 
 const fileName = "[admin][enquiry][index.ts]";
 export default class AllInsuranceRequestController {
@@ -24,7 +24,7 @@ export default class AllInsuranceRequestController {
 
             const { plan_type, company_name, contact_person, mobile_no, email, number_of_employe } = req.body;
             let result: any;
-            const insuranceType: any = await InsuranceType.findOne({ id: +plan_type });
+            const insuranceType: any = await TailoredBusinessInsuranceType.findOne({ id: +plan_type });
             result = await AllInsurance.create({
                 plan_type: insuranceType?._id,
                 company_name,

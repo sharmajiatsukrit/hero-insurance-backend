@@ -12,6 +12,8 @@ import { networkRequest } from "../../../utils/request";
 import Category from "../../../models/category";
 import Menu from "../../../models/menu";
 import InsuranceType from "../../../models/insurance-type";
+import CorporateInsuranceType from "../../../models/corporate-insurance-type";
+import TailoredBusinessInsuranceType from "../../../models/tailored-business-insurance-type";
 
 const fileName = "[user][helper][index.ts]";
 export default class HelperController {
@@ -222,6 +224,44 @@ export default class HelperController {
 
 
             const result = await InsuranceType.find({}).where('status').equals(true).sort([['id', 'desc']]).select('id name').lean();
+
+            if (result.length > 0) {
+                return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["role-fetched"]), result);
+            } else {
+                throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
+            }
+        } catch (err: any) {
+            return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
+        }
+    }
+    public async getCorporateInsuranceTypeList(req: Request, res: Response): Promise<any> {
+        try {
+            const fn = "[getRoles]";
+            // Set locale
+            const { locale } = req.query;
+            this.locale = (locale as string) || "en";
+
+
+            const result = await CorporateInsuranceType.find({}).where('status').equals(true).sort([['id', 'desc']]).select('id name').lean();
+
+            if (result.length > 0) {
+                return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["role-fetched"]), result);
+            } else {
+                throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
+            }
+        } catch (err: any) {
+            return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
+        }
+    }
+    public async getTailoredBusinessInsuranceTypeList(req: Request, res: Response): Promise<any> {
+        try {
+            const fn = "[getRoles]";
+            // Set locale
+            const { locale } = req.query;
+            this.locale = (locale as string) || "en";
+
+
+            const result = await TailoredBusinessInsuranceType.find({}).where('status').equals(true).sort([['id', 'desc']]).select('id name').lean();
 
             if (result.length > 0) {
                 return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["role-fetched"]), result);

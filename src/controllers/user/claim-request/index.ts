@@ -6,7 +6,8 @@ import validate from "./validate";
 import ClaimRequest from "../../../models/claim-request";
 import InsuranceType from "../../../models/insurance-type";
 import { sendMail } from "../../../utils/mail";
-import { claims_request_template, fillTemplate } from "../../../utils/templates";
+import { claim_acknowledgement_template, claims_request_template, fillTemplate } from "../../../utils/templates";
+import SupportEmailConfig from "../../../models/support-email-config";
 
 const fileName = "[admin][enquiry][index.ts]";
 export default class ClaimRequestController {
@@ -35,6 +36,8 @@ export default class ClaimRequestController {
                 description: description,
             });
 
+            const supportEmail:any = await SupportEmailConfig.findOne({type:"claim-request"}).lean();
+
             const templateData = {
                 customer:name,
                 customer_mobile:mobile,
@@ -44,10 +47,17 @@ export default class ClaimRequestController {
                 date_incident:"",
                 description:description
             }
+            const acknowledgementTemplateData = {
+                policy_no:mobile,
+                company_name:"Hero Insurance",
+                claim_team:"Hero Team",
+            }
 
+            const acknowledgementBody : any = fillTemplate(claim_acknowledgement_template,acknowledgementTemplateData)
             const body : any = fillTemplate(claims_request_template,templateData)
 
-            const mail = await sendMail("rohit@sukritinfotech.com", "Claim Request", body, []);
+            await sendMail(email, "Claim Acknowledgement", acknowledgementBody, []);
+            await sendMail(supportEmail?.email, "Claim Request", body, []);
             return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "enquiry-add"), {});
         } catch (err: any) {
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});

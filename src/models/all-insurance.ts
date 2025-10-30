@@ -12,7 +12,7 @@ interface IAllInsurance extends Document {
 }
 
 const AllInsuranceSchema: Schema = new Schema({
-    plan_type: { type: Schema.Types.ObjectId, ref: "insurance_types", default: null },
+    plan_type: { type: Schema.Types.ObjectId, ref: "tailored_business_insurance_types", default: null },
     company_name: { type: String, default: '' },
     contact_person: { type: String, default: '' },
     mobile_no: { type: String, default: '' },

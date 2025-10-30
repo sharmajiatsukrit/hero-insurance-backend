@@ -244,24 +244,17 @@ export const claim_acknowledgement_template = `<!doctype html>
 
 export function fillTemplate(template: string, data: any) {
     try {
-        // Match {{ ... }} non-greedily, capture inner text
         return template.replace(/{{\s*([^}]+?)\s*}}/g, (match, rawKey) => {
-            // Normalize the key by trimming and collapsing inner spaces around underscores, if desired
             const key = rawKey.trim();
-
-            // Direct lookup
             if (Object.prototype.hasOwnProperty.call(data, key)) {
                 const val = data[key];
                 return val == null ? "" : String(val);
             }
-
-            // Fallbacks: try to normalize accidental spaces around underscores, e.g., "contact _no" -> "contact_no"
             const compact = key.replace(/\s*_\s*/g, "_").replace(/\s{2,}/g, " ");
             if (Object.prototype.hasOwnProperty.call(data, compact)) {
                 const val = data[compact];
                 return val == null ? "" : String(val);
             }
-            // Unknown placeholder: keep original {{...}}
             return match;
         });
     } catch (error) {}

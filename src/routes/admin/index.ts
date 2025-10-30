@@ -35,6 +35,10 @@ import CorporateInsuranceRequestRoute from "./corporate-insurance"
 import AllInsuranceRequestRoute from "./all-insurance"
 import CallBackRequestRoute from "./call-back-request"
 import InsuranceLeadRoute from "./insurance-lead"
+import SupportEmailConfigRoute from "./support-email-config"
+import CorporateInsuranceTypeRoute from "./corporate-insurance-type"
+import TailoredBusinessInsuranceTypeRoute from "./tailored-business-insurance-type"
+
 
 
 
@@ -77,6 +81,9 @@ routes.use("/corporate-insurance-request", CorporateInsuranceRequestRoute);
 routes.use("/all-insurance-request", AllInsuranceRequestRoute);
 routes.use("/call-back-request", CallBackRequestRoute);
 routes.use("/insurance-lead", InsuranceLeadRoute);
+routes.use("/support-email-config", SupportEmailConfigRoute);
+routes.use("/corporate-insurance-type", CorporateInsuranceTypeRoute);
+routes.use("/tailored-business-insurance-type", TailoredBusinessInsuranceTypeRoute);
 
 
 

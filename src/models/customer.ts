@@ -11,7 +11,7 @@ interface ICustomer extends Document {
 const customerSchema: Schema = new Schema({
     phone: { type: String, required: true, index: { unique: true } },
     device: { type: String, default: 'Android' },
-    mobile: { type: String, default: 'Android' }, //secondry mobile number
+    mobile: { type: String, default: '' }, 
     name: { type: String, default: '' },
     gender: { type: String, default: '' },
     dob: { type: String, default: '' },

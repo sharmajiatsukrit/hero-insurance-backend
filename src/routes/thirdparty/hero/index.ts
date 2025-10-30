@@ -20,6 +20,7 @@ routes.post("/cleaver-tap-event", validateRequest, heroController.cleaverTapEven
 
 routes.post("/get-details", validateRequest, heroController.getDetails.bind(heroController));
 routes.post("/get-policy-list", validateRequest, authRequest, heroController.getPolicyList.bind(heroController));
+routes.get("/get-misp-policy-details/:policy_id", validateRequest, authRequest, heroController.getMispPolicyDetails.bind(heroController));
 
 
 routes.post("/get-proposal-token", validateRequest, heroController.generateProposalToken.bind(heroController));
