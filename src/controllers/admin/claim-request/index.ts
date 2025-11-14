@@ -63,7 +63,7 @@ export default class ClaimRequestController {
 
             const id = parseInt(req.params.id);
             const result: any = await ClaimRequest.findOne({ id: id }).lean().populate({ path: "insurance_type", select: "name id" });;
-            // console.log(result);
+           
 
             if (result) {
                 return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["enquiry-fetched"]), result);

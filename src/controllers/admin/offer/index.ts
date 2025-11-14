@@ -69,7 +69,7 @@ export default class OfferController {
 
             const id = parseInt(req.params.id);
             const result: any = await Offer.findOne({ id: id }).lean().populate("categoryId", "id name image");
-            // console.log(result);
+            
 
             if (result) {
                 result.offer_image = `${process.env.RESOURCE_URL}${result.offer_image}`;

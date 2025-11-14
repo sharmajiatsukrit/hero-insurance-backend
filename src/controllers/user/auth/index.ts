@@ -140,13 +140,14 @@ export default class AuthController {
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
         }
     }
+
     public async updateProfileDetail(req: Request, res: Response): Promise<any> {
         try {
             const fn = "[add]";
             // Set locale
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
-            const { name, gender, dob, email, mobile, annual_income, marital_status, city, driving_licence_expiry } = req.body;
+            const { name, gender, dob, email, mobile, annual_income, marital_status, city, emg_email, emg_mobile, driving_licence_expiry } = req.body;
             const existingData: any = await Customer.findOne({ _id: req.customer.object_id }).lean();
             if (existingData) {
                 await Customer.findOneAndUpdate(
@@ -160,6 +161,8 @@ export default class AuthController {
                         annual_income,
                         marital_status,
                         driving_licence_expiry,
+                        emg_mobile,
+                        emg_email,
                         city,
                     }
                 );
@@ -213,7 +216,6 @@ export default class AuthController {
             });
         } else {
             const isValidOtp = moment(isOTPExist.valid_till).diff(moment(), "minutes") > 0;
-            console.log(moment(isOTPExist.valid_till).diff(moment(), "minutes"));
             if (isValidOtp) {
                 otp = isOTPExist.openotp;
             } else {
@@ -661,7 +663,7 @@ export default class AuthController {
             // Logger.info(`${fileName + fn} req.body: ${JSON.stringify(req.body)}`);
 
             const device: any = await Deviceid.findOne({ device_id: device_id }).lean();
-            console.log(device);
+       
             if (!device) {
                 await Deviceid.create({ device_id: device_id, type: type, created_by: req.customer.object_id });
             }

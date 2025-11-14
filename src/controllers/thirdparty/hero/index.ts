@@ -28,6 +28,7 @@ import { sendSMS } from "../../../utils/smsgupshup";
 import UserDetail from "../../../models/user-detail";
 import e from "cors";
 import PolicyDetail from "../../../models/policy-detail";
+import InsuranceType from "../../../models/insurance-type";
 
 const fileName = "[user][dashboard][index.ts]";
 export default class HeroController {
@@ -64,7 +65,6 @@ export default class HeroController {
             });
         } else {
             const isValidOtp = moment(isOTPExist.valid_till).diff(moment(), "minutes") > 0;
-            console.log(moment(isOTPExist.valid_till).diff(moment(), "minutes"));
             if (isValidOtp) {
                 otp = isOTPExist.openotp;
             } else {
@@ -96,7 +96,7 @@ export default class HeroController {
         if (!isValidOtp) {
             return Promise.resolve(false);
         }
-        // console.log(moment(otpFromDB.valid_till).diff(moment(), 'minutes'));
+       
         if (!moment(otpFromDB.valid_till).diff(moment(), "minutes")) {
             await Otps.deleteMany({ user_id: userId });
         }
@@ -271,7 +271,7 @@ export default class HeroController {
             const { username, password } = req.body;
             const data: any = { username, password };
             const headers: any = { Authorization: "Bearer " + token };
-            const result = await networkRequest("POST", "https://misp.heroinsurance.com/prod/services/HeroOne/api/Login/ValidateMISPLogin", data, headers);
+            const result = await networkRequest("POST", "https://misp.heroinsurance.com/uat/services/HeroOne/api/Login/ValidateMISPLogin", data, headers);
 
             if (result) {
                 return serverResponse(res, HttpCodeEnum.OK, "Success", result.data);
@@ -407,8 +407,7 @@ export default class HeroController {
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
 
-            const { mobile, policy_no, product_name, product_type, start_date, end_date } = req.body;
-
+            const { mobile, policy_no, reg_no, product_name, product_type, start_date, end_date } = req.body;
             await PolicyDetail.create({
                 mobile_no: mobile,
                 policy_no,
@@ -417,6 +416,7 @@ export default class HeroController {
                 start_date,
                 end_date,
                 renew_date: end_date,
+                reg_no,
                 created_by: req.customer.object_id,
             });
             return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "user-detail-updated"), {});
@@ -439,14 +439,18 @@ export default class HeroController {
                         ...item,
                         common_data: {
                             name: item?.name || "",
-                            policy_no: item?.policy_no || "",
+                            policy_no: item?.Policy_No || "",
+                            policy_id: item?.Policy_Id || "",
                             start_date: item?.ODStartDate || "",
                             end_date: item?.ODENDdate || "",
                             renew_date: item?.ODENDdate || "",
-                            product_name: item?.product_code || "",
-                            product_type: item?.product_type || "",
+                            product_name: item?.Product_Name || "",
+                            product_type: item?.Product_Type || "",
                             renew_link: item?.renewal_redirection_url || "",
-                            vehicle_no: item?.VehicleNo,
+                            vehicle_model: item?.Model_Name||"",
+                            vehicle_no: item?.VehicleNo||"",
+                            remaning_days:item?.daysLeftPolicyexpiry||"",
+                            downLoad_link:item?.DownLoadLinks
                         },
                     };
                 });
@@ -454,7 +458,7 @@ export default class HeroController {
                     ...data,
                     data: formattedData,
                 };
-            } else {
+            } else if(type === "posp") {
                 let parsedData = [];
                 if (typeof data.data === "string") {
                     parsedData = JSON.parse(data.data);
@@ -473,11 +477,30 @@ export default class HeroController {
                             product_name: item?.company_name || "",
                             product_type: item?.product_type || "",
                             renew_link: item?.renewal_redirection_url || "",
+                            vehicle_model: `${item?.vehicle_make} ${item?.vehicle_model} ${item?.vehicle_version}` || "",
+                            vehicle_no: item?.vehicle_reg_no || "",
+                            remaning_days:item?.daysLeftPolicyexpiry||"",
+                            downLoad_link:item?.DownLoadLinks
                         },
                     };
                 });
                 return {
                     ...data,
+                    data: formattedData,
+                };
+            } else{
+                const formattedData = data.map((item: any) => {
+                        return {
+                            common_data: {
+                                ...item,
+                                vehicle_model: item?.vehicleModel || "",
+                                vehicle_no: item?.reg_no || "",
+                                remaning_days:item?.daysLeftPolicyexpiry||"",
+                                downLoad_link:item?.DownLoadLinks
+                            },
+                };
+                });
+                return {
                     data: formattedData,
                 };
             }
@@ -489,27 +512,80 @@ export default class HeroController {
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
 
-            const [mispResult, pospResult, newPolicyResult] = await Promise.allSettled([this.getMispData(req), this.proposalReportData(req), this.getNewPolicyList(req)]);
-            const mispPolicyData = mispResult.status === "fulfilled" ? this.formatPolicyListData("misp", mispResult.value) : { error: "Failed to fetch MISP data" };
+            const [mispResult, pospResult, newPolicyResult] = await Promise.allSettled([
+                this.getMispData(req),
+                this.proposalReportData(req),
+                this.getNewPolicyList(req)
+            ]);
 
-            const pospPolicyData = pospResult.status === "fulfilled" ? this.formatPolicyListData("posp", pospResult.value) : { error: "Failed to fetch POSP data" };
+            const mispPolicyData = mispResult.status === "fulfilled"
+                ? this.formatPolicyListData("misp", mispResult.value)
+                : { data: [], error: "Failed to fetch MISP data" };
 
-            const newPolicyData = newPolicyResult.status === "fulfilled" ? newPolicyResult.value : { error: "Failed to fetch new policy list" };
+            const pospPolicyData = pospResult.status === "fulfilled"
+                ? this.formatPolicyListData("posp", pospResult.value)
+                : { data: [], error: "Failed to fetch POSP data" };
 
-            if (mispResult.status === "rejected") {
-                console.error("Error in getMispData:", mispResult.reason);
-            }
-            if (pospResult.status === "rejected") {
-                console.error("Error in proposalReportData:", pospResult.reason);
-            }
-            if (newPolicyResult.status === "rejected") {
-                console.error("Error in getNewPolicyList:", newPolicyResult.reason);
-            }
+            const newPolicyData = newPolicyResult.status === "fulfilled"
+                ? this.formatPolicyListData("new_policy", newPolicyResult.value)
+                : { data: [], error: "Failed to fetch new policy list" };
+
+            if (mispResult.status === "rejected") console.error("Error in getMispData:", mispResult.reason);
+            if (pospResult.status === "rejected") console.error("Error in proposalReportData:", pospResult.reason);
+            if (newPolicyResult.status === "rejected") console.error("Error in getNewPolicyList:", newPolicyResult.reason);
+
+            const normalizeRegNo = (regNo: string = ""): string => {
+                return regNo.toLowerCase().replace(/[-\s]/g, "").trim();
+            };
+
+            // map of new policy data
+            const newPolicyMap = new Map<string, string>();
+            (newPolicyData?.data || []).forEach((item: any) => {
+                const vehicleNo = normalizeRegNo(item.common_data?.vehicle_no);
+                const endDate = item.common_data?.end_date;
+                if (vehicleNo && endDate) {
+                    newPolicyMap.set(vehicleNo, endDate);
+                }
+            });
+
+            const isOlderPolicy = (policyEndDate: string, newPolicyEndDate: string) => {
+                const policyDate = new Date(policyEndDate);
+                const newDate = new Date(newPolicyEndDate);
+                return (
+                    !isNaN(policyDate.getTime()) &&
+                    !isNaN(newDate.getTime()) &&
+                    policyDate <= newDate
+                );
+            };
+
+            // Filter MISP data
+            const filteredMispData = {
+                ...mispPolicyData,
+                data: (mispPolicyData?.data || []).filter((item: any) => {
+                    const vehicleNo = normalizeRegNo(item.common_data?.vehicle_no);
+                    const endDate = item.common_data?.end_date;
+                    const newPolicyEnd = newPolicyMap.get(vehicleNo);
+                    return !vehicleNo || !newPolicyEnd || !isOlderPolicy(endDate, newPolicyEnd);
+                })
+            };
+
+            // Filter POSP data
+            const filteredPospData = {
+                ...pospPolicyData,
+                data: (pospPolicyData?.data || []).filter((item: any) => {
+                    const vehicleNo = normalizeRegNo(item.common_data?.vehicle_no);
+                    const endDate = item.common_data?.end_date;
+                    const newPolicyEnd = newPolicyMap.get(vehicleNo);
+                    return !vehicleNo || !newPolicyEnd || !isOlderPolicy(endDate, newPolicyEnd);
+                })
+            };
+
+
 
             const combinedData = {
-                mispPolicyData,
-                pospPolicyData,
-                newPolicyData,
+                mispPolicyData: filteredMispData,
+                pospPolicyData: filteredPospData,
+                newPolicyData
             };
 
             return serverResponse(res, HttpCodeEnum.OK, "Success", combinedData);
@@ -517,6 +593,41 @@ export default class HeroController {
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
         }
     }
+
+
+    // public async getPolicyList(req: Request, res: Response): Promise<any> {
+    //     try {
+    //         const { locale } = req.query;
+    //         this.locale = (locale as string) || "en";
+
+    //         const [mispResult, pospResult, newPolicyResult] = await Promise.allSettled([this.getMispData(req), this.proposalReportData(req), this.getNewPolicyList(req)]);
+    //         const mispPolicyData = mispResult.status === "fulfilled" ? this.formatPolicyListData("misp", mispResult.value) : { error: "Failed to fetch MISP data" };
+
+    //         const pospPolicyData = pospResult.status === "fulfilled" ? this.formatPolicyListData("posp", pospResult.value) : { error: "Failed to fetch POSP data" };
+
+    //         const newPolicyData = newPolicyResult.status === "fulfilled" ? this.formatPolicyListData("new_policy", newPolicyResult.value)  : { error: "Failed to fetch new policy list" };
+
+    //         if (mispResult.status === "rejected") {
+    //             console.error("Error in getMispData:", mispResult.reason);
+    //         }
+    //         if (pospResult.status === "rejected") {
+    //             console.error("Error in proposalReportData:", pospResult.reason);
+    //         }
+    //         if (newPolicyResult.status === "rejected") {
+    //             console.error("Error in getNewPolicyList:", newPolicyResult.reason);
+    //         }
+
+    //         const combinedData = {
+    //             mispPolicyData,
+    //             pospPolicyData,
+    //             newPolicyData,
+    //         };
+
+    //         return serverResponse(res, HttpCodeEnum.OK, "Success", combinedData);
+    //     } catch (err: any) {
+    //         return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
+    //     }
+    // }
 
     private async getMispData(req: Request): Promise<any> {
         const { locale } = req.query;
@@ -546,9 +657,7 @@ export default class HeroController {
     private async proposalReportData(req: Request): Promise<any> {
         const { locale, page } = req.query;
         this.locale = (locale as string) || "en";
-        console.log(page);
         const { token } = await getPospToken();
-        console.log(token, "ppo");
         const { mobile, email = "" } = req.body;
         const headers: any = { validation: token };
         const data: any = { mobile, email, pagination: [page] };
@@ -560,7 +669,7 @@ export default class HeroController {
         try {
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
-            const policy_id  = req.params.policy_id;
+            const policy_id = req.params.policy_id;
             const result = await networkRequest(
                 "POST",
                 `https://misp.heroinsurance.com/uat/services/BitlyWebAPI/api/GenPDFOnline/GenPDFOnline?APIKEY=H$E@R0@123&Policy_id=${policy_id}&TransactionID=1&UserID=1&MachineIp=1&Request_Type=1`
@@ -605,7 +714,6 @@ export default class HeroController {
             const data: any = req.body;
             const headers: any = { validation: validation };
             const result = await networkRequest("POST", `https://uatmotorapi.heroinsurance.com/api/proposalReports?page=${5}&per_page=1`, data, headers);
-            console.log(result.data);
 
             if (result) {
                 return serverResponse2(res, HttpCodeEnum.OK, "Success", result.data);
@@ -626,7 +734,7 @@ export default class HeroController {
             const data: any = { api_endpoint: "https://uatmotorapi.heroinsurance.com/api/proposalReports" };
             const headers: any = { Authorization: "Basic d2Vic2VydmljZTFAZnludHVuZS5jb206VGVzdGluZ0AxMjM0" };
             const result = await networkRequest("POST", "https://uatmotorapi.heroinsurance.com/api/tokenGeneration", data, headers);
-            console.log(result.data);
+ 
 
             if (result) {
                 return serverResponse(res, HttpCodeEnum.OK, "Success", result.data);
@@ -653,7 +761,6 @@ export default class HeroController {
                 {},
                 headers
             );
-            console.log(result.data);
 
             if (result) {
                 return serverResponse(res, HttpCodeEnum.OK, "Success", result.data);

@@ -74,7 +74,7 @@ export default class KeyOfficerController {
 
             const id = parseInt(req.params.id);
             const result: any = await KeyOfficer.findOne({ id: id }).lean();
-            // console.log(result);
+            
 
             if (result) {
                 result.kof_image = `${process.env.RESOURCE_URL}${result.kof_image}`;

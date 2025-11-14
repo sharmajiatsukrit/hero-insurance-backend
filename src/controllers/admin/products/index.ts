@@ -89,7 +89,7 @@ export default class ProductController {
                                         .populate('category_id', 'id name')
                                         .populate('conversion_unit', 'id name').lean();
             //const variations: any = await ProductVariations.findOne({ product_id: result._id }).populate('category_id', 'id name').lean();
-            //console.log(result);
+           
             if (result) {
                 const formattedResult = {
                     id: result.id,

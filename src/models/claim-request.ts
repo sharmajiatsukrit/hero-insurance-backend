@@ -3,7 +3,9 @@ import { autoIncrement } from 'mongoose-plugin-autoinc';
 
 interface IClaimRequest extends Document {
     insurance_type:string;
+    customer_id:string;
     description: string;
+    policy_no:string;
     mobile_no:string;
     name: string;
     email: string;
@@ -12,8 +14,10 @@ interface IClaimRequest extends Document {
 
 const ClaimRequestSchema: Schema = new Schema({
     insurance_type: { type: Schema.Types.ObjectId, ref: "insurance_types", default: null },
+    customer_id: { type: Schema.Types.ObjectId, ref: "customers", default: null },
     name: { type: String, default: '' },
     email: { type: String, default: '' },
+    policy_no: { type: String, default: '' },
     mobile_no: { type: String, default: '' },
     description: { type: String, default: '' },
     status: { type: Boolean, default: true },

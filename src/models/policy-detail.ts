@@ -15,6 +15,7 @@ const policyDetailSchema: Schema = new Schema({
     created_by: { type: Schema.Types.ObjectId, ref: 'customers' },
     mobile_no: { type: String, default: '' },
     policy_no: { type: String, default: '' },
+    reg_no:{type: String, default: ''},
     product_name: { type: String, default: '' },
     product_type: { type: String, default: '' },
     start_date: { type: String, default: '' },

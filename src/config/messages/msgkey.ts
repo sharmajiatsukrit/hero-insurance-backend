@@ -165,6 +165,7 @@ export const MessageKey: IObjectKeys = {
     "blog-update": "blog-update",
     "enquiry-fetched": "enquiry-fetched",
     "enquiry-add": "enquiry-add",
+    "enquiry-list": "enquiry-list",
     "enquiry-delete": "enquiry-delete",
     "enquiry-status": "enquiry-status",
 

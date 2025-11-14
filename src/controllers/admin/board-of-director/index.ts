@@ -68,7 +68,6 @@ export default class BODController {
 
             const id = parseInt(req.params.id);
             const result: any = await BoardOfDirector.findOne({ id: id }).lean();
-            // console.log(result);
 
             if (result) {
                 result.bod_image = `${process.env.RESOURCE_URL}${result.bod_image}`;

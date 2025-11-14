@@ -11,6 +11,8 @@ interface IInsuranceType extends Document {
 const InsuranceTypeSchema: Schema = new Schema(
     {
         name: { type: String, default: "" },
+        key: { type: String, default: "" },
+        show_reg_no_field: { type: Boolean, default: false },
         status: { type: Boolean, default: true },
         created_by: { type: Schema.Types.ObjectId, ref: "users" },
         updated_by: { type: Schema.Types.ObjectId, ref: "users" },

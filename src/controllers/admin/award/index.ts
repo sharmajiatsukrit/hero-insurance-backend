@@ -67,7 +67,6 @@ export default class AwardController {
 
             const id = parseInt(req.params.id);
             const result: any = await Award.findOne({ id: id }).lean();
-            // console.log(result);
 
             if (result) {
                 result.award_image = `${process.env.RESOURCE_URL}${result.award_image}`;

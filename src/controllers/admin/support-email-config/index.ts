@@ -50,7 +50,7 @@ export default class SupportEmailConfigController {
             Logger.info(`${fileName + fn} req.body: ${JSON.stringify(req.body)}`);
 
             const exist = await SupportEmailConfig.findOne({type});
-            console.log(exist)
+          
             if(exist){
                 await SupportEmailConfig.findOneAndUpdate({type},{email})
             }else{

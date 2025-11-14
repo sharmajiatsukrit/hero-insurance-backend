@@ -25,7 +25,8 @@ export default class ClaimRequestController {
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
 
-            const { insurance_type_id, name, email, mobile, description } = req.body;
+            const { insurance_type_id, name, email, mobile, description, policy_no } = req.body;
+            const customer_id = req?.customer?.object_id || null;
             let result: any;
             const insuranceType: any = await InsuranceType.findOne({ id: +insurance_type_id });
             result = await ClaimRequest.create({
@@ -33,7 +34,9 @@ export default class ClaimRequestController {
                 name: name,
                 email: email,
                 mobile_no: mobile,
+                policy_no:policy_no,
                 description: description,
+                customer_id:customer_id
             });
 
             const supportEmail:any = await SupportEmailConfig.findOne({type:"claim-request"}).lean();
@@ -42,7 +45,7 @@ export default class ClaimRequestController {
                 customer:name,
                 customer_mobile:mobile,
                 admin_team:"Hero Team",
-                policy_no:"Test",
+                policy_no:policy_no,
                 insurance_type:insuranceType?.name,
                 date_incident:"",
                 description:description
@@ -59,6 +62,23 @@ export default class ClaimRequestController {
             await sendMail(email, "Claim Acknowledgement", acknowledgementBody, []);
             await sendMail(supportEmail?.email, "Claim Request", body, []);
             return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "enquiry-add"), {});
+        } catch (err: any) {
+            return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
+        }
+    }
+
+    public async list(req: Request, res: Response): Promise<any> {
+        try {
+            const fn = "[enquiry][add]";
+            // Set locale
+            const { locale } = req.query;
+            this.locale = (locale as string) || "en";
+
+            const customer_id = req?.customer?.object_id || null;
+
+            let result = await ClaimRequest.find({customer_id:customer_id}).select("id insurance_type name email policy_no mobile_no description createdAt").populate("insurance_type","name id key").lean();
+
+            return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "enquiry-list"), result);
         } catch (err: any) {
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
         }

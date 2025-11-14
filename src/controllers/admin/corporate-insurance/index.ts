@@ -63,7 +63,7 @@ export default class CorporateInsuranceRequestController {
 
             const id = parseInt(req.params.id);
             const result: any = await CorporateInsurance.findOne({ id: id }).populate({ path: "plan_type", select: "name id" }).lean();
-            // console.log(result);
+            
 
             if (result) {
                 return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["enquiry-fetched"]), result);

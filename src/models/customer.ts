@@ -12,6 +12,8 @@ const customerSchema: Schema = new Schema({
     phone: { type: String, required: true, index: { unique: true } },
     device: { type: String, default: 'Android' },
     mobile: { type: String, default: '' }, 
+    emg_mobile: { type: String, default: '' }, 
+    emg_email: { type: String, default: '' }, 
     name: { type: String, default: '' },
     gender: { type: String, default: '' },
     dob: { type: String, default: '' },

@@ -223,7 +223,7 @@ export default class HelperController {
             this.locale = (locale as string) || "en";
 
 
-            const result = await InsuranceType.find({}).where('status').equals(true).sort([['id', 'desc']]).select('id name').lean();
+            const result = await InsuranceType.find({}).where('status').equals(true).sort([['id', 'desc']]).select('id name key show_reg_no_field').lean();
 
             if (result.length > 0) {
                 return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["role-fetched"]), result);

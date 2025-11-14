@@ -68,7 +68,7 @@ export default class FaqController {
 
             const id = parseInt(req.params.id);
             const result: any = await Faqs.findOne({ id: id }).lean();
-            // console.log(result);
+            
 
             if (result) {
                 return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["faq-fetched"]), result);

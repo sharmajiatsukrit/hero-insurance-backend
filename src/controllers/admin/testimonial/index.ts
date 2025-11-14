@@ -61,7 +61,7 @@ export default class TestimonialController {
 
             const id = parseInt(req.params.id);
             const result: any = await Testimonial.findOne({ id: id }).populate("locationId", "id region location latitude longitude").populate("categoryId", "id name").lean();
-            // console.log(result);
+            
 
             if (result) {
                 return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["enquiry-fetched"]), result);

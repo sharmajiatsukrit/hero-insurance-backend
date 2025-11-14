@@ -28,7 +28,7 @@ export default class PageController {
             filter.key = key;
             filter.status = true;
             const result: any = await Page.findOne(filter).lean();
-            // console.log(result);
+            
             let formattedResult: any = {};
 
             if (result) {

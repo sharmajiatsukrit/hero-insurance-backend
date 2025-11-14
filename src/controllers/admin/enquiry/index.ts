@@ -62,7 +62,7 @@ export default class EnquiryController {
 
             const id = parseInt(req.params.id);
             const result: any = await Enquiry.findOne({ id: id }).lean();
-            // console.log(result);
+           
 
             if (result) {
                 return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["enquiry-fetched"]), result);

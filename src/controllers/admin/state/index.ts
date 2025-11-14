@@ -70,7 +70,7 @@ export default class StateController {
 
             const id = parseInt(req.params.id);
             const result: any = await State.findOne({ id: id }).lean().populate("country_id","id name");
-            // console.log(result);
+       
 
             if (result) {
                 return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["state-fetched"]), result);

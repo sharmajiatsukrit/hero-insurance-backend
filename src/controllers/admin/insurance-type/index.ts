@@ -74,10 +74,12 @@ export default class InsuranceTypeController {
             // Set locale
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
-
-            const { name } = req.body;
+            const { name, key, show_reg_no_field, status } = req.body;
             await InsuranceType.create({
                 name: name,
+                key,
+                show_reg_no_field,
+                status,
                 created_by: req.user.object_id,
             });
 
@@ -97,12 +99,14 @@ export default class InsuranceTypeController {
             // Set locale
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
-            const { name, status } = req.body;
+            const { name, key, status, show_reg_no_field } = req.body;
             let result: any = await InsuranceType.findOneAndUpdate(
                 { id: id },
                 {
                     name: name,
+                    key,
                     status: status,
+                    show_reg_no_field,
                     updated_by: req.user.object_id,
                 }
             );

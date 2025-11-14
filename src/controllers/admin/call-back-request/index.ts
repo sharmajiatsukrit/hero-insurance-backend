@@ -63,7 +63,7 @@ export default class CallBackRequestController {
 
             const id = parseInt(req.params.id);
             const result: any = await CallBackRequest.findOne({ id: id }).populate({ path: "service_type", select: "name id" }).lean();
-            // console.log(result);
+            
 
             if (result) {
                 return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["enquiry-fetched"]), result);
