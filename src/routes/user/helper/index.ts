@@ -10,6 +10,7 @@ routes.get("/get-menu-list", validateRequest, authRequest, helperController.getM
 routes.get("/get-insurance-type-list", validateRequest, helperController.getInsuranceTypeList.bind(helperController));
 routes.get("/get-corporate-insurance-type-list", validateRequest, helperController.getCorporateInsuranceTypeList.bind(helperController));
 routes.get("/get-tailored-business-insurance-type-list", validateRequest, helperController.getTailoredBusinessInsuranceTypeList.bind(helperController));
+routes.get("/get-request-callback-dropdowns", validateRequest, helperController.getRequestCallbackDropdowns.bind(helperController));
 
 
 

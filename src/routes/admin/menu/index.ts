@@ -10,6 +10,7 @@ routes.post("/add", validateRequest, authAdmin, menuController.add.bind(menuCont
 routes.post("/drop-down-menu/add", validateRequest, authAdmin, menuController.addDropDownMenu.bind(menuController));
 routes.get("/by-id/:id", validateRequest, authAdmin, menuController.getById.bind(menuController));
 routes.put("/update/:id", validateRequest, authAdmin, menuController.update.bind(menuController));
+routes.put("/drop-down-menu/update/:id", validateRequest, authAdmin, menuController.updateDropDownMenu.bind(menuController));
 routes.delete("/delete/:id", validateRequest, authAdmin, menuController.delete.bind(menuController));
 routes.patch("/status/:id", validateRequest, authAdmin, menuController.status.bind(menuController));
 

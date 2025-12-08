@@ -193,6 +193,11 @@
     "insurance-type-delete": "Insurance Type Deleted successfully",
     "insurance-type-status": "Insurance Type Status successfully Updated",
 
+    "menu-add" : "Menu Added successfully",
+    "menu-update" : "Menu Updated successfully",
+    "menu-delete" : "Menu deleted successfully",
+    "menu-status" : "Menu Status successfully",
+
     "user-detail-updated": "User Updated successfully",
     "user-detail-fetched": "User fetched successfully"
 

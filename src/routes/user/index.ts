@@ -21,6 +21,7 @@ import AllInsuranceRoute from "./all-insurance";
 import CorporateInsuranceRoute from "./corporate-insurance";
 import CallBackRequestRoute from "./call-back-request";
 import InsuranceLeadRoute from "./insurance-lead";
+import HelpRequestRoute from "./help-request";
 
 
 
@@ -43,6 +44,7 @@ routes.use("/key-officer", KeyOfficerRoute);
 routes.use("/bod", BODRoute);
 routes.use("/enquiry", EnquiryRoute);
 routes.use("/claim-request", ClaimRequestRoute);
+routes.use("/help-request", HelpRequestRoute);
 routes.use("/page", PageSectionRoute);
 routes.use("/insurance-solution", InsuranceSolutionyRoute);
 routes.use("/menu", MenuRoute);

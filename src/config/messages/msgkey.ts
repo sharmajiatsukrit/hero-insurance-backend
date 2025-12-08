@@ -175,6 +175,11 @@ export const MessageKey: IObjectKeys = {
     "insurance-type-delete" : "insurance-type-delete",
     "insurance-type-status" : "insurance-type-status",
 
+    "menu-add" : "menu-add",
+    "menu-update" : "menu-update",
+    "menu-delete" : "menu-delete",
+    "menu-status" : "menu-status",
+
     "user-detail-updated": "user-detail-updated",
     "user-detail-fetched": "user-detail-fetched",
 };

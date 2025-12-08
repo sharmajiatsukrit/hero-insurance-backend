@@ -14,6 +14,7 @@ import Menu from "../../../models/menu";
 import InsuranceType from "../../../models/insurance-type";
 import CorporateInsuranceType from "../../../models/corporate-insurance-type";
 import TailoredBusinessInsuranceType from "../../../models/tailored-business-insurance-type";
+import RequestCallbackDropdown from "../../../models/request-callback-dropdown";
 
 const fileName = "[user][helper][index.ts]";
 export default class HelperController {
@@ -268,6 +269,35 @@ export default class HelperController {
             } else {
                 throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
             }
+        } catch (err: any) {
+            return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
+        }
+    }
+
+    public async getRequestCallbackDropdowns(req: Request, res: Response): Promise<any> {
+        try {
+            const { locale, page, limit, search } = req.query;
+            this.locale = (locale as string) || "en";
+            const baseFilter: any = {};
+
+            if (search) {
+                baseFilter.$or = [{ name: { $regex: search, $options: "i" } }];
+            }
+
+            // Fetch both types in parallel
+            const [serviceData, timeSlotData] = await Promise.all([
+                RequestCallbackDropdown.find({ ...baseFilter, type: 0 })
+                    .sort({ _id: -1 })
+                    .select('id name key')
+                    .lean(),
+
+                RequestCallbackDropdown.find({ ...baseFilter, type: 1 })
+                    .sort({ _id: -1 })
+                    .select('id name key')
+                    .lean(),
+            ]);
+
+            return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["insurance-type-fetched"]), {serviceData,timeSlotData});
         } catch (err: any) {
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
         }

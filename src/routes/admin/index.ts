@@ -38,6 +38,7 @@ import InsuranceLeadRoute from "./insurance-lead"
 import SupportEmailConfigRoute from "./support-email-config"
 import CorporateInsuranceTypeRoute from "./corporate-insurance-type"
 import TailoredBusinessInsuranceTypeRoute from "./tailored-business-insurance-type"
+import RequestCallbackDropdownRoute from "./request-callback-dropdown"
 
 
 
@@ -84,6 +85,7 @@ routes.use("/insurance-lead", InsuranceLeadRoute);
 routes.use("/support-email-config", SupportEmailConfigRoute);
 routes.use("/corporate-insurance-type", CorporateInsuranceTypeRoute);
 routes.use("/tailored-business-insurance-type", TailoredBusinessInsuranceTypeRoute);
+routes.use("/request-callback-dropdown", RequestCallbackDropdownRoute);
 
 
 

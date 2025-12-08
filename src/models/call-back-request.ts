@@ -13,12 +13,12 @@ interface ICallBackRequest extends Document {
 }
 
 const CallBackRequestSchema: Schema = new Schema({
-    service_type: { type: Schema.Types.ObjectId, ref: "insurance_types", default: null },
+    service_type: { type: Schema.Types.ObjectId, ref: "request_callback_dropdowns", default: null },
     name: { type: String, default: '' },
     mobile_no: { type: String, default: '' },
     email: { type: String, default: '' },
     location: { type: String, default: '' },
-    preferred_slot: { type: String, default: '' },
+    preferred_slot: { type: Schema.Types.ObjectId, ref: "request_callback_dropdowns", default: null },
     query: { type: String, default: '' },
     status: { type: Boolean, default: true },
 },

@@ -5,6 +5,7 @@ import { HttpCodeEnum } from "../../../enums/server";
 import validate from "./validate";
 import InsuranceType from "../../../models/insurance-type";
 import CallBackRequest from "../../../models/call-back-request";
+import RequestCallbackDropdown from "../../../models/request-callback-dropdown";
 
 const fileName = "[admin][enquiry][index.ts]";
 export default class CallBackRequestRequestController {
@@ -24,14 +25,15 @@ export default class CallBackRequestRequestController {
 
             const { service_type, name, mobile_no, email, location, preferred_slot, query } = req.body;
             let result: any;
-            const insuranceType: any = await InsuranceType.findOne({ id: +service_type });
+            const insuranceType: any = await RequestCallbackDropdown.findOne({ id: +service_type });
+            const preferredSlot: any = await RequestCallbackDropdown.findOne({ id: +preferred_slot });
             result = await CallBackRequest.create({
                 service_type: insuranceType?._id,
                 name,
                 mobile_no,
                 email,
                 location,
-                preferred_slot,
+                preferred_slot:preferredSlot?._id,
                 query,
             });
 
