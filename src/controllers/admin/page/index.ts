@@ -15,7 +15,7 @@ export default class PageController {
     public validate(endPoint: string): ValidationChain[] {
         return validate(endPoint);
     }
-    
+
     public async getPageSectionData(req: Request, res: Response): Promise<any> {
         try {
             const fn = "[pagesection][get]";
@@ -28,7 +28,7 @@ export default class PageController {
             filter.key = key;
             filter.status = true;
             const result: any = await Page.findOne(filter).lean();
-            
+
             let formattedResult: any = {};
 
             if (result) {
@@ -531,6 +531,204 @@ export default class PageController {
             }
 
             throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
+        } catch (err: any) {
+            // Logger.error(`${fileName + fn} Error: ${err.message}`);
+            return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
+        }
+    }
+
+    // Car Insurance Page
+    public async addCISS(req: Request, res: Response): Promise<any> {
+        try {
+            const fn = "[add_car_insurance_seo_section][add]";
+            const { locale } = req.query;
+            this.locale = (locale as string) || "en";
+            const { meta_description } = req.body;
+            Logger.info(`${fileName + fn} req.body: ${JSON.stringify(req.body)}`);
+
+            const seoDetail = await Page.findOne({ key: "add_car_insurance_seo_section" });
+            if (!seoDetail) {
+                const result: any = await Page.create({
+                    key: "add_car_insurance_seo_section",
+                    value: { meta_description },
+                    created_by: req.user?.object_id,
+                });
+                return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "award-add"), {});
+            }
+            await Page.findOneAndUpdate(
+                { key: "add_car_insurance_seo_section" },
+                {
+                    value: { meta_description },
+                    created_by: req.user?.object_id,
+                }
+            );
+
+            return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "award-add"), {});
+        } catch (err: any) {
+            // Logger.error(`${fileName + fn} Error: ${err.message}`);
+            return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
+        }
+    }
+
+    // Bike Insurance Page
+    public async addBISS(req: Request, res: Response): Promise<any> {
+        try {
+            const fn = "[add_bike_insurance_seo_section][add]";
+            const { locale } = req.query;
+            this.locale = (locale as string) || "en";
+            const { meta_description } = req.body;
+            Logger.info(`${fileName + fn} req.body: ${JSON.stringify(req.body)}`);
+
+            const seoDetail = await Page.findOne({ key: "add_bike_insurance_seo_section" });
+            if (!seoDetail) {
+                const result: any = await Page.create({
+                    key: "add_bike_insurance_seo_section",
+                    value: { meta_description },
+                    created_by: req.user?.object_id,
+                });
+                return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "award-add"), {});
+            }
+            await Page.findOneAndUpdate(
+                { key: "add_bike_insurance_seo_section" },
+                {
+                    value: { meta_description },
+                    created_by: req.user?.object_id,
+                }
+            );
+
+            return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "award-add"), {});
+        } catch (err: any) {
+            // Logger.error(`${fileName + fn} Error: ${err.message}`);
+            return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
+        }
+    }
+
+    // Health Insurance Page
+    public async addHISS(req: Request, res: Response): Promise<any> {
+        try {
+            const fn = "[add_health_insurance_seo_section][add]";
+            const { locale } = req.query;
+            this.locale = (locale as string) || "en";
+            const { meta_description } = req.body;
+            Logger.info(`${fileName + fn} req.body: ${JSON.stringify(req.body)}`);
+
+            const seoDetail = await Page.findOne({ key: "add_health_insurance_seo_section" });
+            if (!seoDetail) {
+                const result: any = await Page.create({
+                    key: "add_health_insurance_seo_section",
+                    value: { meta_description },
+                    created_by: req.user?.object_id,
+                });
+                return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "award-add"), {});
+            }
+            await Page.findOneAndUpdate(
+                { key: "add_health_insurance_seo_section" },
+                {
+                    value: { meta_description },
+                    created_by: req.user?.object_id,
+                }
+            );
+
+            return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "award-add"), {});
+        } catch (err: any) {
+            // Logger.error(`${fileName + fn} Error: ${err.message}`);
+            return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
+        }
+    }
+
+    // Corporate Insurance Page
+    public async addCorpISS(req: Request, res: Response): Promise<any> {
+        try {
+            const fn = "[add_corporate_insurance_seo_section][add]";
+            const { locale } = req.query;
+            this.locale = (locale as string) || "en";
+            const { meta_description } = req.body;
+            Logger.info(`${fileName + fn} req.body: ${JSON.stringify(req.body)}`);
+
+            const seoDetail = await Page.findOne({ key: "add_corporate_insurance_seo_section" });
+            if (!seoDetail) {
+                const result: any = await Page.create({
+                    key: "add_corporate_insurance_seo_section",
+                    value: { meta_description },
+                    created_by: req.user?.object_id,
+                });
+                return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "award-add"), {});
+            }
+            await Page.findOneAndUpdate(
+                { key: "add_corporate_insurance_seo_section" },
+                {
+                    value: { meta_description },
+                    created_by: req.user?.object_id,
+                }
+            );
+
+            return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "award-add"), {});
+        } catch (err: any) {
+            // Logger.error(`${fileName + fn} Error: ${err.message}`);
+            return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
+        }
+    }
+
+    // Tailored Insurance Page
+    public async addTIBSS(req: Request, res: Response): Promise<any> {
+        try {
+            const fn = "[add_tailored_insurance_seo_section][add]";
+            const { locale } = req.query;
+            this.locale = (locale as string) || "en";
+            const { meta_description } = req.body;
+            Logger.info(`${fileName + fn} req.body: ${JSON.stringify(req.body)}`);
+
+            const seoDetail = await Page.findOne({ key: "add_tailored_insurance_seo_section" });
+            if (!seoDetail) {
+                const result: any = await Page.create({
+                    key: "add_tailored_insurance_seo_section",
+                    value: { meta_description },
+                    created_by: req.user?.object_id,
+                });
+                return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "award-add"), {});
+            }
+            await Page.findOneAndUpdate(
+                { key: "add_tailored_insurance_seo_section" },
+                {
+                    value: { meta_description },
+                    created_by: req.user?.object_id,
+                }
+            );
+
+            return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "award-add"), {});
+        } catch (err: any) {
+            // Logger.error(`${fileName + fn} Error: ${err.message}`);
+            return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
+        }
+    }
+
+    // Term Insurance Page
+    public async addTISS(req: Request, res: Response): Promise<any> {
+        try {
+            const fn = "[add_term_insurance_seo_section][add]";
+            const { locale } = req.query;
+            this.locale = (locale as string) || "en";
+            const { meta_description } = req.body;
+            Logger.info(`${fileName + fn} req.body: ${JSON.stringify(req.body)}`);
+
+            const seoDetail = await Page.findOne({ key: "add_term_insurance_seo_section" });
+            if (!seoDetail) {
+                const result: any = await Page.create({
+                    key: "add_term_insurance_seo_section",
+                    value: { meta_description },
+                    created_by: req.user?.object_id,
+                });
+                return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "award-add"), {});
+            }
+            await Page.findOneAndUpdate(
+                { key: "add_term_insurance_seo_section" },
+                {
+                    value: { meta_description },
+                    created_by: req.user?.object_id,
+                }
+            );
+
+            return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "award-add"), {});
         } catch (err: any) {
             // Logger.error(`${fileName + fn} Error: ${err.message}`);
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
