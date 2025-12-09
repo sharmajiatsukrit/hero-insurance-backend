@@ -6,7 +6,6 @@ import AuthRoutes from "../user/auth";
 import Deviceid from "./deviceid";
 
 import HeroRoutes from "./hero";
-import NotificationRoutes from "../user/notification";
 import HelperRoutes from "../user/helper";
 
 const routes: Router = expres.Router();

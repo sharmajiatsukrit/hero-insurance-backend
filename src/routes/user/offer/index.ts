@@ -1,6 +1,5 @@
 import expres, { Router } from "express";
 import { validateRequest } from "../../../utils/middleware";
-import BODController from "../../../controllers/user/board-of-director";
 import OfferController from "../../../controllers/user/offer";
 const routes: Router= expres.Router();
 const offrController = new OfferController();

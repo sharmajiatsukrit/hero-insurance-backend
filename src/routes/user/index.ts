@@ -3,11 +3,11 @@ import AuthRoutes from "../user/auth";
 
 import Deviceid from "./deviceid";
 
-import NotificationRoutes from "../user/notification";
 import HelperRoutes from "../user/helper";
 import BlogRoute from "./blog/index";
 import RecentBlogRoute from "./home/recent-blogs/index";
 import OfferRoute from "./offer";
+import AdsRoute from "./ads";
 import TestimonialRoute from "./testimonial";
 import AwardRoute from "./award";
 import BODRoute from "./board-of-director";
@@ -33,11 +33,11 @@ routes.use("/auth", AuthRoutes);
 
 
 routes.use("/firebase", Deviceid);
-routes.use("/notifications", NotificationRoutes);
 routes.use("/helper", HelperRoutes);
 routes.use("/blog", BlogRoute);
 routes.use("/recent-blog", RecentBlogRoute);
 routes.use("/offer", OfferRoute);
+routes.use("/ads", AdsRoute);
 routes.use("/testimonial", TestimonialRoute);
 routes.use("/awards", AwardRoute);
 routes.use("/key-officer", KeyOfficerRoute);

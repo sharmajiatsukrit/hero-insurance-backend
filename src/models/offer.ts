@@ -18,6 +18,7 @@ interface IOffer extends Document {
 const OfferSchema: Schema = new Schema({
     offer_name: { type: String, default: '' },
     offer_link: { type: String, default: '' },
+    offer_mobile_link: { type: String, default: '' },
     valid_from: { type: String, default: '' },
     valid_to: { type: String, default: '' },
     offer_image: { type: String, default: '' },
