@@ -540,23 +540,23 @@ export default class PageController {
     // Car Insurance Page
     public async addCISS(req: Request, res: Response): Promise<any> {
         try {
-            const fn = "[add_car_insurance_seo_section][add]";
+            const fn = "[car_insurance_seo_section][add]";
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
             const { meta_description } = req.body;
             Logger.info(`${fileName + fn} req.body: ${JSON.stringify(req.body)}`);
 
-            const seoDetail = await Page.findOne({ key: "add_car_insurance_seo_section" });
+            const seoDetail = await Page.findOne({ key: "car_insurance_seo_section" });
             if (!seoDetail) {
                 const result: any = await Page.create({
-                    key: "add_car_insurance_seo_section",
+                    key: "car_insurance_seo_section",
                     value: { meta_description },
                     created_by: req.user?.object_id,
                 });
                 return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "award-add"), {});
             }
             await Page.findOneAndUpdate(
-                { key: "add_car_insurance_seo_section" },
+                { key: "car_insurance_seo_section" },
                 {
                     value: { meta_description },
                     created_by: req.user?.object_id,
@@ -573,23 +573,23 @@ export default class PageController {
     // Bike Insurance Page
     public async addBISS(req: Request, res: Response): Promise<any> {
         try {
-            const fn = "[add_bike_insurance_seo_section][add]";
+            const fn = "[bike_insurance_seo_section][add]";
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
             const { meta_description } = req.body;
             Logger.info(`${fileName + fn} req.body: ${JSON.stringify(req.body)}`);
 
-            const seoDetail = await Page.findOne({ key: "add_bike_insurance_seo_section" });
+            const seoDetail = await Page.findOne({ key: "bike_insurance_seo_section" });
             if (!seoDetail) {
                 const result: any = await Page.create({
-                    key: "add_bike_insurance_seo_section",
+                    key: "bike_insurance_seo_section",
                     value: { meta_description },
                     created_by: req.user?.object_id,
                 });
                 return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "award-add"), {});
             }
             await Page.findOneAndUpdate(
-                { key: "add_bike_insurance_seo_section" },
+                { key: "bike_insurance_seo_section" },
                 {
                     value: { meta_description },
                     created_by: req.user?.object_id,
@@ -606,23 +606,23 @@ export default class PageController {
     // Health Insurance Page
     public async addHISS(req: Request, res: Response): Promise<any> {
         try {
-            const fn = "[add_health_insurance_seo_section][add]";
+            const fn = "[health_insurance_seo_section][add]";
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
             const { meta_description } = req.body;
             Logger.info(`${fileName + fn} req.body: ${JSON.stringify(req.body)}`);
 
-            const seoDetail = await Page.findOne({ key: "add_health_insurance_seo_section" });
+            const seoDetail = await Page.findOne({ key: "health_insurance_seo_section" });
             if (!seoDetail) {
                 const result: any = await Page.create({
-                    key: "add_health_insurance_seo_section",
+                    key: "health_insurance_seo_section",
                     value: { meta_description },
                     created_by: req.user?.object_id,
                 });
                 return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "award-add"), {});
             }
             await Page.findOneAndUpdate(
-                { key: "add_health_insurance_seo_section" },
+                { key: "health_insurance_seo_section" },
                 {
                     value: { meta_description },
                     created_by: req.user?.object_id,
@@ -639,23 +639,23 @@ export default class PageController {
     // Corporate Insurance Page
     public async addCorpISS(req: Request, res: Response): Promise<any> {
         try {
-            const fn = "[add_corporate_insurance_seo_section][add]";
+            const fn = "[corporate_insurance_seo_section][add]";
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
             const { meta_description } = req.body;
             Logger.info(`${fileName + fn} req.body: ${JSON.stringify(req.body)}`);
 
-            const seoDetail = await Page.findOne({ key: "add_corporate_insurance_seo_section" });
+            const seoDetail = await Page.findOne({ key: "corporate_insurance_seo_section" });
             if (!seoDetail) {
                 const result: any = await Page.create({
-                    key: "add_corporate_insurance_seo_section",
+                    key: "corporate_insurance_seo_section",
                     value: { meta_description },
                     created_by: req.user?.object_id,
                 });
                 return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "award-add"), {});
             }
             await Page.findOneAndUpdate(
-                { key: "add_corporate_insurance_seo_section" },
+                { key: "corporate_insurance_seo_section" },
                 {
                     value: { meta_description },
                     created_by: req.user?.object_id,
@@ -672,23 +672,23 @@ export default class PageController {
     // Tailored Insurance Page
     public async addTIBSS(req: Request, res: Response): Promise<any> {
         try {
-            const fn = "[add_tailored_insurance_seo_section][add]";
+            const fn = "[tailored_insurance_seo_section][add]";
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
             const { meta_description } = req.body;
             Logger.info(`${fileName + fn} req.body: ${JSON.stringify(req.body)}`);
 
-            const seoDetail = await Page.findOne({ key: "add_tailored_insurance_seo_section" });
+            const seoDetail = await Page.findOne({ key: "tailored_insurance_seo_section" });
             if (!seoDetail) {
                 const result: any = await Page.create({
-                    key: "add_tailored_insurance_seo_section",
+                    key: "tailored_insurance_seo_section",
                     value: { meta_description },
                     created_by: req.user?.object_id,
                 });
                 return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "award-add"), {});
             }
             await Page.findOneAndUpdate(
-                { key: "add_tailored_insurance_seo_section" },
+                { key: "tailored_insurance_seo_section" },
                 {
                     value: { meta_description },
                     created_by: req.user?.object_id,
@@ -705,23 +705,23 @@ export default class PageController {
     // Term Insurance Page
     public async addTISS(req: Request, res: Response): Promise<any> {
         try {
-            const fn = "[add_term_insurance_seo_section][add]";
+            const fn = "[term_insurance_seo_section][add]";
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
             const { meta_description } = req.body;
             Logger.info(`${fileName + fn} req.body: ${JSON.stringify(req.body)}`);
 
-            const seoDetail = await Page.findOne({ key: "add_term_insurance_seo_section" });
+            const seoDetail = await Page.findOne({ key: "term_insurance_seo_section" });
             if (!seoDetail) {
                 const result: any = await Page.create({
-                    key: "add_term_insurance_seo_section",
+                    key: "term_insurance_seo_section",
                     value: { meta_description },
                     created_by: req.user?.object_id,
                 });
                 return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "award-add"), {});
             }
             await Page.findOneAndUpdate(
-                { key: "add_term_insurance_seo_section" },
+                { key: "term_insurance_seo_section" },
                 {
                     value: { meta_description },
                     created_by: req.user?.object_id,
