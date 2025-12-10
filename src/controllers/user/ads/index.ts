@@ -36,10 +36,9 @@ export default class AdsController {
                 .sort({ _id: -1 })
                 .skip(skip)
                 .limit(limitNumber)
+                .select("id name link image")
                 .lean();
 
-            const totalCount = await Ads.countDocuments(filter);
-            const totalPages = Math.ceil(totalCount / limitNumber);
             let formattedResults: any[] = [];
 
             if (results.length > 0) {
@@ -49,13 +48,9 @@ export default class AdsController {
                 }));
             }
 
-
             if (results.length > 0) {
                 return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["faq-fetched"]), {
                     data: formattedResults,
-                    totalCount,
-                    totalPages,
-                    currentPage: pageNumber,
                 });
             } else {
                 throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));

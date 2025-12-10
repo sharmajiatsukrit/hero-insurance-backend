@@ -3,24 +3,22 @@ import { autoIncrement } from 'mongoose-plugin-autoinc';
 
 interface INotifications extends Document {
     customer_id: number;
-    title: string;
-    message: string;
-    read_at: string;
+    unique_id:string,
+    notification_type: string,
 }
 
 const notificationSchema: Schema = new Schema({
     customer_id: { type: Schema.Types.ObjectId, ref: 'customers' },
-    title: { type: String, default: '' },
-    message: { type: String, default: '' },
-    read_at: { type: Date, default: null },
+    unique_id: { type: String, default: '' },
+    notification_type: { type: String, default: '' },
 },
     {
         timestamps: true,
         versionKey: false
     });
 
-notificationSchema.plugin(autoIncrement, { model: 'notifications', field: 'id', startAt: 1 });
+notificationSchema.plugin(autoIncrement, { model: 'viewed_notifications', field: 'id', startAt: 1 });
 
-const Notifications = model<INotifications>('notifications', notificationSchema);
+const Notifications = model<INotifications>('viewed_notifications', notificationSchema);
 
 export default Notifications;
