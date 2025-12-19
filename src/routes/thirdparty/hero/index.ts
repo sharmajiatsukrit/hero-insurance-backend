@@ -23,6 +23,12 @@ routes.post("/get-policy-list", validateRequest, authRequest, heroController.get
 routes.post("/get-notification-list", validateRequest, authRequest, heroController.getNotificationList.bind(heroController));
 routes.post("/notification-viewed", validateRequest, authRequest, heroController.markNotificationViewed.bind(heroController));
 routes.get("/get-misp-policy-details/:policy_id", validateRequest, authRequest, heroController.getMispPolicyDetails.bind(heroController));
+// Claim Related Api
+routes.post("/ClaimPolicy/StateList", validateRequest, authRequest, heroController.getStateList.bind(heroController));
+routes.post("/ClaimPolicy/CityList", validateRequest, authRequest, heroController.getCityList.bind(heroController));
+routes.post("/ClaimPolicy/DelearDetails", validateRequest, authRequest, heroController.getDelearDetailsList.bind(heroController));
+routes.post("/ClaimPolicy/SaveClaim", validateRequest, authRequest, heroController.saveCalimRequest.bind(heroController));
+routes.post("/ClaimPolicy/ClaimOnPolicyDetailsbyMobileNo", validateRequest, authRequest, heroController.getCalimRequestList.bind(heroController));
 
 
 routes.post("/get-proposal-token", validateRequest, heroController.generateProposalToken.bind(heroController));

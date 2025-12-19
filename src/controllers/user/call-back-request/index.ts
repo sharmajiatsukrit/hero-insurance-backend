@@ -23,7 +23,7 @@ export default class CallBackRequestRequestController {
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
 
-            const { service_type, name, mobile_no, email, location, preferred_slot, query } = req.body;
+            const { service_type, name, mobile_no, email, location, preferred_date,preferred_slot, query } = req.body;
             let result: any;
             const insuranceType: any = await RequestCallbackDropdown.findOne({ id: +service_type });
             const preferredSlot: any = await RequestCallbackDropdown.findOne({ id: +preferred_slot });
@@ -33,6 +33,7 @@ export default class CallBackRequestRequestController {
                 mobile_no,
                 email,
                 location,
+                preferred_date,
                 preferred_slot:preferredSlot?._id,
                 query,
             });

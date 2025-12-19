@@ -81,7 +81,7 @@ export default class TestimonialController {
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
             const { name, location, star_rating, description, locationId, categoryId, status = true } = req.body;
-            const rating = parseInt(star_rating as string);
+            const rating = Number(star_rating);
             let result: any;
             let locationData: any = null;
             let locationObjId: any = null;
@@ -122,7 +122,7 @@ export default class TestimonialController {
             this.locale = (locale as string) || "en";
 
             const { name, location, star_rating, description, locationId, categoryId, status = true } = req.body;
-            const rating = parseInt(star_rating as string);
+            const rating = Number(star_rating);
 
             let locationData: any = null;
             let locationObjId: any = null;

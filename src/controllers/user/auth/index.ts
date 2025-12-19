@@ -43,7 +43,6 @@ export default class AuthController {
     // login
     public async signIn(req: Request, res: Response): Promise<any> {
         try {
-            const fn = "[login]";
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
 
@@ -55,33 +54,37 @@ export default class AuthController {
             let userData = await Customer.findOne({ phone });
 
             if (!userData) {
-                // User does not exist, register the user
-                const newUser = await Customer.create({ phone: phone, status: 1 });
-
-                userData = newUser;
+                userData = await Customer.create({ phone, status: 1 });
             }
 
-            // Generate OTP for the user
             const otp = await this.generateOtp(userData.id);
-            // const mess = {data:{}};
+
             const log = {
-                phone: phone,
-                otp: otp,
+                phone,
+                otp,
                 timestamp: Date.now(),
             };
-            let logdata = JSON.stringify(log);
-            const singleQuotedString = logdata.replace(/"/g, "'");
-            const logs: any = await axios({
-                url: "https://misp.heroinsurance.com/prod/services/HeroOne/api/Policy/SaveMongoLog",
-                method: "POST",
-                maxBodyLength: Infinity,
-                data: `"${singleQuotedString}"`,
-                headers: { "Content-Type": "application/json" },
-            });
-            const mess = await sendSMS(phone, `${otp} is your One Time Password (OTP) for login into your account. Please do not share your OTP with anyone. - HIBIPL`);
-            // console.log(mess.data);
+
+            const singleQuotedString = JSON.stringify(log).replace(/"/g, "'");
+
+            // 🔥 NON-BLOCKING LOGGING
+            try {
+                await axios({
+                    url: "https://misp.heroinsurance.com/prod/services/HeroOne/api/Policy/SaveMongoLog",
+                    method: "POST",
+                    maxBodyLength: Infinity,
+                    data: `"${singleQuotedString}"`,
+                    headers: { "Content-Type": "application/json" },
+                });
+            } catch (logError) {
+                console.error("[SaveMongoLog failed]", logError);
+            }
+
+            await sendSMS(phone, `${otp} is your One Time Password (OTP) for login into your account. Please do not share your OTP with anyone. - HIBIPL`);
+
             return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "otp-sent"), {});
         } catch (err: any) {
+            console.error("[signIn error]", err);
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
         }
     }
@@ -663,7 +666,7 @@ export default class AuthController {
             // Logger.info(`${fileName + fn} req.body: ${JSON.stringify(req.body)}`);
 
             const device: any = await Deviceid.findOne({ device_id: device_id }).lean();
-       
+
             if (!device) {
                 await Deviceid.create({ device_id: device_id, type: type, created_by: req.customer.object_id });
             }
