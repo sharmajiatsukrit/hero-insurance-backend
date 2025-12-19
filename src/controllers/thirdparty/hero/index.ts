@@ -270,7 +270,7 @@ export default class HeroController {
             const { username, password } = req.body;
             const data: any = { username, password };
             const headers: any = { Authorization: "Bearer " + token };
-            const result = await networkRequest("POST", "https://misp.heroinsurance.com/uat/services/HeroOne/api/Login/ValidateMISPLogin", data, headers);
+            const result = await networkRequest("POST", "https://misp.heroinsurance.com/prod/services/HeroOne/api/Login/ValidateMISPLogin", data, headers);
 
             if (result) {
                 return serverResponse(res, HttpCodeEnum.OK, "Success", result.data);
@@ -381,7 +381,7 @@ export default class HeroController {
             this.locale = (locale as string) || "en";
             const { token } = await getClaimAuthToken();
             const headers: any = { Authorization: "Bearer " + token };
-            const result = await networkRequest("POST", "https://misp.heroinsurance.com/uat/services/B2CClaim/api/v1/ClaimPolicy/StateList", {}, headers);
+            const result = await networkRequest("POST", "https://misp.heroinsurance.com/prod/services/B2CClaim/api/v1/ClaimPolicy/StateList", {}, headers);
             console.log(token);
             if (result) {
                 return res.status(200).json({
@@ -403,7 +403,7 @@ export default class HeroController {
             const { stateid } = req.body;
             const { token } = await getClaimAuthToken();
             const headers: any = { Authorization: "Bearer " + token };
-            const result = await networkRequest("POST", `https://misp.heroinsurance.com/uat/services/B2CClaim/api/v1/ClaimPolicy/CityList?stateid=${stateid}`, {}, headers);
+            const result = await networkRequest("POST", `https://misp.heroinsurance.com/prod/services/B2CClaim/api/v1/ClaimPolicy/CityList?stateid=${stateid}`, {}, headers);
             if (result) {
                 return res.status(200).json({
                     ...result?.data,
@@ -426,7 +426,7 @@ export default class HeroController {
             const headers: any = { Authorization: "Bearer " + token };
             const result = await networkRequest(
                 "POST",
-                `https://misp.heroinsurance.com/uat/services/B2CClaim/api/v1/ClaimPolicy/DelearDetails?stateid=${stateid}&cityid=${cityid}`,
+                `https://misp.heroinsurance.com/prod/services/B2CClaim/api/v1/ClaimPolicy/DelearDetails?stateid=${stateid}&cityid=${cityid}`,
                 {},
                 headers
             );
@@ -449,7 +449,7 @@ export default class HeroController {
             this.locale = (locale as string) || "en";
             const { token } = await getClaimAuthToken();
             const headers: any = { Authorization: "Bearer " + token };
-            const result = await networkRequest("POST", `https://misp.heroinsurance.com/uat/services/B2CClaim/api/v1/ClaimPolicy/SaveClaim`, req.body, headers);
+            const result = await networkRequest("POST", `https://misp.heroinsurance.com/prod/services/B2CClaim/api/v1/ClaimPolicy/SaveClaim`, req.body, headers);
             if (result) {
                 return res.status(200).json({
                     ...result?.data,
@@ -472,7 +472,7 @@ export default class HeroController {
             const headers: any = { Authorization: "Bearer " + token };
             const result = await networkRequest(
                 "POST",
-                `https://misp.heroinsurance.com/uat/services/B2CClaim/api/v1/ClaimPolicy/ClaimOnPolicyDetailsbyMobileNo?MobileNo=${MobileNo}`,
+                `https://misp.heroinsurance.com/prod/services/B2CClaim/api/v1/ClaimPolicy/ClaimOnPolicyDetailsbyMobileNo?MobileNo=${MobileNo}`,
                 req.body,
                 headers
             );
@@ -816,7 +816,7 @@ export default class HeroController {
         const { data: token } = await getMispToken();
         const headers: any = { Authorization: "Bearer " + token };
         const data: any = { MobileNo: mobile, Registration_No: registration_no };
-        const result = await networkRequest("POST", "https://misp.heroinsurance.com/uat/services/HeroOne/api/Policy/PolicyDetails", data, headers);
+        const result = await networkRequest("POST", "https://misp.heroinsurance.com/prod/services/HeroOne/api/Policy/PolicyDetails", data, headers);
         return result?.data || null;
     }
 
@@ -852,7 +852,7 @@ export default class HeroController {
             const policy_id = req.params.policy_id;
             const result = await networkRequest(
                 "POST",
-                `https://misp.heroinsurance.com/uat/services/BitlyWebAPI/api/GenPDFOnline/GenPDFOnline?APIKEY=H$E@R0@123&Policy_id=${policy_id}&TransactionID=1&UserID=1&MachineIp=1&Request_Type=1`
+                `https://misp.heroinsurance.com/prod/services/BitlyWebAPI/api/GenPDFOnline/GenPDFOnline?APIKEY=H$E@R0@123&Policy_id=${policy_id}&TransactionID=1&UserID=1&MachineIp=1&Request_Type=1`
             );
             if (result) {
                 return serverResponse(res, HttpCodeEnum.OK, "Success", result.data);
@@ -872,7 +872,7 @@ export default class HeroController {
             const { data: token } = await getMispToken();
             const headers: any = { Authorization: "Bearer " + token };
             const data: any = { MobileNo, Registration_No };
-            const result = await networkRequest("POST", "https://misp.heroinsurance.com/uat/services/HeroOne/api/Policy/PolicyDetails", data, headers);
+            const result = await networkRequest("POST", "https://misp.heroinsurance.com/prod/services/HeroOne/api/Policy/PolicyDetails", data, headers);
             if (result) {
                 return serverResponse(res, HttpCodeEnum.OK, "Success", result.data);
             } else {

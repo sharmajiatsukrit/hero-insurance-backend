@@ -7,6 +7,7 @@ async function getMispToken() {
     };
     const headers = {};
     const result = await networkRequest("GET", "https://misp.heroinsurance.com/prod/services/HeroOne/api/Authenticate/MISPAuthorization", data, headers);
+
     if (result) {
         return result.data;
     }
@@ -44,7 +45,7 @@ async function getClaimAuthToken() {
         machineIp: "string",
     };
     const headers = {};
-    const result = await networkRequest("POST", "https://misp.heroinsurance.com/uat/services/B2CClaim/api/v1/Auth/login", data, headers);
+    const result = await networkRequest("POST", "https://misp.heroinsurance.com/prod/services/B2CClaim/api/v1/Auth/login", data, headers);
     if (result) {
         return result.data;
     }
