@@ -18,6 +18,7 @@ const CallBackRequestSchema: Schema = new Schema({
     mobile_no: { type: String, default: '' },
     email: { type: String, default: '' },
     location: { type: String, default: '' },
+    preferred_date: { type: String, default: '' },
     preferred_slot: { type: Schema.Types.ObjectId, ref: "request_callback_dropdowns", default: null },
     query: { type: String, default: '' },
     status: { type: Boolean, default: true },

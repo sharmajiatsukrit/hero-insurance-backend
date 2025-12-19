@@ -21,7 +21,7 @@ import { networkRequest } from "../../../utils/request";
 import { randomUUID } from "crypto";
 import { Notifications, Otps, UnifiedLead } from "../../../models";
 import { sendMail } from "../../../utils/mail";
-import { getMispToken, getPospToken } from "../../../utils/thirdparty/misptoken";
+import { getClaimAuthToken, getMispToken, getPospToken } from "../../../utils/thirdparty/misptoken";
 import PospData from "../../../models/pospdata";
 import Bcrypt from "bcryptjs";
 import { sendSMS } from "../../../utils/smsgupshup";
@@ -373,6 +373,142 @@ export default class HeroController {
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
         }
     }
+
+    // Claim Related Api
+    public async getStateList(req: Request, res: Response): Promise<any> {
+        try {
+            const { locale } = req.query;
+            this.locale = (locale as string) || "en";
+            const { token } = await getClaimAuthToken();
+            const headers: any = { Authorization: "Bearer " + token };
+            const result = await networkRequest("POST", "https://misp.heroinsurance.com/uat/services/B2CClaim/api/v1/ClaimPolicy/StateList", {}, headers);
+            console.log(token);
+            if (result) {
+                return res.status(200).json({
+                    ...result?.data,
+                });
+            } else {
+                throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
+            }
+        } catch (err: any) {
+            console.log(err);
+            return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
+        }
+    }
+
+    public async getCityList(req: Request, res: Response): Promise<any> {
+        try {
+            const { locale } = req.query;
+            this.locale = (locale as string) || "en";
+            const { stateid } = req.body;
+            const { token } = await getClaimAuthToken();
+            const headers: any = { Authorization: "Bearer " + token };
+            const result = await networkRequest("POST", `https://misp.heroinsurance.com/uat/services/B2CClaim/api/v1/ClaimPolicy/CityList?stateid=${stateid}`, {}, headers);
+            if (result) {
+                return res.status(200).json({
+                    ...result?.data,
+                });
+            } else {
+                throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
+            }
+        } catch (err: any) {
+            console.log(err);
+            return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
+        }
+    }
+
+    public async getDelearDetailsList(req: Request, res: Response): Promise<any> {
+        try {
+            const { locale } = req.query;
+            this.locale = (locale as string) || "en";
+            const { stateid, cityid } = req.body;
+            const { token } = await getClaimAuthToken();
+            const headers: any = { Authorization: "Bearer " + token };
+            const result = await networkRequest(
+                "POST",
+                `https://misp.heroinsurance.com/uat/services/B2CClaim/api/v1/ClaimPolicy/DelearDetails?stateid=${stateid}&cityid=${cityid}`,
+                {},
+                headers
+            );
+            if (result) {
+                return res.status(200).json({
+                    ...result?.data,
+                });
+            } else {
+                throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
+            }
+        } catch (err: any) {
+            console.log(err);
+            return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
+        }
+    }
+
+    public async saveCalimRequest(req: Request, res: Response): Promise<any> {
+        try {
+            const { locale } = req.query;
+            this.locale = (locale as string) || "en";
+            const { token } = await getClaimAuthToken();
+            const headers: any = { Authorization: "Bearer " + token };
+            const result = await networkRequest("POST", `https://misp.heroinsurance.com/uat/services/B2CClaim/api/v1/ClaimPolicy/SaveClaim`, req.body, headers);
+            if (result) {
+                return res.status(200).json({
+                    ...result?.data,
+                });
+            } else {
+                throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
+            }
+        } catch (err: any) {
+            console.log(err);
+            return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
+        }
+    }
+
+    public async getCalimRequestList(req: Request, res: Response): Promise<any> {
+        try {
+            const { locale } = req.query;
+            this.locale = (locale as string) || "en";
+            const { MobileNo } = req.body;
+            const { token } = await getClaimAuthToken();
+            const headers: any = { Authorization: "Bearer " + token };
+            const result = await networkRequest(
+                "POST",
+                `https://misp.heroinsurance.com/uat/services/B2CClaim/api/v1/ClaimPolicy/ClaimOnPolicyDetailsbyMobileNo?MobileNo=${MobileNo}`,
+                req.body,
+                headers
+            );
+            if (result) {
+                return res.status(200).json({
+                    ...result?.data,
+                });
+            } else {
+                throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
+            }
+        } catch (err: any) {
+            console.log(err);
+            return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
+        }
+    }
+
+    // public async saveCalimRequest(req: Request, res: Response): Promise<any> {
+    //     try {
+    //         const { locale } = req.query;
+    //         this.locale = (locale as string) || "en";
+    //         // const { data: token } = await getClaimAuthToken();
+    //         // const headers: any = { Authorization: "Bearer " + token };
+    //         const headers: any = {};
+    //         const result = await networkRequest("POST", `https://misp.heroinsurance.com/uat/services/B2CClaim/api/v1/ClaimPolicy/SaveClaim`, req.body, headers);
+    //         if (result) {
+    //             return res.status(200).json({
+    //                 ...result?.data,
+    //             });
+    //         } else {
+    //             throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
+    //         }
+    //     } catch (err: any) {
+    //         console.log(err);
+    //         return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
+    //     }
+    // }
 
     public async cleaverTapEvent(req: Request, res: Response): Promise<any> {
         try {

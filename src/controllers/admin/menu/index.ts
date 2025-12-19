@@ -42,9 +42,7 @@ export default class MenuItemController {
             const { locale, search } = req.query;
             this.locale = (locale as string) || "en";
 
-            const baseFilter: any = {
-                status: true,
-            };
+            const baseFilter: any = {};
 
             if (search) {
                 baseFilter.$or = [{ name: { $regex: search, $options: "i" } }];
