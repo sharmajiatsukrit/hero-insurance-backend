@@ -32,7 +32,7 @@ export default class HelpRequestController {
                 email: email,
                 mobile: mobile,
                 description: description,
-                customer_id:customer_id
+                customer_id: customer_id,
             });
 
             // const supportEmail:any = await SupportEmailConfig.findOne({type:"claim-request"}).lean();
@@ -72,7 +72,11 @@ export default class HelpRequestController {
 
             const customer_id = req?.customer?.object_id || null;
 
-            let result = await HelpRequest.find({customer_id:customer_id}).select("id name email mobile description createdAt").lean();
+            let result = await HelpRequest.find({ customer_id })
+                .select("id name email mobile description createdAt")
+                .sort({ createdAt: -1 }) 
+                .limit(20) 
+                .lean();
 
             return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "enquiry-list"), result);
         } catch (err: any) {
