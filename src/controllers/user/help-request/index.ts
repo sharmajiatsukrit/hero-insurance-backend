@@ -24,7 +24,7 @@ export default class HelpRequestController {
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
 
-            const { name, email, mobile, description } = req.body;
+            const { name, email, mobile, description, policy_no } = req.body;
             const customer_id = req?.customer?.object_id || null;
             let result: any;
             result = await HelpRequest.create({
@@ -32,6 +32,7 @@ export default class HelpRequestController {
                 email: email,
                 mobile: mobile,
                 description: description,
+                policy_no,
                 customer_id: customer_id,
             });
 
@@ -73,9 +74,9 @@ export default class HelpRequestController {
             const customer_id = req?.customer?.object_id || null;
 
             let result = await HelpRequest.find({ customer_id })
-                .select("id name email mobile description createdAt")
+                .select("id name email mobile description status policy_no createdAt")
                 .sort({ createdAt: -1 }) 
-                .limit(20) 
+                .limit(5) 
                 .lean();
 
             return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "enquiry-list"), result);
