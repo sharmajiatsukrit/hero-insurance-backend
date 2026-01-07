@@ -18,22 +18,31 @@ export default class InsuranceLeadController {
         try {
             const fn = "[enquiry][getList]";
             // Set locale
-            const { locale, page, limit, search } = req.query;
+            const { locale, page, limit, search, from, to } = req.query;
             this.locale = (locale as string) || "en";
 
             const pageNumber = parseInt(page as string) || 1;
             const limitNumber = parseInt(limit as string) || 10;
             const skip = (pageNumber - 1) * limitNumber;
-           
+
             const filter: any = {};
             if (search) {
-                filter.$or = [{ name: { $regex: search, $options: "i" } }];
+                filter.$or = [
+                    { name: { $regex: search, $options: "i" } },
+                    { type: { $regex: search, $options: "i" } },
+                    { registration_no: { $regex: search, $options: "i" } },
+                    { email: { $regex: search, $options: "i" } },
+                    { mobile: { $regex: search, $options: "i" } },
+                ];
             }
-            const results = await Insurancelead.find(filter)
-                .sort({ _id: -1 })
-                .skip(skip)
-                .limit(limitNumber)
-                .lean();
+
+            if (from && to) {
+                filter.createdAt = {
+                    $gte: new Date(from as string),
+                    $lt: new Date(new Date(to as string).setDate(new Date(to as string).getDate() + 1)),
+                };
+            }
+            const results = await Insurancelead.find(filter).sort({ _id: -1 }).skip(skip).limit(limitNumber).lean();
 
             const totalCount = await Insurancelead.countDocuments(filter);
             const totalPages = Math.ceil(totalCount / limitNumber);
@@ -62,7 +71,6 @@ export default class InsuranceLeadController {
 
             const id = parseInt(req.params.id);
             const result: any = await Insurancelead.findOne({ id: id }).lean();
-           
 
             if (result) {
                 return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["enquiry-fetched"]), result);
@@ -73,5 +81,4 @@ export default class InsuranceLeadController {
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
         }
     }
-
 }

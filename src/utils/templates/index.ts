@@ -239,8 +239,232 @@ export const claim_acknowledgement_template = `<!doctype html>
   </center>
 </body>
 </html>
-`
+`;
+export const lead_request_template = `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Lead Request</title>
+  </head>
 
+  <body
+    style="
+      margin: 0;
+      padding: 0;
+      background: #f4f4f4;
+      font-family: Arial, Helvetica, sans-serif;
+    "
+  >
+    <center style="width: 100%; background: #f4f4f4; padding: 20px 0">
+      <!-- Outer wrapper with gray background -->
+      <table
+        role="presentation"
+        cellpadding="0"
+        cellspacing="0"
+        border="0"
+        width="100%"
+        style="max-width: 640px; margin: 0 auto; border-collapse: collapse"
+      >
+        <tr>
+          <td style="padding: 20px">
+            <!-- Inner white card -->
+            <table
+              role="presentation"
+              cellpadding="0"
+              cellspacing="0"
+              border="0"
+              width="100%"
+              style="
+                background: #ffffff;
+                border-collapse: collapse;
+                border-radius: 6px;
+                overflow: hidden;
+              "
+            >
+              <!-- Logo -->
+              <tr>
+                <td
+                  style="
+                    padding: 16px 24px;
+                    text-align: left;
+                    border-bottom: 1px solid #e5e5e5;
+                  "
+                >
+                  <img
+                    src="https://heroi.semseosmo.com/assets/main-logo-DGXMxbr3.png"
+                    alt="Hero Insurance Broking"
+                    style="max-width: 150px; height: auto; display: block"
+                  />
+                </td>
+              </tr>
+
+              <!-- Blue header -->
+              <tr>
+                <td
+                  style="
+                    padding: 14px 24px;
+                    background: #4169e1;
+                    color: #fff;
+                    font-size: 16px;
+                    font-weight: bold;
+                  "
+                >
+                  Lead Request
+                </td>
+              </tr>
+
+              <!-- Body -->
+              <tr>
+                <td
+                  style="
+                    padding: 20px 24px;
+                    font-size: 14px;
+                    line-height: 1.5;
+                    color: #222;
+                  "
+                >
+                  Dear <strong>Team</strong>,<br /><br />
+                  We have received a new lead request. Please review and take
+                  the necessary action.
+                </td>
+              </tr>
+
+              <!-- Fields -->
+              <tr>
+                <td style="padding: 0 24px 20px 24px">
+                  <table
+                    role="presentation"
+                    cellpadding="10"
+                    cellspacing="0"
+                    border="0"
+                    width="100%"
+                    style="
+                      font-size: 14px;
+                      color: #222;
+                      border-collapse: separate;
+                      border-spacing: 0 10px;
+                    "
+                  >
+                    <tr>
+                      <td style="border: 1px solid #ddd; background: #fafafa">
+                        <strong>Name:</strong><br />{{name}}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="border: 1px solid #ddd; background: #fafafa">
+                        <strong>Mobile no:</strong><br />{{mobile_no}}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="border: 1px solid #ddd; background: #fafafa">
+                        <strong>Policy Type:</strong><br />{{policy_type}}
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+
+              <!-- Closing -->
+              <tr>
+                <td
+                  style="
+                    padding: 0 24px 20px 24px;
+                    font-size: 14px;
+                    line-height: 1.5;
+                    color: #222;
+                  "
+                >
+                  Thank you,<br />
+                </td>
+              </tr>
+
+              <!-- Footer -->
+              <tr>
+                <td
+                  style="
+                    padding: 20px 24px;
+                    font-size: 12px;
+                    line-height: 1.6;
+                    color: #333;
+                    text-align: left;
+                  "
+                >
+                  <table
+                    role="presentation"
+                    width="100%"
+                    cellpadding="0"
+                    cellspacing="0"
+                    border="0"
+                    style="border-collapse: collapse"
+                  >
+                    <tr>
+                      <td width="50%" valign="top" style="padding-right: 10px">
+                        <img
+                          src="https://heroi.semseosmo.com/assets/main-logo-DGXMxbr3.png"
+                          alt="Hero Insurance Broking"
+                          style="
+                            max-width: 120px;
+                            height: auto;
+                            display: block;
+                            margin-bottom: 8px;
+                          "
+                        />
+                        Hero Insurance Broking India Private Limited<br />
+                        Corporate &amp; Registered Office:<br />
+                        264, Okhla Industrial Estate, Phase III,<br />
+                        New Delhi, India 110020
+                      </td>
+                      <td
+                        width="50%"
+                        valign="top"
+                        style="padding-left: 10px; font-size: 11px; color: #555"
+                      >
+                        CIN No: U66010DL2007PTC165059<br />
+                        IRDAI Registration No: 649<br />
+                        IBAI Membership No: 15649<br />
+                        Composite Broker • License valid till 25th July 2027<br />
+                        Principal Officer: Mr. Swapnil Mandalia<br />
+                        ISO 9001:2015 &amp; 27001:2013 Certified Company<br />
+                        <a
+                          href="https://irdai.gov.in"
+                          style="color: #4169e1; text-decoration: none"
+                          >irdai.gov.in</a
+                        >
+                        |
+                        <a
+                          href="https://www.ibai.org"
+                          style="color: #4169e1; text-decoration: none"
+                          >ibai.org</a
+                        >
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+
+              <!-- Copyright -->
+              <tr>
+                <td
+                  style="
+                    padding: 10px 24px;
+                    font-size: 11px;
+                    color: #777;
+                    text-align: center;
+                    border-top: 1px solid #e5e5e5;
+                  "
+                >
+                  © 2025 Hero Insurance Broking. All rights reserved.
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </center>
+  </body>
+</html>
+`;
 
 export function fillTemplate(template: string, data: any) {
     try {
