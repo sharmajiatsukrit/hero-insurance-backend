@@ -61,7 +61,6 @@ async function networkRequest(method: Method, url: string, data = {}, headers = 
         }
       }
     
-    // console.log("dddd",logs);
     return response;
 }
 

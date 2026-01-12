@@ -144,7 +144,6 @@ export default class RequestCallbackDropdownController {
             this.locale = (locale as string) || "en";
 
             const id = parseInt(req.params.id);
-            console.log(req.params.id,'0097')
             const result = await RequestCallbackDropdown.deleteOne({ id: id });
 
             if (result) {

@@ -32,17 +32,18 @@ export default class MenuController {
 
             const filter: any = {};
             filter.status = true;
-            const [results, dropDownMenu] = await Promise.all([
+            const [results, dropDownMenu, extraMenu] = await Promise.all([
                 MenuItem.find({...filter,menu_type:0}).lean(),
 
-                MenuItem.find({...filter,menu_type:1}).sort({ menu_order: 1 }).lean()
+                MenuItem.find({...filter,menu_type:1}).sort({ menu_order: 1 }).lean(),
+                MenuItem.find({...filter,menu_type:2}).sort({ menu_order: 1 }).lean()
             ]);
 
             // const results: any = await MenuItem.find(filter).lean();
             const formatedResult = this.buildTree(results, null);
 
             if (results.length > 0) {
-                return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["faq-fetched"]), { mainMenu:formatedResult,dropDownMenu });
+                return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["faq-fetched"]), { mainMenu:formatedResult,dropDownMenu, extraMenu });
             } else {
                 throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
             }

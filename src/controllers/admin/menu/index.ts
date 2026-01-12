@@ -48,7 +48,7 @@ export default class MenuItemController {
                 baseFilter.$or = [{ name: { $regex: search, $options: "i" } }];
             }
 
-            const [menu, dropDownMenu] = await Promise.all([
+            const [menu, dropDownMenu, extraMenu] = await Promise.all([
                 MenuItem.find({ ...baseFilter, menu_type: 0 })
                     .lean()
                     .populate("created_by", "id name"),
@@ -56,11 +56,16 @@ export default class MenuItemController {
                 MenuItem.find({ ...baseFilter, menu_type: 1 })
                     .lean()
                     .populate("created_by", "id name"),
+
+                MenuItem.find({ ...baseFilter, menu_type: 2 })
+                    .lean()
+                    .populate("created_by", "id name"),
             ]);
 
             return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["faq-fetched"]), {
                 menu,
                 dropDownMenu,
+                extraMenu
             });
         } catch (err: any) {
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
@@ -138,7 +143,7 @@ export default class MenuItemController {
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
         }
     }
-    
+
     public async updateDropDownMenu(req: Request, res: Response): Promise<any> {
         try {
             const fn = "[menu][add]";
@@ -205,6 +210,58 @@ export default class MenuItemController {
 
             return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "award-update"), {});
         } catch (err: any) {
+            return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
+        }
+    }
+
+    public async addExtraMenu(req: Request, res: Response): Promise<any> {
+        try {
+            const fn = "[menu][add]";
+            const { locale } = req.query;
+            this.locale = (locale as string) || "en";
+
+            const { title, url, menu_order, status } = req.body;
+            const result: any = await MenuItem.create({
+                title,
+                url,
+                menu_order,
+                status: status,
+                menu_type: 2,
+                created_by: req.user?.object_id,
+            });
+            return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "menu-add"), {});
+        } catch (err: any) {
+            // Logger.error(`${fileName + fn} Error: ${err.message}`);
+            return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
+        }
+    }
+
+    public async updateExtraMenu(req: Request, res: Response): Promise<any> {
+        try {
+            const fn = "[menu][add]";
+            const id = parseInt(req.params.id);
+            const { locale } = req.query;
+            this.locale = (locale as string) || "en";
+
+            const { title, url, menu_order, status } = req.body;
+            const menu = await MenuItem.findOne({ id: id });
+            if (!menu) {
+                return serverResponse(res, HttpCodeEnum.NOTFOUND, constructResponseMsg(this.locale, "not-found"), {});
+            }
+            const result: any = await MenuItem.findOneAndUpdate(
+                { id },
+                {
+                    title,
+                    url,
+                    menu_order,
+                    status: status,
+                    menu_type: 2,
+                    updated_by: req.user?.object_id,
+                }
+            );
+            return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "menu-update"), {});
+        } catch (err: any) {
+            // Logger.error(`${fileName + fn} Error: ${err.message}`);
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
         }
     }

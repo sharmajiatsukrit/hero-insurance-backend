@@ -382,7 +382,6 @@ export default class HeroController {
             const { token } = await getClaimAuthToken();
             const headers: any = { Authorization: "Bearer " + token };
             const result = await networkRequest("POST", "https://misp.heroinsurance.com/prod/services/B2CClaim/api/v1/ClaimPolicy/StateList", {}, headers);
-            console.log(token);
             if (result) {
                 return res.status(200).json({
                     ...result?.data,
