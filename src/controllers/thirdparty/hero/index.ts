@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { ValidationChain } from "express-validator";
+import { header, ValidationChain } from "express-validator";
 import moment from "moment";
 import {
     removeObjectKeys,
@@ -614,7 +614,7 @@ export default class HeroController {
                     return {
                         ...item,
                         common_data: {
-                            name: item?.name || "",
+                            name: item?.proposer_name || "",
                             policy_no: item?.policy_no || "",
                             start_date: item?.policy_start_date || "",
                             end_date: item?.policy_end_date || "",
@@ -623,9 +623,9 @@ export default class HeroController {
                             product_type: item?.product_type || "",
                             renew_link: item?.renewal_redirection_url || "",
                             vehicle_model: `${item?.vehicle_make} ${item?.vehicle_model} ${item?.vehicle_version}` || "",
-                            vehicle_no: item?.vehicle_reg_no || "",
+                            vehicle_no: item?.vehicle_registration_number || "",
                             remaning_days: item?.daysLeftPolicyexpiry || "",
-                            downLoad_link: item?.DownLoadLinks,
+                            downLoad_link: item?.policy_doc_path,
                         },
                     };
                 });
@@ -815,7 +815,7 @@ export default class HeroController {
         const { data: token } = await getMispToken();
         const headers: any = { Authorization: "Bearer " + token };
         const data: any = { MobileNo: mobile, Registration_No: registration_no };
-        const result = await networkRequest("POST", "https://misp.heroinsurance.com/prod/services/HeroOne/api/Policy/PolicyDetails", data, headers);
+        const result = await networkRequest("POST", "https://misp.heroinsurance.com/uat/services/HeroOne/api/Policy/PolicyDetails", data, headers);
         return result?.data || null;
     }
 
@@ -836,11 +836,11 @@ export default class HeroController {
     private async proposalReportData(req: Request): Promise<any> {
         const { locale, page } = req.query;
         this.locale = (locale as string) || "en";
-        const { token } = await getPospToken();
+        // const { token } = await getPospToken();
         const { mobile, email = "" } = req.body;
-        const headers: any = { validation: token };
-        const data: any = { mobile, email, pagination: [page] };
-        const result = await networkRequest("POST", `https://uatmotorapi.heroinsurance.com/api/proposalReports`, data, headers);
+        const headers: any = { Authorization: "Basic RnludHVuZVVzZXI6RnludHVuZUBQYXNzMjAyNQ==" };
+        const data: any = { mobile_no:mobile };
+        const result = await networkRequest("POST", `https://uatdashboard.heroinsurance.com/da/api/policy-details`, data, headers);
         return result?.data || null;
     }
 

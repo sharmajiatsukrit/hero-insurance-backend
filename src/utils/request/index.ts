@@ -43,21 +43,21 @@ async function networkRequest(method: Method, url: string, data = {}, headers = 
           if (logs.status === 200) {
             console.log('log Success:', logs.data);
           } else {
-            console.log(`Unexpected status: ${logs.status}`);
+            // console.log(`Unexpected status: ${logs.status}`);
           }
         }
         
       } catch (error: any) {
         if (error.response) {
           // Server responded with a status code outside 2xx
-          console.error('Error Status:', error.response.status);
-          console.error('Error Data:', error.response.data);
+          // console.error('Error Status:', error.response.status);
+          // console.error('Error Data:', error.response.data);
         } else if (error.request) {
           // Request was made but no response
-          console.error('No response received:', error.request);
+          // console.error('No response received:', error.request);
         } else {
           // Something else caused an error
-          console.error('Error Message:', error.message);
+          // console.error('Error Message:', error.message);
         }
       }
     

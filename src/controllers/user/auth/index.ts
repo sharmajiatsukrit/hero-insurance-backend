@@ -80,7 +80,7 @@ export default class AuthController {
                 console.error("[SaveMongoLog failed]", logError);
             }
 
-            await sendSMS(phone, `${otp} is your One Time Password (OTP) for login into your account. Please do not share your OTP with anyone. - HIBIPL`);
+            //await sendSMS(phone, `${otp} is your One Time Password (OTP) for login into your account. Please do not share your OTP with anyone. - HIBIPL`);
 
             return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "otp-sent"), {});
         } catch (err: any) {

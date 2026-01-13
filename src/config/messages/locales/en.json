@@ -198,6 +198,8 @@
     "menu-delete" : "Menu deleted successfully",
     "menu-status" : "Menu Status successfully",
 
+    "email-config":"Email config added successfully",
+
     "user-detail-updated": "User Updated successfully",
     "user-detail-fetched": "User fetched successfully"
 

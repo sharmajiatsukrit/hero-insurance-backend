@@ -180,6 +180,8 @@ export const MessageKey: IObjectKeys = {
     "menu-delete" : "menu-delete",
     "menu-status" : "menu-status",
 
+    "email-config":"email-config",
+
     "user-detail-updated": "user-detail-updated",
     "user-detail-fetched": "user-detail-fetched",
 };

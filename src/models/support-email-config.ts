@@ -3,13 +3,15 @@ import { autoIncrement } from "mongoose-plugin-autoinc";
 
 interface ISupportEmailConfig extends Document {
     type: string;
-    email: object;
+    description: string;
+    email: string;
 }
 
 const SupportEmailConfigSchema: Schema = new Schema(
     {
         type: { type: String, default: "" },
-        email: { type: Object, default: {} },
+        description: { type: Object, default: "" },
+        email: { type: Object, default: "" },
         created_by: { type: Schema.Types.ObjectId, ref: "users", default: null },
         updated_by: { type: Schema.Types.ObjectId, ref: "users", default: null },
     },

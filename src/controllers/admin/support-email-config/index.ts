@@ -18,6 +18,24 @@ export default class SupportEmailConfigController {
         return validate(endPoint);
     }
 
+    public async getList(req: Request, res: Response): Promise<any> {
+        try {
+            const fn = "[offer][getById]";
+            // Set locale
+            const { locale } = req.query;
+            this.locale = (locale as string) || "en";
+
+            const result: any = await SupportEmailConfig.find().populate("created_by","id name").lean();
+
+            if (result) {
+                return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["enquiry-fetched"]), result);
+            } else {
+                throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
+            }
+        } catch (err: any) {
+            return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
+        }
+    }
 
     public async getByType(req: Request, res: Response): Promise<any> {
         try {
@@ -27,7 +45,7 @@ export default class SupportEmailConfigController {
             this.locale = (locale as string) || "en";
 
             const type = req.params.type;
-            const result: any = await SupportEmailConfig.findOne({ type }).lean();
+            const result: any = await SupportEmailConfig.findOne({ type }).populate("created_by","id name").lean();
             // console.log(result);
 
             if (result) {
@@ -46,15 +64,15 @@ export default class SupportEmailConfigController {
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
 
-            const { type , email} = req.body;
+            const { type, email, description } = req.body;
             Logger.info(`${fileName + fn} req.body: ${JSON.stringify(req.body)}`);
 
-            const exist = await SupportEmailConfig.findOne({type});
-          
-            if(exist){
-                await SupportEmailConfig.findOneAndUpdate({type},{email})
-            }else{
-                await SupportEmailConfig.create({type,email})
+            const exist = await SupportEmailConfig.findOne({ type });
+
+            if (exist) {
+                await SupportEmailConfig.findOneAndUpdate({ type }, { email, description, updated_by: req.user?.object_id });
+            } else {
+                await SupportEmailConfig.create({ type, email, description, created_by: req.user?.object_id });
             }
 
             return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "award-add"), {});
@@ -63,5 +81,4 @@ export default class SupportEmailConfigController {
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
         }
     }
-
 }

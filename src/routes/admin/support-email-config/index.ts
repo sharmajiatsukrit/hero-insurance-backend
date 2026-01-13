@@ -9,6 +9,7 @@ const supportEmailConfigController = new SupportEmailConfigController();
 
 
 routes.post("/add", authAdmin, validateRequest, supportEmailConfigController.add.bind(supportEmailConfigController));
+routes.get("/list", authAdmin, validateRequest, supportEmailConfigController.getList.bind(supportEmailConfigController));
 routes.get("/get/:type", authAdmin, validateRequest, supportEmailConfigController.getByType.bind(supportEmailConfigController));
 
 export default routes;
