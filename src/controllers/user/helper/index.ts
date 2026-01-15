@@ -15,6 +15,9 @@ import InsuranceType from "../../../models/insurance-type";
 import CorporateInsuranceType from "../../../models/corporate-insurance-type";
 import TailoredBusinessInsuranceType from "../../../models/tailored-business-insurance-type";
 import RequestCallbackDropdown from "../../../models/request-callback-dropdown";
+import { sendMail } from "../../../utils/mail";
+import { fillTemplate, talent_pool_form_template } from "../../../utils/templates";
+import SupportEmailConfig from "../../../models/support-email-config";
 
 const fileName = "[user][helper][index.ts]";
 export default class HelperController {
@@ -223,8 +226,12 @@ export default class HelperController {
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
 
-
-            const result = await InsuranceType.find({}).where('status').equals(true).sort([['id', 'desc']]).select('id name key show_reg_no_field').lean();
+            const result = await InsuranceType.find({})
+                .where("status")
+                .equals(true)
+                .sort([["id", "desc"]])
+                .select("id name key show_reg_no_field")
+                .lean();
 
             if (result.length > 0) {
                 return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["role-fetched"]), result);
@@ -242,8 +249,12 @@ export default class HelperController {
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
 
-
-            const result = await CorporateInsuranceType.find({}).where('status').equals(true).sort([['id', 'desc']]).select('id name').lean();
+            const result = await CorporateInsuranceType.find({})
+                .where("status")
+                .equals(true)
+                .sort([["id", "desc"]])
+                .select("id name")
+                .lean();
 
             if (result.length > 0) {
                 return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["role-fetched"]), result);
@@ -261,8 +272,12 @@ export default class HelperController {
             const { locale } = req.query;
             this.locale = (locale as string) || "en";
 
-
-            const result = await TailoredBusinessInsuranceType.find({}).where('status').equals(true).sort([['id', 'desc']]).select('id name').lean();
+            const result = await TailoredBusinessInsuranceType.find({})
+                .where("status")
+                .equals(true)
+                .sort([["id", "desc"]])
+                .select("id name")
+                .lean();
 
             if (result.length > 0) {
                 return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["role-fetched"]), result);
@@ -288,19 +303,113 @@ export default class HelperController {
             const [serviceData, timeSlotData] = await Promise.all([
                 RequestCallbackDropdown.find({ ...baseFilter, type: 0 })
                     .sort({ _id: -1 })
-                    .select('id name key')
+                    .select("id name key")
                     .lean(),
 
                 RequestCallbackDropdown.find({ ...baseFilter, type: 1 })
                     .sort({ _id: -1 })
-                    .select('id name key')
+                    .select("id name key")
                     .lean(),
             ]);
 
-            return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["insurance-type-fetched"]), {serviceData,timeSlotData});
+            return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["insurance-type-fetched"]), { serviceData, timeSlotData });
         } catch (err: any) {
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
         }
     }
 
+    public async addTalentPool(req: Request, res: Response): Promise<any> {
+        try {
+            const fn = "[talent-pool][add]";
+
+            // Set locale
+            const { locale } = req.query;
+            this.locale = (locale as string) || "en";
+
+            // ✅ form fields coming from multipart/form-data
+            const {
+                fullName,
+                email,
+                mobile,
+                location,
+                preferredLocation,
+                experience,
+                employmentStatus,
+                noticePeriod,
+                organization,
+                designation,
+                roles,
+                roleInterested,
+                education,
+                skills,
+                insuranceExp,
+                interest,
+                additionalInfo,
+                consent,
+            } = req.body;
+
+            // ✅ roles comes as string in formData -> parse it
+            let parsedRoles: string[] = [];
+            try {
+                parsedRoles = roles ? JSON.parse(roles) : [];
+            } catch (e) {
+                parsedRoles = [];
+            }
+
+            const resumeFile: any = req.file;
+
+
+           
+            const supportEmail: any = await SupportEmailConfig.findOne({ type: "talent-pool" }).lean();
+
+            const mailTemplateData = {
+                full_name: fullName || "",
+                email: email || "",
+                contact_number: mobile || "",
+                current_location: location || "",
+                preferred_location: preferredLocation || "",
+
+                total_experience: experience || "",
+                employment_status: employmentStatus || "",
+                current_organization: organization || "",
+                current_designation: designation || "",
+                notice_period: noticePeriod || "",
+
+                areas_of_interest: parsedRoles.length ? parsedRoles.join(", ") : "",
+                specific_role: roleInterested || "",
+
+                qualification: education || "",
+                key_skills: skills || "",
+                industry_experience: insuranceExp || "",
+                insurance_segments: "",
+
+                interest_in_hero: interest || "",
+                additional_info: additionalInfo || "",
+
+                resume_url: "",
+                resume_filename: resumeFile?.originalname || "",
+
+                rights_year: new Date().getFullYear(),
+            };
+
+            const acknowledgementBody: any = fillTemplate(talent_pool_form_template, mailTemplateData);
+
+            // ✅ Attachment (PDF)
+            const attachments: any[] = resumeFile
+                ? [
+                      {
+                          filename: resumeFile.originalname,
+                          content: resumeFile.buffer,
+                          contentType: resumeFile.mimetype,
+                      },
+                  ]
+                : [];
+
+            await sendMail(supportEmail?.email, "Talent Pool Application", acknowledgementBody, attachments);
+
+            return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "talent-pool-add"), {});
+        } catch (err: any) {
+            return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
+        }
+    }
 }

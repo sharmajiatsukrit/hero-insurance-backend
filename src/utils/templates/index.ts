@@ -466,6 +466,625 @@ export const lead_request_template = `<!DOCTYPE html>
 </html>
 `;
 
+export const talent_pool_form_template = `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Talent Pool Application</title>
+  </head>
+
+  <body
+    style="
+      margin: 0;
+      padding: 0;
+      background: #f4f4f4;
+      font-family: Arial, Helvetica, sans-serif;
+    "
+  >
+    <center style="width: 100%; background: #f4f4f4; padding: 20px 0">
+      <table
+        role="presentation"
+        cellpadding="0"
+        cellspacing="0"
+        border="0"
+        width="100%"
+        style="max-width: 720px; margin: 0 auto; border-collapse: collapse"
+      >
+        <tr>
+          <td style="padding: 12px">
+            <table
+              role="presentation"
+              cellpadding="0"
+              cellspacing="0"
+              border="0"
+              width="100%"
+              style="
+                background: #ffffff;
+                border-collapse: collapse;
+                border-radius: 14px;
+                overflow: hidden;
+                border: 1px solid #e8e8e8;
+              "
+            >
+              <!-- TOP HEADER -->
+              <tr>
+                <td
+                  style="
+                    background: #3f66ff;
+                    padding: 18px 22px;
+                    color: #ffffff;
+                  "
+                >
+                  <table
+                    role="presentation"
+                    width="100%"
+                    cellpadding="0"
+                    cellspacing="0"
+                    border="0"
+                    style="border-collapse: collapse"
+                  >
+                    <tr>
+                      <td width="120" valign="middle">
+                        <img
+                          src="https://heroi.semseosmo.com/assets/main-logo-DGXMxbr3.png"
+                          alt="Hero Insurance Broking"
+                          style="
+                            width: 95px;
+                            height: auto;
+                            background: #fff;
+                            padding: 8px;
+                            border-radius: 10px;
+                            display: block;
+                          "
+                        />
+                      </td>
+
+                      <td valign="middle" style="padding-left: 14px">
+                        <div
+                          style="
+                            font-size: 28px;
+                            font-weight: 700;
+                            line-height: 1.2;
+                          "
+                        >
+                          Hero Insurance Broking
+                        </div>
+
+                        <div
+                          style="
+                            font-size: 20px;
+                            font-weight: 600;
+                            margin-top: 4px;
+                            opacity: 0.95;
+                          "
+                        >
+                          Talent Pool Application
+                        </div>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+
+              <!-- SUB HEADER MESSAGE -->
+              <tr>
+                <td
+                  style="
+                    background: #f1f1f1;
+                    padding: 14px 22px;
+                    text-align: center;
+                    color: #2f59ff;
+                    font-size: 18px;
+                    line-height: 1.4;
+                    font-weight: 500;
+                  "
+                >
+                  A new candidate profile has been submitted via the Talent Pool
+                  Application Form. Please find the details below.
+                </td>
+              </tr>
+
+              <!-- BODY WRAP -->
+              <tr>
+                <td style="padding: 24px 28px">
+                  <!-- SECTION: Personal Information -->
+                  <div
+                    style="
+                      font-size: 22px;
+                      font-weight: 700;
+                      color: #111;
+                      margin-bottom: 12px;
+                    "
+                  >
+                    Personal Information
+                  </div>
+
+                  <table
+                    role="presentation"
+                    width="100%"
+                    cellpadding="0"
+                    cellspacing="0"
+                    border="0"
+                    style="border-collapse: collapse; margin-bottom: 26px"
+                  >
+                    <tr>
+                      <td
+                        width="50%"
+                        style="
+                          padding: 10px 0;
+                          color: #444;
+                          font-size: 15px;
+                        "
+                      >
+                        Full Name
+                      </td>
+                      <td
+                        width="50%"
+                        style="
+                          padding: 10px 0;
+                          color: #111;
+                          font-size: 15px;
+                          font-weight: 500;
+                        "
+                      >
+                        {{full_name}}
+                      </td>
+                    </tr>
+
+                    <tr>
+                      <td style="padding: 10px 0; color: #444; font-size: 15px">
+                        EmailAddress
+                      </td>
+                      <td
+                        style="
+                          padding: 10px 0;
+                          font-size: 15px;
+                          font-weight: 500;
+                        "
+                      >
+                        <a
+                          href="mailto:{{email}}"
+                          style="color: #2f59ff; text-decoration: underline"
+                          >{{email}}</a
+                        >
+                      </td>
+                    </tr>
+
+                    <tr>
+                      <td style="padding: 10px 0; color: #444; font-size: 15px">
+                        Contact Number
+                      </td>
+                      <td
+                        style="
+                          padding: 10px 0;
+                          color: #111;
+                          font-size: 15px;
+                          font-weight: 500;
+                        "
+                      >
+                        {{contact_number}}
+                      </td>
+                    </tr>
+
+                    <tr>
+                      <td style="padding: 10px 0; color: #444; font-size: 15px">
+                        Current Location
+                      </td>
+                      <td
+                        style="
+                          padding: 10px 0;
+                          color: #111;
+                          font-size: 15px;
+                          font-weight: 500;
+                        "
+                      >
+                        {{current_location}}
+                      </td>
+                    </tr>
+
+                    <tr>
+                      <td style="padding: 10px 0; color: #444; font-size: 15px">
+                        Preferred Location
+                      </td>
+                      <td
+                        style="
+                          padding: 10px 0;
+                          color: #111;
+                          font-size: 15px;
+                          font-weight: 500;
+                        "
+                      >
+                        {{preferred_location}}
+                      </td>
+                    </tr>
+                  </table>
+
+                  <!-- SECTION: Professional Information -->
+                  <div
+                    style="
+                      font-size: 22px;
+                      font-weight: 700;
+                      color: #111;
+                      margin-bottom: 12px;
+                    "
+                  >
+                    Professional Information
+                  </div>
+
+                  <table
+                    role="presentation"
+                    width="100%"
+                    cellpadding="0"
+                    cellspacing="0"
+                    border="0"
+                    style="border-collapse: collapse; margin-bottom: 26px"
+                  >
+                    <tr>
+                      <td
+                        width="50%"
+                        style="
+                          padding: 10px 0;
+                          color: #444;
+                          font-size: 15px;
+                        "
+                      >
+                        Total Experience
+                      </td>
+                      <td
+                        width="50%"
+                        style="
+                          padding: 10px 0;
+                          color: #111;
+                          font-size: 15px;
+                          font-weight: 500;
+                        "
+                      >
+                        {{total_experience}}
+                      </td>
+                    </tr>
+
+                    <tr>
+                      <td style="padding: 10px 0; color: #444; font-size: 15px">
+                        Employment Status
+                      </td>
+                      <td
+                        style="
+                          padding: 10px 0;
+                          color: #111;
+                          font-size: 15px;
+                          font-weight: 500;
+                        "
+                      >
+                        {{employment_status}}
+                      </td>
+                    </tr>
+
+                    <tr>
+                      <td style="padding: 10px 0; color: #444; font-size: 15px">
+                        Current Organization
+                      </td>
+                      <td
+                        style="
+                          padding: 10px 0;
+                          color: #111;
+                          font-size: 15px;
+                          font-weight: 500;
+                        "
+                      >
+                        {{current_organization}}
+                      </td>
+                    </tr>
+
+                    <tr>
+                      <td style="padding: 10px 0; color: #444; font-size: 15px">
+                        Current Designation
+                      </td>
+                      <td
+                        style="
+                          padding: 10px 0;
+                          color: #111;
+                          font-size: 15px;
+                          font-weight: 500;
+                        "
+                      >
+                        {{current_designation}}
+                      </td>
+                    </tr>
+
+                    <tr>
+                      <td style="padding: 10px 0; color: #444; font-size: 15px">
+                        Notice Period
+                      </td>
+                      <td
+                        style="
+                          padding: 10px 0;
+                          color: #111;
+                          font-size: 15px;
+                          font-weight: 500;
+                        "
+                      >
+                        {{notice_period}}
+                      </td>
+                    </tr>
+                  </table>
+
+                  <!-- SECTION: Role Preference -->
+                  <div
+                    style="
+                      font-size: 22px;
+                      font-weight: 700;
+                      color: #111;
+                      margin-bottom: 12px;
+                    "
+                  >
+                    Role Preference
+                  </div>
+
+                  <table
+                    role="presentation"
+                    width="100%"
+                    cellpadding="0"
+                    cellspacing="0"
+                    border="0"
+                    style="border-collapse: collapse; margin-bottom: 26px"
+                  >
+                    <tr>
+                      <td
+                        width="50%"
+                        style="
+                          padding: 10px 0;
+                          color: #444;
+                          font-size: 15px;
+                        "
+                      >
+                        Area(s) of Interest
+                      </td>
+                      <td
+                        width="50%"
+                        style="
+                          padding: 10px 0;
+                          color: #111;
+                          font-size: 15px;
+                          font-weight: 500;
+                        "
+                      >
+                        {{areas_of_interest}}
+                      </td>
+                    </tr>
+
+                    <tr>
+                      <td style="padding: 10px 0; color: #444; font-size: 15px">
+                        Specific Role
+                      </td>
+                      <td
+                        style="
+                          padding: 10px 0;
+                          color: #111;
+                          font-size: 15px;
+                          font-weight: 500;
+                        "
+                      >
+                        {{specific_role}}
+                      </td>
+                    </tr>
+                  </table>
+
+                  <!-- SECTION: Education & Skills -->
+                  <div
+                    style="
+                      font-size: 22px;
+                      font-weight: 700;
+                      color: #111;
+                      margin-bottom: 12px;
+                    "
+                  >
+                    Education &amp; Skills
+                  </div>
+
+                  <table
+                    role="presentation"
+                    width="100%"
+                    cellpadding="0"
+                    cellspacing="0"
+                    border="0"
+                    style="border-collapse: collapse; margin-bottom: 26px"
+                  >
+                    <tr>
+                      <td
+                        width="50%"
+                        style="
+                          padding: 10px 0;
+                          color: #444;
+                          font-size: 15px;
+                        "
+                      >
+                        Qualification
+                      </td>
+                      <td
+                        width="50%"
+                        style="
+                          padding: 10px 0;
+                          color: #111;
+                          font-size: 15px;
+                          font-weight: 500;
+                        "
+                      >
+                        {{qualification}}
+                      </td>
+                    </tr>
+
+                    <tr>
+                      <td style="padding: 10px 0; color: #444; font-size: 15px">
+                        Key Skills
+                      </td>
+                      <td
+                        style="
+                          padding: 10px 0;
+                          color: #111;
+                          font-size: 15px;
+                          font-weight: 500;
+                        "
+                      >
+                        {{key_skills}}
+                      </td>
+                    </tr>
+
+                    <tr>
+                      <td style="padding: 10px 0; color: #444; font-size: 15px">
+                        Industry Experience
+                      </td>
+                      <td
+                        style="
+                          padding: 10px 0;
+                          color: #111;
+                          font-size: 15px;
+                          font-weight: 500;
+                        "
+                      >
+                        {{industry_experience}}
+                      </td>
+                    </tr>
+
+                    <tr>
+                      <td style="padding: 10px 0; color: #444; font-size: 15px">
+                        Insurance Segment(s)
+                      </td>
+                      <td
+                        style="
+                          padding: 10px 0;
+                          color: #111;
+                          font-size: 15px;
+                          font-weight: 500;
+                        "
+                      >
+                        {{insurance_segments}}
+                      </td>
+                    </tr>
+                  </table>
+
+                  <!-- SECTION: Resume Submission -->
+                  <div
+                    style="
+                      font-size: 22px;
+                      font-weight: 700;
+                      color: #111;
+                      margin-bottom: 12px;
+                    "
+                  >
+                    Resume Submission
+                  </div>
+
+                  <div style="font-size: 15px; color: #111; margin-bottom: 6px">
+                    <strong>Filename:</strong>
+                    <a
+                      href="{{resume_url}}"
+                      style="color: #2f59ff; text-decoration: underline"
+                      >{{resume_filename}}</a
+                    >
+                  </div>
+                  
+                  <!-- SECTION: Additional Details -->
+                  <div
+                    style="
+                      font-size: 22px;
+                      font-weight: 700;
+                      color: #111;
+                      margin-bottom: 12px;
+                    "
+                  >
+                    Additional Details
+                  </div>
+
+                  <table
+                    role="presentation"
+                    width="100%"
+                    cellpadding="0"
+                    cellspacing="0"
+                    border="0"
+                    style="border-collapse: collapse"
+                  >
+                    <tr>
+                      <td
+                        width="50%"
+                        style="
+                          padding: 10px 0;
+                          color: #444;
+                          font-size: 15px;
+                          vertical-align: top;
+                        "
+                      >
+                        Interest in Hero Insurance
+                      </td>
+
+                      <td
+                        width="50%"
+                        style="
+                          padding: 10px 0;
+                          color: #111;
+                          font-size: 15px;
+                          font-weight: 500;
+                          vertical-align: top;
+                        "
+                      >
+                        {{interest_in_hero}}
+                      </td>
+                    </tr>
+
+                    <tr>
+                      <td
+                        width="50%"
+                        style="
+                          padding: 10px 0;
+                          color: #444;
+                          font-size: 15px;
+                          vertical-align: top;
+                        "
+                      >
+                        Additional Info
+                      </td>
+
+                      <td
+                        width="50%"
+                        style="
+                          padding: 10px 0;
+                          color: #111;
+                          font-size: 15px;
+                          font-weight: 500;
+                          vertical-align: top;
+                        "
+                      >
+                        {{additional_info}}
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+
+              <!-- FOOTER BAR -->
+              <tr>
+                <td
+                  style="
+                    background: #3f66ff;
+                    color: #fff;
+                    text-align: center;
+                    padding: 16px;
+                    font-size: 14px;
+                    font-weight: 500;
+                  "
+                >
+                  © {{rights_year}} Hero Insurance Broking. All rights reserved.
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </center>
+  </body>
+</html>
+`;
+
 export function fillTemplate(template: string, data: any) {
     try {
         return template.replace(/{{\s*([^}]+?)\s*}}/g, (match, rawKey) => {

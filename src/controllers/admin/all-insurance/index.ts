@@ -18,7 +18,7 @@ export default class AllInsuranceController {
         try {
             const fn = "[enquiry][getList]";
             // Set locale
-            const { locale, page, limit, search } = req.query;
+            const { locale, page, limit, search, from, to } = req.query;
             this.locale = (locale as string) || "en";
 
             const pageNumber = parseInt(page as string) || 1;
@@ -27,7 +27,18 @@ export default class AllInsuranceController {
            
             const filter: any = {};
             if (search) {
-                filter.$or = [{ name: { $regex: search, $options: "i" } }];
+                filter.$or = [
+                    { company_name: { $regex: search, $options: "i" } },
+                    { contact_person: { $regex: search, $options: "i" } },
+                    { mobile_no: { $regex: search, $options: "i" } },
+                    { email: { $regex: search, $options: "i" } },
+                    ];
+            }
+            if (from && to) {
+                filter.createdAt = {
+                    $gte: new Date(from as string),
+                    $lt: new Date(new Date(to as string).setDate(new Date(to as string).getDate() + 1)),
+                };
             }
             const results = await AllInsurance.find(filter)
                 .sort({ _id: -1 })

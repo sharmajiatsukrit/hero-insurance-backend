@@ -1,6 +1,6 @@
 import AWS from "aws-sdk";
 import { PutObjectRequest, DeleteObjectRequest } from "aws-sdk/clients/s3";
-require('aws-sdk/lib/maintenance_mode_message').suppress = true;
+require("aws-sdk/lib/maintenance_mode_message").suppress = true;
 import mime from "mime-types";
 import multer from "multer";
 import path from "path";
@@ -32,7 +32,6 @@ async function uploadFile(fileName: string, fileData: any): Promise<string> {
 
         const fileUrl = cdnUrl + fileNameMod;
         return Promise.resolve(fileUrl);
-
     } catch (err) {
         return Promise.reject(err);
     }
@@ -45,7 +44,7 @@ async function deleteFile(fileUrl: string): Promise<any> {
 
         const params: DeleteObjectRequest = {
             Key: filedKey,
-            Bucket: process.env.BUCKET_NAME as string
+            Bucket: process.env.BUCKET_NAME as string,
         };
 
         const data = await s3.deleteObject(params).promise();
@@ -62,10 +61,25 @@ const storage = multer.diskStorage({
         cb(null, process.env.UPLOAD_PATH as string);
     },
     filename: function (req, file, cb) {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, path.parse(file.originalname).name.replaceAll(" ", "-").toLowerCase() + '-' + uniqueSuffix + path.extname(file.originalname));
-    }
+        const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+        cb(null, path.parse(file.originalname).name.replaceAll(" ", "-").toLowerCase() + "-" + uniqueSuffix + path.extname(file.originalname));
+    },
 });
-const upload = multer({ storage, });
+const upload = multer({ storage });
+const pdfStorage = multer.memoryStorage();
+const pdfFileFilter: multer.Options["fileFilter"] = (req, file, cb) => {
+    if (file.mimetype === "application/pdf") {
+        cb(null, true);
+    } else {
+        cb(new Error("Only PDF files are allowed"));
+    }
+};
+export const uploadPdfMemory = multer({
+    storage: pdfStorage,
+    fileFilter: pdfFileFilter,
+    limits: {
+        fileSize: 5 * 1024 * 1024, // 5MB
+    },
+});
 
 export { uploadFile, upload, deleteFile };

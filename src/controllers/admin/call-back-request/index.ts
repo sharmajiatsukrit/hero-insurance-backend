@@ -18,16 +18,27 @@ export default class CallBackRequestController {
         try {
             const fn = "[enquiry][getList]";
             // Set locale
-            const { locale, page, limit, search } = req.query;
+            const { locale, page, limit, search, from, to } = req.query;
             this.locale = (locale as string) || "en";
 
             const pageNumber = parseInt(page as string) || 1;
             const limitNumber = parseInt(limit as string) || 10;
             const skip = (pageNumber - 1) * limitNumber;
-           
+
             const filter: any = {};
             if (search) {
-                filter.$or = [{ name: { $regex: search, $options: "i" } }];
+                filter.$or = [
+                    { name: { $regex: search, $options: "i" } },
+                    { preferred_date: { $regex: search, $options: "i" } },
+                    { mobile_no: { $regex: search, $options: "i" } },
+                    { email: { $regex: search, $options: "i" } },
+                    ];
+            }
+            if (from && to) {
+                filter.createdAt = {
+                    $gte: new Date(from as string),
+                    $lt: new Date(new Date(to as string).setDate(new Date(to as string).getDate() + 1)),
+                };
             }
             const results = await CallBackRequest.find(filter)
                 .sort({ _id: -1 })
@@ -63,8 +74,10 @@ export default class CallBackRequestController {
             this.locale = (locale as string) || "en";
 
             const id = parseInt(req.params.id);
-            const result: any = await CallBackRequest.findOne({ id: id }).populate({ path: "service_type", select: "name id" }).populate({ path: "preferred_slot", select: "name id" }).lean();
-            
+            const result: any = await CallBackRequest.findOne({ id: id })
+                .populate({ path: "service_type", select: "name id" })
+                .populate({ path: "preferred_slot", select: "name id" })
+                .lean();
 
             if (result) {
                 return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["enquiry-fetched"]), result);
@@ -75,5 +88,4 @@ export default class CallBackRequestController {
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
         }
     }
-
 }

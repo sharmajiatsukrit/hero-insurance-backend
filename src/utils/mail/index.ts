@@ -14,7 +14,7 @@ const MPORT = process.env.MPORT || "MPORT";
  * @param to - Recipient's WhatsApp number in E.164 format (e.g., 'whatsapp:+1234567890')
  * @param message - Message to send
  */
-async function sendMail(to: string,subject:string, html: string,attachment:[]): Promise<any> {
+async function sendMail(to: string,subject:string, html: string,attachment: any[] = []): Promise<any> {
     try {
 
         const mailConfig:any =  {
