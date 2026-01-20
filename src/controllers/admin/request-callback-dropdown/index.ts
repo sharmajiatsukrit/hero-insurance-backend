@@ -15,12 +15,9 @@ export default class RequestCallbackDropdownController {
 
     public async getList(req: Request, res: Response): Promise<any> {
         try {
-            const { locale, page, limit, search } = req.query;
+            const { locale, search } = req.query;
             this.locale = (locale as string) || "en";
 
-            const pageNumber = parseInt(page as string) || 1;
-            const limitNumber = parseInt(limit as string) || 10;
-            const skip = (pageNumber - 1) * limitNumber;
 
             const baseFilter: any = {};
 
@@ -29,35 +26,23 @@ export default class RequestCallbackDropdownController {
             }
 
             // Fetch both types in parallel
-            const [serviceData, timeSlotData, serviceDataCount, timeSlotDataCount] = await Promise.all([
+            const [ serviceData, timeSlotData ] = await Promise.all([
                 RequestCallbackDropdown.find({ ...baseFilter, type: 0 })
                     .sort({ _id: -1 })
-                    .skip(skip)
-                    .limit(limitNumber)
                     .lean(),
 
                 RequestCallbackDropdown.find({ ...baseFilter, type: 1 })
                     .sort({ _id: -1 })
-                    .skip(skip)
-                    .limit(limitNumber)
                     .lean(),
 
-                RequestCallbackDropdown.countDocuments({ ...baseFilter, type: 0 }),
-                RequestCallbackDropdown.countDocuments({ ...baseFilter, type: 1 }),
             ]);
 
             return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["insurance-type-fetched"]), {
                 serviceData: {
                     data: serviceData,
-                    totalCount: serviceDataCount,
-                    totalPages: Math.ceil(serviceDataCount / limitNumber),
-                    currentPage: pageNumber,
                 },
                 timeSlotData: {
                     data: timeSlotData,
-                    totalCount: timeSlotDataCount,
-                    totalPages: Math.ceil(timeSlotDataCount / limitNumber),
-                    currentPage: pageNumber,
                 },
             });
         } catch (err: any) {

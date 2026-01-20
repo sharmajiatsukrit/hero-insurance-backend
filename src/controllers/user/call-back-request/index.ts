@@ -26,7 +26,6 @@ export default class CallBackRequestRequestController {
             const { service_type, name, mobile_no, email, location, preferred_date,preferred_slot, query } = req.body;
             let result: any;
             const insuranceType: any = await RequestCallbackDropdown.findOne({ id: +service_type });
-            const preferredSlot: any = await RequestCallbackDropdown.findOne({ id: +preferred_slot });
             result = await CallBackRequest.create({
                 service_type: insuranceType?._id,
                 name,
@@ -34,7 +33,7 @@ export default class CallBackRequestRequestController {
                 email,
                 location,
                 preferred_date,
-                preferred_slot:preferredSlot?._id,
+                preferred_slot,
                 query,
             });
 

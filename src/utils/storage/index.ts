@@ -68,12 +68,19 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 const pdfStorage = multer.memoryStorage();
 const pdfFileFilter: multer.Options["fileFilter"] = (req, file, cb) => {
-    if (file.mimetype === "application/pdf") {
-        cb(null, true);
-    } else {
-        cb(new Error("Only PDF files are allowed"));
-    }
+  const allowedMimeTypes = [
+    "application/pdf",
+    "application/msword", // .doc
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // .docx
+  ];
+
+  if (allowedMimeTypes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error("Only PDF, DOC, DOCX files are allowed"));
+  }
 };
+
 export const uploadPdfMemory = multer({
     storage: pdfStorage,
     fileFilter: pdfFileFilter,

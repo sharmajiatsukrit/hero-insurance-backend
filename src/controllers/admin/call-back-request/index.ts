@@ -45,7 +45,6 @@ export default class CallBackRequestController {
                 .skip(skip)
                 .limit(limitNumber)
                 .populate({ path: "service_type", select: "name id" })
-                .populate({ path: "preferred_slot", select: "name id" })
                 .lean();
 
             const totalCount = await CallBackRequest.countDocuments(filter);
@@ -76,7 +75,6 @@ export default class CallBackRequestController {
             const id = parseInt(req.params.id);
             const result: any = await CallBackRequest.findOne({ id: id })
                 .populate({ path: "service_type", select: "name id" })
-                .populate({ path: "preferred_slot", select: "name id" })
                 .lean();
 
             if (result) {

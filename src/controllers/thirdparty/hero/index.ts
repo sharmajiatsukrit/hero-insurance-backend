@@ -815,7 +815,7 @@ export default class HeroController {
         const { data: token } = await getMispToken();
         const headers: any = { Authorization: "Bearer " + token };
         const data: any = { MobileNo: mobile, Registration_No: registration_no };
-        const result = await networkRequest("POST", "https://misp.heroinsurance.com/uat/services/HeroOne/api/Policy/PolicyDetails", data, headers);
+        const result = await networkRequest("POST", "https://misp.heroinsurance.com/prod/services/HeroOne/api/Policy/PolicyDetails", data, headers);
         return result?.data || null;
     }
 
@@ -840,7 +840,8 @@ export default class HeroController {
         const { mobile, email = "" } = req.body;
         const headers: any = { Authorization: "Basic RnludHVuZVVzZXI6RnludHVuZUBQYXNzMjAyNQ==" };
         const data: any = { mobile_no:mobile };
-        const result = await networkRequest("POST", `https://uatdashboard.heroinsurance.com/da/api/policy-details`, data, headers);
+        // https://uatdashboard.heroinsurance.com/da/api/policy-details
+        const result = await networkRequest("POST", `https://dashboard.heroinsurance.com/da/api/policy-details`, data, headers);
         return result?.data || null;
     }
 
