@@ -579,11 +579,12 @@ export default class HeroController {
                 } else {
                     parsedData = data.data;
                 }
-                const formattedData = parsedData.map((item: any) => {
+                const formattedData = parsedData.map((item: any,i:any) => {
+                    i===1&&console.log(item)
                     return {
                         ...item,
                         common_data: {
-                            name: item?.name || "",
+                            name: item?.Name || "",
                             policy_no: item?.Policy_No || "",
                             policy_id: item?.Policy_Id || "",
                             start_date: item?.ODStartDate || "",
@@ -815,7 +816,7 @@ export default class HeroController {
         const { data: token } = await getMispToken();
         const headers: any = { Authorization: "Bearer " + token };
         const data: any = { MobileNo: mobile, Registration_No: registration_no };
-        const result = await networkRequest("POST", "https://misp.heroinsurance.com/prod/services/HeroOne/api/Policy/PolicyDetails", data, headers);
+        const result = await networkRequest("POST", "https://misp.heroinsurance.com/uat/services/HeroOne/api/Policy/PolicyDetails", data, headers);
         return result?.data || null;
     }
 
