@@ -55,6 +55,12 @@ routes.post("/tailored-insurance/add/seo-detail", validateRequest, authAdmin, pa
 // TERM Insurance Page
 routes.post("/term-insurance/add/seo-detail", validateRequest, authAdmin, pageController.addTISS.bind(pageController));
 
+// pages content
+routes.post("/content/add", validateRequest, authAdmin, pageController.addPageContent.bind(pageController));
+
+//pages content rollback to 1 step prev 
+routes.get("/content/rollback/:key", validateRequest, authAdmin, pageController.pageContentRollback.bind(pageController));
+
 // Get endpoints
 routes.get("/list/:key", validateRequest, authAdmin, pageController.getPageSectionData.bind(pageController));
 

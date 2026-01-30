@@ -734,4 +734,88 @@ export default class PageController {
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
         }
     }
+
+    //page content
+
+    public async addPageContent(req: Request, res: Response): Promise<any> {
+        try {
+            const fn = "[term_insurance_seo_section][add]";
+            const { locale } = req.query;
+            this.locale = (locale as string) || "en";
+            const { key, content } = req.body;
+            Logger.info(`${fileName + fn} req.body: ${JSON.stringify(req.body)}`);
+
+            const contentDetail = await Page.findOne({ key });
+            if (!contentDetail) {
+                const result: any = await Page.create({
+                    key,
+                    value: { content },
+                    created_by: req.user?.object_id,
+                });
+                return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "award-add"), {});
+            }
+            const rollBackKey = `${key}_rollback`;
+
+            const rollBackContentDetail = await Page.findOne({ key: rollBackKey });
+
+            if (!rollBackContentDetail) {
+                await Page.create({
+                    key: rollBackKey,
+                    value: contentDetail.value,
+                    created_by: req.user?.object_id,
+                });
+            } else {
+                await Page.findOneAndUpdate(
+                    { key: rollBackKey },
+                    {
+                        value: contentDetail.value,
+                        updated_by: req.user?.object_id,
+                    }
+                );
+            }
+
+            await Page.findOneAndUpdate(
+                { key },
+                {
+                    value: { content },
+                    created_by: req.user?.object_id,
+                }
+            );
+
+            return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "award-add"), {});
+        } catch (err: any) {
+            // Logger.error(`${fileName + fn} Error: ${err.message}`);
+            console.log(err);
+            return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
+        }
+    }
+
+    public async pageContentRollback(req: Request, res: Response): Promise<any> {
+        try {
+            const fn = "[term_insurance_seo_section][add]";
+            const { locale } = req.query;
+            const { key } = req.params;
+            this.locale = (locale as string) || "en";
+            Logger.info(`${fileName + fn} req.body: ${JSON.stringify(req.body)}`);
+            const rollBackKey = `${key}_rollback`;
+
+            const rollBackContentDetail = await Page.findOne({ key: rollBackKey });
+            
+            if (rollBackContentDetail) {
+                await Page.findOneAndUpdate(
+                    { key },
+                    {
+                        value: rollBackContentDetail.value,
+                        updated_by: req.user?.object_id,
+                    }
+                );
+            }
+
+            return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "award-add"), {});
+        } catch (err: any) {
+            // Logger.error(`${fileName + fn} Error: ${err.message}`);
+            console.log(err);
+            return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
+        }
+    }
 }
