@@ -56,6 +56,12 @@ routes.post("/tailored-insurance/add/seo-detail", validateRequest, authAdmin, pa
 routes.post("/term-insurance/add/seo-detail", validateRequest, authAdmin, pageController.addTISS.bind(pageController));
 
 // pages content
+routes.get("/content/image/list", validateRequest, authAdmin, pageController.getPageContentImageList.bind(pageController));
+routes.post("/content/image/add", validateRequest, authAdmin, upload.single("image"), pageController.addPageContentImage.bind(pageController));
+routes.post("/content/image/edit/:id", validateRequest, authAdmin, upload.single("image"), pageController.editPageContentImage.bind(pageController));
+routes.delete("/content/image/delete/:id", validateRequest, authAdmin, pageController.deletePageContentImage.bind(pageController));
+
+
 routes.post("/content/add", validateRequest, authAdmin, pageController.addPageContent.bind(pageController));
 
 //pages content rollback to 1 step prev 

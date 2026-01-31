@@ -7,6 +7,7 @@ import validate from "./validate";
 import Logger from "../../../utils/logger";
 import ServerMessages, { ServerMessagesEnum } from "../../../config/messages";
 import Page from "../../../models/page";
+import PageImage from "../../../models/page-image";
 
 const fileName = "[admin][page][index.ts]";
 export default class PageController {
@@ -737,6 +738,117 @@ export default class PageController {
 
     //page content
 
+    public async getPageContentImageList(req: Request, res: Response): Promise<any> {
+        try {
+            const fn = "[pagesection][get]";
+            // Set locale
+            const { locale, page, limit, search } = req.query;
+            this.locale = (locale as string) || "en";
+            const pageNumber = parseInt(page as string) || 1;
+            const limitNumber = parseInt(limit as string) || 10;
+            const skip = (pageNumber - 1) * limitNumber;
+
+            this.locale = (locale as string) || "en";
+
+            const filter: any = {};
+            if (search) {
+                filter.$or = [{ key: { $regex: search, $options: "i" } }];
+            }
+            filter.status = true;
+            const result: any = await PageImage.find(filter).skip(skip).limit(limitNumber).lean();
+
+            let formattedResult: any = [];
+
+            if (result) {
+                formattedResult = result.map((item: any) => ({
+                    ...item,
+                    image: `${process.env.RESOURCE_URL}${item.image}`,
+                }));
+            }
+            const totalCount = await PageImage.countDocuments(filter);
+            const totalPages = Math.ceil(totalCount / limitNumber);
+            if (result) {
+                // result.offer_image = `${process.env.RESOURCE_URL}${result.offer_image}`;
+                return serverResponse(res, HttpCodeEnum.OK, ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["enquiry-fetched"]), {
+                    data: formattedResult,
+                    totalCount,
+                    totalPages,
+                    currentPage: pageNumber,
+                });
+            } else {
+                throw new Error(ServerMessages.errorMsgLocale(this.locale, ServerMessagesEnum["not-found"]));
+            }
+        } catch (err: any) {
+            return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
+        }
+    }
+
+    public async addPageContentImage(req: Request, res: Response): Promise<any> {
+        try {
+            const { locale } = req.query;
+            this.locale = (locale as string) || "en";
+            const { key, image } = req.body;
+
+            let img: any;
+            if (req.file) {
+                img = req?.file?.filename;
+            }
+
+            const result: any = await PageImage.create({
+                key,
+                image: img,
+                created_by: req.user?.object_id,
+            });
+            return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "award-add"), {});
+        } catch (err: any) {
+            // Logger.error(`${fileName + fn} Error: ${err.message}`);
+            console.log(err);
+            return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
+        }
+    }
+
+    public async editPageContentImage(req: Request, res: Response): Promise<any> {
+        try {
+            const { locale } = req.query;
+            const { id } = req.params;
+
+            this.locale = (locale as string) || "en";
+            const { key, image } = req.body;
+            let img: any;
+            if (req.file) {
+                img = req?.file?.filename;
+            }
+            const result: any = await PageImage.findOneAndUpdate(
+                { id },
+                {
+                    key,
+                    image: img,
+                    created_by: req.user?.object_id,
+                }
+            );
+            return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "award-add"), {});
+        } catch (err: any) {
+            // Logger.error(`${fileName + fn} Error: ${err.message}`);
+            console.log(err);
+            return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
+        }
+    }
+
+    public async deletePageContentImage(req: Request, res: Response): Promise<any> {
+        try {
+            const { locale } = req.query;
+            const { id } = req.params;
+
+            this.locale = (locale as string) || "en";
+            const result: any = await PageImage.findOneAndDelete({ id });
+            return serverResponse(res, HttpCodeEnum.OK, constructResponseMsg(this.locale, "award-add"), {});
+        } catch (err: any) {
+            // Logger.error(`${fileName + fn} Error: ${err.message}`);
+            console.log(err);
+            return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
+        }
+    }
+
     public async addPageContent(req: Request, res: Response): Promise<any> {
         try {
             const fn = "[term_insurance_seo_section][add]";
@@ -800,7 +912,7 @@ export default class PageController {
             const rollBackKey = `${key}_rollback`;
 
             const rollBackContentDetail = await Page.findOne({ key: rollBackKey });
-            
+
             if (rollBackContentDetail) {
                 await Page.findOneAndUpdate(
                     { key },
@@ -817,5 +929,5 @@ export default class PageController {
             console.log(err);
             return serverErrorHandler(err, res, err.message, HttpCodeEnum.SERVERERROR, {});
         }
-    }
+    }        
 }
